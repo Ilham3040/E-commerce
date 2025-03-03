@@ -1,0 +1,103 @@
+### Create User 1
+POST http://localhost:8080/api/users HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "username": "ilham",
+    "email": "ilhamgamingz@gmail.com",
+    "phoneNumber": "1234567890"
+}
+
+### Create User 2
+POST http://localhost:8080/api/users HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "username": "john_doe",
+    "email": "john.doe@example.com",
+    "phoneNumber": "9876543210"
+}
+
+### Create Store 1 (Owned by User ID 1)
+POST http://localhost:8080/api/stores HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "storeName": "Ilham's Tech Store",
+    "storeDescription": "Best gadgets and tech accessories",
+    "user": {
+        "userId": 1
+    }
+}
+
+### Create Store 2 (Owned by User ID 2)
+POST http://localhost:8080/api/stores HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "storeName": "John's Fashion Hub",
+    "storeDescription": "Trendy clothing and accessories",
+    "user": {
+        "userId": 2
+    }
+}
+
+### Create Product 1 (Under Store ID 1)
+POST http://localhost:8080/api/products HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "productName": "Wireless Mouse",
+    "price": 25.99,
+    "store": {
+        "storeId": 1
+    }
+}
+
+### Create Product 2 (Under Store ID 2)
+POST http://localhost:8080/api/products HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "productName": "Leather Jacket",
+    "price": 89.99,
+    "store": {
+        "storeId": 2
+    }
+}
+
+### Create Order 1 (User ID 1 buying Product ID 1)
+POST http://localhost:8080/api/orders HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "user": {
+        "userId": 1
+    },
+    "product": {
+        "productId": 1
+    },
+    "status": "pending"
+}
+
+### Create Order 2 (User ID 2 buying Product ID 2)
+POST http://localhost:8080/api/orders HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "user": {
+        "userId": 2
+    },
+    "product": {
+        "productId": 2
+    },
+    "status": "pending"
+}
