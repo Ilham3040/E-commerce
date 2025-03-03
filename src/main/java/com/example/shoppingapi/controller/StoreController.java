@@ -5,6 +5,8 @@ import com.example.shoppingapi.service.StoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.example.shoppingapi.dto.ApiResponse;
 import com.example.shoppingapi.dto.StoreDTO;
 
 import java.util.List;
@@ -32,13 +34,12 @@ public class StoreController {
     }
 
     @PostMapping
-    public ResponseEntity<StoreDTO> createOrUpdateStore(@RequestBody Store store) {
+    public ResponseEntity<ApiResponse<StoreDTO>> createStore(@RequestBody Store store) {
         Store savedStore = storeService.saveStore(store);
         
-        // Convert to DTO before returning
-        StoreDTO storeDTO = new StoreDTO(savedStore.getStoreId(), savedStore.getStoreName());
-
-        return ResponseEntity.ok(storeDTO);
+        StoreDTO storeDTO = new StoreDTO(savedStore.getStoreId(),savedStore.getUser().getUserId());
+        ApiResponse<StoreDTO> response = new ApiResponse<>("Store successfully added", storeDTO);
+        return ResponseEntity.ok(response);
     }
 
     // Delete a store by ID

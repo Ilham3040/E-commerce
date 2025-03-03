@@ -5,6 +5,8 @@ import com.example.shoppingapi.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.example.shoppingapi.dto.ApiResponse;
 import com.example.shoppingapi.dto.ProductDTO;
 
 import java.util.List;
@@ -17,36 +19,37 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    // Get all products
+    
     @GetMapping
     public List<Product> getAllProducts() {
         return productService.getAllProducts();
     }
 
-    // Get product by ID
+    
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Long id) {
         Optional<Product> product = productService.getProductById(id);
         return product.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Get products by store ID
+    
     @GetMapping("/store/{storeId}")
     public List<Product> getProductsByStoreId(@PathVariable Long storeId) {
         return productService.getProductsByStoreId(storeId);
     }
 
     @PostMapping
-    public ResponseEntity<ProductDTO> createProduct(@RequestBody Product product) {
+    public ResponseEntity<ApiResponse<ProductDTO>> createProduct(@RequestBody Product product) {
         Product savedProduct = productService.saveProduct(product);
 
-        // Convert to DTO before returning
-        ProductDTO productDTO = new ProductDTO(savedProduct.getProductId(), savedProduct.getProductName(), savedProduct.getPrice());
+        
+        ProductDTO productDTO = new ProductDTO(savedProduct.getProductId(), savedProduct.getStore().getStoreId());
 
-        return ResponseEntity.ok(productDTO);
+        ApiResponse<ProductDTO> response = new ApiResponse<>("Product sucessfully added", productDTO);
+
+        return ResponseEntity.ok(response);
     }
 
-    // Delete a product by ID
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
