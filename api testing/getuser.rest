@@ -1,2 +1,32 @@
 GET http://localhost:8080/api/products/1 HTTP/1.1
 Accept: application/json
+
+### Update an Existing User
+PUT http://localhost:8080/api/users/1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "username": "ilham",
+    "email": "ilhamgamingz@gmail.com",
+    "phoneNumber": "123456789012"
+}
+
+### Partially Update an Existing User
+PATCH http://localhost:8080/api/users/1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "email": "newemail@example.com"
+}
+
+### Partially Update an Existing Product
+PATCH http://localhost:8080/api/stores/2
+Content-Type: application/json
+Accept: application/json
+
+{
+    "storeDescription": "Hello there"
+}
+
