@@ -1,15 +1,19 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.model.Order;
+import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.shoppingapi.dto.ApiResponse;
 import com.example.shoppingapi.dto.OrderDTO;
+import com.example.shoppingapi.dto.ProductDTO;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -47,8 +51,6 @@ public class OrderController {
 
         OrderDTO orderDTO = new OrderDTO(
             savedOrder.getOrderId(),
-            savedOrder.getStatus(),
-            savedOrder.getOrderDate(),
             savedOrder.getUser().getUserId(),
             savedOrder.getProduct().getProductId()
         );
@@ -56,6 +58,38 @@ public class OrderController {
          ApiResponse<OrderDTO> response = new ApiResponse<>("Order successfully added", orderDTO);
          return ResponseEntity.ok(response);
     }
+
+
+        @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<OrderDTO>> updateOrder(
+            @PathVariable Long id,
+            @RequestBody Order order) {
+        try {
+            Order updatedOrder = orderService.updateOrder(id, order);
+            OrderDTO orderDTO = new OrderDTO(updatedOrder.getOrderId(),updatedOrder.getUser().getUserId() ,updatedOrder.getProduct().getProductId());
+            ApiResponse<OrderDTO> response = new ApiResponse<>("Order successfully updated", orderDTO);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            ApiResponse<OrderDTO> response = new ApiResponse<>(e.getMessage(), null);
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<OrderDTO>> partialUpdateOrder(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> updates) {
+        try {
+            Order updatedOrder = orderService.partialUpdateOrder(id, updates);
+            OrderDTO OrderDTO = new OrderDTO(updatedOrder.getOrderId(), updatedOrder.getUser().getUserId() ,updatedOrder.getProduct().getProductId());
+            ApiResponse<OrderDTO> response = new ApiResponse<>("Order successfully updated", OrderDTO);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            ApiResponse<OrderDTO> response = new ApiResponse<>("Error updating Order: " + e.getMessage(), null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {

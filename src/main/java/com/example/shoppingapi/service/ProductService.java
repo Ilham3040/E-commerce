@@ -65,29 +65,29 @@ public class ProductService {
         return productRepository.save(updatedProduct);
     }
 
-public Product partialUpdateProduct(Long id, Map<String, Object> updates) {
-    Optional<Product> existingProductOpt = productRepository.findById(id);
-    if (existingProductOpt.isEmpty()) {
-        throw new IllegalArgumentException("Product not found with ID: " + id);
-    }
-    
-    Product existingProduct = existingProductOpt.get();
-    updates.forEach((key, value) -> {
-        Field field = ReflectionUtils.findField(Product.class, key);
-        if (field != null) {
-            field.setAccessible(true);
-            if ("price".equals(key) && value instanceof Number) {
-                // Convert Number to BigDecimal
-                BigDecimal priceValue = new BigDecimal(value.toString());
-                ReflectionUtils.setField(field, existingProduct, priceValue);
-            } else {
-                ReflectionUtils.setField(field, existingProduct, value);
-            }
+    public Product partialUpdateProduct(Long id, Map<String, Object> updates) {
+        Optional<Product> existingProductOpt = productRepository.findById(id);
+        if (existingProductOpt.isEmpty()) {
+            throw new IllegalArgumentException("Product not found with ID: " + id);
         }
-    });
+        
+        Product existingProduct = existingProductOpt.get();
+        updates.forEach((key, value) -> {
+            Field field = ReflectionUtils.findField(Product.class, key);
+            if (field != null) {
+                field.setAccessible(true);
+                if ("price".equals(key) && value instanceof Number) {
+                    
+                    BigDecimal priceValue = new BigDecimal(value.toString());
+                    ReflectionUtils.setField(field, existingProduct, priceValue);
+                } else {
+                    ReflectionUtils.setField(field, existingProduct, value);
+                }
+            }
+        });
 
-    return productRepository.save(existingProduct);
-}
+        return productRepository.save(existingProduct);
+    }
 
 
     public List<Product> getProductsByStoreId(Long storeId) {
