@@ -28,7 +28,6 @@ public class StoreController {
         return storeService.getAllStores();
     }
 
-    // Get store by ID
     @GetMapping("/{id}")
     public ResponseEntity<Store> getStoreById(@PathVariable Long id) {
         Optional<Store> store = storeService.getStoreById(id);

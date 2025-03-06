@@ -114,26 +114,34 @@ Accept: application/json
 }
 
 ###
-POST http://localhost:8080/api/users HTTP/1.1
+PATCH http://localhost:8080/api/users/3 HTTP/1.1
 Content-Type: application/json
 Accept: application/json
 
 {
-    "username": "yusuf amir",
-    "email": "amiryusuf32@example.com",
-    "phoneNumber": "999999999"
+    "phoneNumber": "99999991"
 }
 
 
 ###
-POST http://localhost:8080/api/stores HTTP/1.1
+PUT  http://localhost:8080/api/stores/1 HTTP/1.1
 Content-Type: application/json
 Accept: application/json
 
 {
-    "storeName": "Manga and Anime DVD Store",
-    "storeDescription": "Most complete anime cultural store",
+    "storeName": "Ilham Blazingly Fast Tech Store",
+    "storeDescription": "Most Cutting Edge Tech Store HAHAHA",
     "user": {
-        "userId": 2
+        "userId": 1
     }
+}
+
+###
+
+PATCH http://localhost:8080/api/users/2 HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "email":"john897doe@gmail.com"
 }

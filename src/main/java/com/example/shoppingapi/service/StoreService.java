@@ -50,21 +50,28 @@ public class StoreService {
         if (existingStoreOpt.isEmpty()) {
             throw new IllegalArgumentException("Store not found with ID: " + id);
         }
-        Store existingStore = existingStoreOpt.get();
-        existingStore.setUser(store.getUser());
-        // Set other fields as needed
-        return storeRepository.save(existingStore);
+        if (store.getUser() == null || store.getUser().getUserId() == null) {
+            throw new IllegalArgumentException("User ID is required to create a store.");
+        }
+
+        Optional<User> user = usersRepository.findById(store.getUser().getUserId());
+        if (user.isEmpty()) {
+            throw new IllegalArgumentException("User not found. Cannot create store.");
+        }
+        Store updatedStore = store;
+        updatedStore.setStoreId(id);
+
+        return storeRepository.save(updatedStore);
     }
 
-    // Partial Update (Direct Mapping)
+    
     public Store partialUpdateStore(Long id, Map<String, Object> updates) {
         Optional<Store> existingStoreOpt = storeRepository.findById(id);
         if (existingStoreOpt.isEmpty()) {
             throw new IllegalArgumentException("Store not found with ID: " + id);
         }
+        
         Store existingStore = existingStoreOpt.get();
-
-        // Iterate over the provided updates and apply them to the existing store
         updates.forEach((key, value) -> {
             Field field = ReflectionUtils.findField(Store.class, key);
             if (field != null) {

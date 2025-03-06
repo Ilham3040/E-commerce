@@ -1,15 +1,19 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.model.Product;
+import com.example.shoppingapi.model.Store;
 import com.example.shoppingapi.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.shoppingapi.dto.ApiResponse;
 import com.example.shoppingapi.dto.ProductDTO;
+import com.example.shoppingapi.dto.StoreDTO;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -49,6 +53,38 @@ public class ProductController {
 
         return ResponseEntity.ok(response);
     }
+
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<ProductDTO>> updateProduct(
+            @PathVariable Long id,
+            @RequestBody Product product) {
+        try {
+            Product updatedProduct = productService.updateProduct(id, product);
+            ProductDTO ProductDTO = new ProductDTO(updatedProduct.getProductId(), updatedProduct.getStore().getStoreId());
+            ApiResponse<ProductDTO> response = new ApiResponse<>("Product successfully updated", ProductDTO);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            ApiResponse<ProductDTO> response = new ApiResponse<>(e.getMessage(), null);
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<ProductDTO>> partialUpdateProduct(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> updates) {
+        try {
+            Product updatedProduct = productService.partialUpdateProduct(id, updates);
+            ProductDTO productDTO = new ProductDTO(updatedProduct.getProductId(), updatedProduct.getStore().getStoreId());
+            ApiResponse<ProductDTO> response = new ApiResponse<>("Product successfully updated", productDTO);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            ApiResponse<ProductDTO> response = new ApiResponse<>("Error updating store: " + e.getMessage(), null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
