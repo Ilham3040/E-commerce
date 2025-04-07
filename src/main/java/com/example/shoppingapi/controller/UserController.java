@@ -12,6 +12,7 @@ import org.springframework.util.ReflectionUtils;
 
 
 import java.util.Optional;
+import java.util.List;
 import java.util.Map;
 import java.lang.reflect.Field;
 
@@ -21,6 +22,17 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @GetMapping
+    public List<User> getAllProductDetails() {
+        return userService.getAllUsers();
+    }
+
+    @GetMapping("/{id}")
+    public Optional<User> getUserById(@PathVariable Long id) {
+        return userService.getUserById(id);
+    }
+
 
     @PostMapping
     public ResponseEntity<ApiResponse<UserDTO>> createUser(@RequestBody User user) {
@@ -63,13 +75,6 @@ public class UserController {
         UserDTO userDTO = new UserDTO(updatedUser.getUserId());
         ApiResponse<UserDTO> response = new ApiResponse<>("User successfully updated", userDTO);
         return ResponseEntity.ok(response);
-    }
-
-
-
-    @GetMapping("/{id}")
-    public Optional<User> getUserById(@PathVariable Long id) {
-        return userService.getUserById(id);
     }
 
     @GetMapping("/username/{username}")

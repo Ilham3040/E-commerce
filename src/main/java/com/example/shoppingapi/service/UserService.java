@@ -10,6 +10,7 @@ import org.springframework.util.ReflectionUtils;
 import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.Map;
+import java.util.List;
 
 
 @Service
@@ -17,6 +18,11 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+
+    public List<User> getAllUsers(){
+        return userRepository.findAll();
+    }
 
     public User createUser(User user) {
         return userRepository.save(user);

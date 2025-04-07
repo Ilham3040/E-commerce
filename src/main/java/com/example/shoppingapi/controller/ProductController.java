@@ -1,7 +1,6 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.model.Product;
-import com.example.shoppingapi.model.Store;
 import com.example.shoppingapi.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.example.shoppingapi.dto.ApiResponse;
 import com.example.shoppingapi.dto.ProductDTO;
-import com.example.shoppingapi.dto.StoreDTO;
 
 import java.util.List;
 import java.util.Map;

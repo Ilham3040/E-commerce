@@ -74,9 +74,6 @@ public class StoreController {
         }
     }
     
-    
-
-
 
     // Delete a store by ID
     @DeleteMapping("/{id}")

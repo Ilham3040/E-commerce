@@ -22,11 +22,80 @@ Accept: application/json
 }
 
 ### Partially Update an Existing Product
-PATCH http://localhost:8080/api/stores/2
+PATCH http://localhost:8080/api/product-details/1
+Content-Type: application/json
+Accept: application/json
+
+{   
+    "totalSold": 6,
+    "reviewRating": 4.76
+}
+###
+GET http://localhost:8080/api/products HTTP/1.1
+Accept: application/json
+
+
+#### GET all product reviews
+GET http://localhost:8080/api/product-reviews HTTP/1.1
+Accept: application/json
+
+#### GET product review by ID
+GET http://localhost:8080/api/product-reviews/1 HTTP/1.1
+Accept: application/json
+
+#### POST create product review
+POST http://localhost:8080/api/product-reviews HTTP/1.1
 Content-Type: application/json
 Accept: application/json
 
 {
-    "storeDescription": "Hello there"
+    "product": { "productId": 1 },
+    "user" : {"userId" : 1},
+    "starRating": 5,
+    "description": "Great product!",
+    "likes": 10
 }
+
+#### PATCH update product review
+PATCH http://localhost:8080/api/product-reviews/1 HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "starRating": 4,
+    "description": "Updated review."
+}
+###
+GET http://localhost:8080/api/product-variants HTTP/1.1
+Accept: application/json
+
+###
+POST http://localhost:8080/api/product-variants HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "product": { "productId": 1 },
+    "variantName": "Color Variant",
+    "productReviews": 150,
+    "stockQuantity": 100,
+    "totalSold": 50
+}
+
+###
+GET http://localhost:8080/api/product-variants/1 HTTP/1.1
+Accept: application/json
+
+
+###
+PATCH http://localhost:8080/api/product-variants/1 HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "variantName": "Updated Color Variant",
+    "productReviews": 160,
+    "stockQuantity": 120
+}
+
 

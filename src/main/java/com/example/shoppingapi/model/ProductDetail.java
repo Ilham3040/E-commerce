@@ -13,11 +13,11 @@ public class ProductDetail {
     @Column(name = "product_detail_id")
     private Long productDetailId;
 
-    @ManyToOne
+    @ManyToOne()
     @JoinColumn(name = "product_id", referencedColumnName = "product_id", nullable = false)
     private Product product;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @Column(name = "attachment_urls")
     private List<String> attachmentUrls;
 

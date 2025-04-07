@@ -1,8 +1,6 @@
 package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.model.Order;
-import com.example.shoppingapi.model.Product;
-import com.example.shoppingapi.model.Store;
 import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.repository.OrderRepository;
 import com.example.shoppingapi.repository.UserRepository;
@@ -13,7 +11,6 @@ import org.springframework.util.ReflectionUtils;
 
 
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
