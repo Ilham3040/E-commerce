@@ -5,7 +5,7 @@ Accept: application/json
 
 ###
 # GET a specific store detail by ID (e.g., ID: 1)
-GET http://localhost:8080/api/store-details/1 HTTP/1.1
+GET http://localhost:8080/api/store-details/2 HTTP/1.1
 Accept: application/json
 
 ###
