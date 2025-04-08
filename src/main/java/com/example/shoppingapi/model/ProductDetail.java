@@ -1,11 +1,14 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
 @Table(name = "product_detail")
+@Data
 public class ProductDetail {
 
     @Id
@@ -26,45 +29,4 @@ public class ProductDetail {
 
     @Column(name = "review_rating", precision = 3, scale = 2)
     private BigDecimal reviewRating;
-
-    
-    public Long getProductDetailId() {
-        return productDetailId;
-    }
-
-    public void setProductDetailId(Long productDetailId) {
-        this.productDetailId = productDetailId;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-
-    public List<String> getAttachmentUrls() {
-        return attachmentUrls;
-    }
-
-    public void setAttachmentUrls(List<String> attachmentUrls) {
-        this.attachmentUrls = attachmentUrls;
-    }
-
-    public Integer getTotalSold() {
-        return totalSold;
-    }
-
-    public void setTotalSold(Integer totalSold) {
-        this.totalSold = totalSold;
-    }
-
-    public BigDecimal getReviewRating() {
-        return reviewRating;
-    }
-
-    public void setReviewRating(BigDecimal reviewRating) {
-        this.reviewRating = reviewRating;
-    }
 }

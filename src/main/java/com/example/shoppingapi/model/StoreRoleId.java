@@ -1,16 +1,12 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.Embeddable;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.EqualsAndHashCode;
+import lombok.Data;
 
 import java.io.Serializable;
 
 @Embeddable
-@Getter
-@Setter
-@EqualsAndHashCode
+@Data
 public class StoreRoleId implements Serializable {
 
     private Long userId;

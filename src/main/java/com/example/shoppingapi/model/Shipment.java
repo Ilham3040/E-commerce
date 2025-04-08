@@ -1,9 +1,11 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
 @Table(name = "shipment")
+@Data
 public class Shipment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,29 +20,4 @@ public class Shipment {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    // Getters and Setters
-
-    public Long getShipmentId() {
-        return shipmentId;
-    }
-
-    public void setShipmentId(Long shipmentId) {
-        this.shipmentId = shipmentId;
-    }
-
-    public ShipmentVendor getShipmentVendor() {
-        return shipmentVendor;
-    }
-
-    public void setShipmentVendor(ShipmentVendor shipmentVendor) {
-        this.shipmentVendor = shipmentVendor;
-    }
-
-    public Order getOrder() {
-        return order;
-    }
-
-    public void setOrder(Order order) {
-        this.order = order;
-    }
 }

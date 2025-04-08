@@ -1,13 +1,11 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 @Entity
 @Table(name = "user_cart")
-@Getter
-@Setter
+@Data
 public class UserCart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

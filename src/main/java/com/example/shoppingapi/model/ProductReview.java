@@ -1,12 +1,15 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 
 @Entity
 @Table(name = "product_reviews")
+@Data
 public class ProductReview {
 
     @Id
@@ -55,62 +58,6 @@ public class ProductReview {
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-
-    public Long getReviewId() {
-        return reviewId;
-    }
-
-    public void setReviewId(Long reviewId) {
-        this.reviewId = reviewId;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Integer getStarRating() {
-        return starRating;
-    }
-
-    public void setStarRating(Integer starRating) {
-        this.starRating = starRating;
-    }
-
-    public List<String> getAttachmentUrls() {
-        return attachmentUrls;
-    }
-
-    public void setAttachmentUrls(List<String> attachmentUrls) {
-        this.attachmentUrls = attachmentUrls;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Integer getLikes() {
-        return likes;
-    }
-
-    public void setLikes(Integer likes) {
-        this.likes = likes;
     }
     
 }

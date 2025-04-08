@@ -1,10 +1,13 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "shipment_vendor")
+@Data
 public class ShipmentVendor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,71 +49,5 @@ public class ShipmentVendor {
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-
-    // Getters and Setters
-
-    public Long getVendorId() {
-        return vendorId;
-    }
-
-    public void setVendorId(Long vendorId) {
-        this.vendorId = vendorId;
-    }
-
-    public String getVendorName() {
-        return vendorName;
-    }
-
-    public void setVendorName(String vendorName) {
-        this.vendorName = vendorName;
-    }
-
-    public String getVendorContact() {
-        return vendorContact;
-    }
-
-    public void setVendorContact(String vendorContact) {
-        this.vendorContact = vendorContact;
-    }
-
-    public String getVendorEmail() {
-        return vendorEmail;
-    }
-
-    public void setVendorEmail(String vendorEmail) {
-        this.vendorEmail = vendorEmail;
-    }
-
-    public String getOfficialWebsiteUrl() {
-        return officialWebsiteUrl;
-    }
-
-    public void setOfficialWebsiteUrl(String officialWebsiteUrl) {
-        this.officialWebsiteUrl = officialWebsiteUrl;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public LocalDateTime getDeletedAt() {
-        return deletedAt;
-    }
-
-    public void setDeletedAt(LocalDateTime deletedAt) {
-        this.deletedAt = deletedAt;
     }
 }
