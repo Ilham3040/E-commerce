@@ -24,6 +24,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.example.shoppingapi.model.User;
+import com.example.shoppingapi.modelhelper.ModelHelper;
+import com.example.shoppingapi.modelhelper.ModelHelperFactory;
 import com.example.shoppingapi.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,31 +38,15 @@ public class UserServiceTests {
     @InjectMocks
     private UserService userService;
 
-    private final Long userId1 = 1L;
-    private final String username1 = "JohnDoe";
-    private final String useremail1 = "johndoe@mymail.com";
-    private final String usernumber1 = "0888888888888";
-
-    private final Long userId2 = 2L;
-    private final String username2 = "Jonathan";
-    private final String useremail2 = "jonathan@mymail.com";
-    private final String usernumber2 = "0888888";
+    private ModelHelper<User> userHelper =  ModelHelperFactory.getModelHelper(User.class);
 
 
     @Test
     public void testGetAllUsers() {
         
-        User user1 = new User();
-        user1.setUserId(userId1);
-        user1.setUsername(username1);
-        user1.setEmail(useremail1);
-        user1.setPhoneNumber(usernumber1);
-    
-        User user2 = new User();
-        user2.setUserId(userId2);
-        user2.setUsername(username2);
-        user2.setEmail(useremail2);
-        user2.setPhoneNumber(usernumber2);
+
+        User user1 = userHelper.createModel(1);
+        User user2 = userHelper.createModel(1);
     
         List<User> mockUsers = Arrays.asList(user1, user2);
     
@@ -72,118 +58,100 @@ public class UserServiceTests {
         
         assertNotNull(result);
         assertEquals(2, result.size());
-        assertEquals(username1, result.get(0).getUsername());
-        assertEquals(username2, result.get(1).getUsername());
+        assertEquals(user1.getUsername(), result.get(0).getUsername());
+        assertEquals(user2.getUsername(), result.get(1).getUsername());
     
         verify(userRepository, times(1)).findAll();
     }
-    
-
 
     @Test
     public void testCreateUser() {
-        User user = new User();
-        user.setUsername(username1);
-        user.setEmail(useremail1);
-        user.setPhoneNumber(usernumber1);
+        User user = userHelper.createModel(1);
 
         when(userRepository.save(any(User.class))).thenReturn(user);
 
         User createdUser = userService.createUser(user);
 
         assertNotNull(createdUser);
-        assertEquals(username1, createdUser.getUsername());
-        assertEquals(useremail1, createdUser.getEmail());
-        assertEquals(usernumber1, createdUser.getPhoneNumber());
+        assertEquals(user.getUsername(), createdUser.getUsername());
+        assertEquals(user.getEmail(), createdUser.getEmail());
+        assertEquals(user.getPhoneNumber(), createdUser.getPhoneNumber());
         verify(userRepository, times(1)).save(user);
     }
 
     @Test
     public void testGetUserById() {
-    User user = new User();
-        user.setUserId(userId1);
-        user.setUsername(username1);
-        user.setEmail(useremail1);
-        user.setPhoneNumber(usernumber1);
+        User user = userHelper.createModel(1);
+        when(userRepository.findById(user.getUserId())).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(userId1)).thenReturn(Optional.of(user));
-
-        Optional<User> result = userService.getUserById(userId1);
+        Optional<User> result = userService.getUserById(user.getUserId());
 
         assertTrue(result.isPresent());
-        assertEquals(username1, result.get().getUsername());
-        assertEquals(useremail1, result.get().getEmail());
-        assertEquals(usernumber1, result.get().getPhoneNumber());
+        assertEquals(user.getUsername(), result.get().getUsername());
+        assertEquals(user.getEmail(), result.get().getEmail());
+        assertEquals(user.getPhoneNumber(), result.get().getPhoneNumber());
 
-        verify(userRepository, times(1)).findById(userId1);
+        verify(userRepository, times(1)).findById(user.getUserId());
     }
 
 
     @Test
     public void testGetUserById_NotFound() {
-        when(userRepository.findById(userId1)).thenReturn(Optional.empty());
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        Optional<User> result = userService.getUserById(userId1);
+        Optional<User> result = userService.getUserById(1L);
 
         assertFalse(result.isPresent());
-        verify(userRepository, times(1)).findById(userId1);
+        verify(userRepository, times(1)).findById(1L);
     }
 
     @Test
     public void testSaveThenUpdateUser() {
-        User newUser = new User();
-        newUser.setUserId(userId1);
-        newUser.setUsername(username1);
-        newUser.setEmail(useremail1);
-        newUser.setPhoneNumber(usernumber1);
+        User user = userHelper.createModel(1);
         
         when(userRepository.save(any(User.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
         
-        User savedUser = userService.createUser(newUser);
+        User savedUser = userService.createUser(user);
         assertNotNull(savedUser);
-        assertEquals(userId1, savedUser.getUserId());
-        assertEquals(username1, savedUser.getUsername());
-        assertEquals(useremail1, savedUser.getEmail());
-        assertEquals(usernumber1, savedUser.getPhoneNumber());
+        assertEquals(user.getUserId(), savedUser.getUserId());
+        assertEquals(user.getUsername(), savedUser.getUsername());
+        assertEquals(user.getEmail(), savedUser.getEmail());
+        assertEquals(user.getPhoneNumber(), savedUser.getPhoneNumber());
 
-        when(userRepository.existsById(eq(userId1))).thenReturn(true);
+        when(userRepository.existsById(eq(user.getUserId()))).thenReturn(true);
         
         User updatedUser = new User();
-        updatedUser.setUserId(userId1);
-        updatedUser.setUsername(username2);
-        updatedUser.setEmail(useremail2);
+        updatedUser.setUserId(user.getUserId());
+        updatedUser.setUsername(user.getUsername());
+        updatedUser.setEmail(user.getEmail());
         updatedUser.setPhoneNumber("0987654321");
         
         User result = userService.updateUser(updatedUser);
         
         assertNotNull(result);
-        assertEquals(username2, result.getUsername());
-        assertEquals(useremail2, result.getEmail());
+        assertEquals(user.getUsername(), savedUser.getUsername());
+        assertEquals(user.getEmail(), savedUser.getEmail());
         assertEquals("0987654321", result.getPhoneNumber());
         
         verify(userRepository, times(2)).save(any(User.class));
-        verify(userRepository, times(1)).existsById(eq(userId1));
+        verify(userRepository, times(1)).existsById(eq(user.getUserId()));
     }
 
 
     @Test
     public void testSaveThenPartiallyUpdateUser() {
-        User newUser = new User();
-        newUser.setUserId(userId1);
-        newUser.setUsername(username1);
-        newUser.setEmail(useremail1);
-        newUser.setPhoneNumber(usernumber1);
+        User user = userHelper.createModel(1);
         
         when(userRepository.save(any(User.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
         
-        User savedUser = userService.createUser(newUser);
+        User savedUser = userService.createUser(user);
         assertNotNull(savedUser);
-        assertEquals(userId1, savedUser.getUserId());
-        assertEquals(username1, savedUser.getUsername());
-        assertEquals(useremail1, savedUser.getEmail());
-        assertEquals(usernumber1, savedUser.getPhoneNumber());
+        assertEquals(user.getUserId(), savedUser.getUserId());
+        assertEquals(user.getUsername(), savedUser.getUsername());
+        assertEquals(user.getEmail(), savedUser.getEmail());
+        assertEquals(user.getPhoneNumber(), savedUser.getPhoneNumber());
 
         when(userRepository.findById(savedUser.getUserId())).thenReturn(Optional.of(savedUser));
         
@@ -197,12 +165,12 @@ public class UserServiceTests {
         User result = userService.partialUpdateUser(savedUser.getUserId(),updatedUser);
         
         assertNotNull(result);
-        assertEquals(username1, savedUser.getUsername());
+        assertEquals(user.getUsername(), savedUser.getUsername());
         assertEquals( "heyguys@example.com", savedUser.getEmail());
         assertEquals("0987654321", result.getPhoneNumber());
         
         verify(userRepository, times(2)).save(any(User.class));
-        verify(userRepository, times(1)).findById(userId1);
+        verify(userRepository, times(1)).findById(user.getUserId());
     }
 
 }
