@@ -1,9 +1,11 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
 @Table(name = "store_categories_item")
+@Data
 public class StoreCategoryItem {
 
     @EmbeddedId
@@ -19,29 +21,4 @@ public class StoreCategoryItem {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    // Getters and Setters
-
-    public StoreCategoryItemId getId() {
-        return id;
-    }
-
-    public void setId(StoreCategoryItemId id) {
-        this.id = id;
-    }
-
-    public StoreCategory getStoreCategory() {
-        return storeCategory;
-    }
-
-    public void setStoreCategory(StoreCategory storeCategory) {
-        this.storeCategory = storeCategory;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
 }

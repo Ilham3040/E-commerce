@@ -1,11 +1,12 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.Embeddable;
+import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 @Embeddable
+@Data
 public class StoreCategoryItemId implements Serializable {
 
     private Long categoryId;
@@ -36,19 +37,4 @@ public class StoreCategoryItemId implements Serializable {
         this.productId = productId;
     }
 
-    // Override equals method
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof StoreCategoryItemId)) return false;
-        StoreCategoryItemId that = (StoreCategoryItemId) o;
-        return Objects.equals(getCategoryId(), that.getCategoryId()) &&
-               Objects.equals(getProductId(), that.getProductId());
-    }
-
-    // Override hashCode method
-    @Override
-    public int hashCode() {
-        return Objects.hash(getCategoryId(), getProductId());
-    }
 }

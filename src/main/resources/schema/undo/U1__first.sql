@@ -10,6 +10,9 @@ DROP TABLE IF EXISTS shipment,
                     store_details, 
                     product_variants, 
                     product_reviews, 
-                    product_detail
+                    product_detail,
+                    product_detail_attachment_urls,
+                    product_review_attachment_urls,
+                    store_detail_attachment_urls 
 CASCADE;
 
