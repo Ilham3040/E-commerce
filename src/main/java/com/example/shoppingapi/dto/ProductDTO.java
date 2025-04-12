@@ -1,16 +1,12 @@
 package com.example.shoppingapi.dto;
 
-import java.math.BigDecimal;
-
 public class ProductDTO {
     private Long productId;
-    private String productName;
-    private BigDecimal price;
+    private Long storeId;
 
-    public ProductDTO(Long productId, String productName, BigDecimal price) {
+    public ProductDTO(Long productId, Long storeId) {
         this.productId = productId;
-        this.productName = productName;
-        this.price = price;
+        this.storeId = storeId;
     }
 
     // Getters and Setters
@@ -22,19 +18,11 @@ public class ProductDTO {
         this.productId = productId;
     }
 
-    public String getProductName() {
-        return productName;
+    public Long getStoreId() {
+        return storeId;
     }
 
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
+    public void setStoreId(Long storeId) {
+        this.storeId = storeId;
     }
 }

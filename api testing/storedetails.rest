@@ -1,0 +1,62 @@
+###
+# GET all store details
+GET http://localhost:8080/api/store-details HTTP/1.1
+Accept: application/json
+
+###
+# GET a specific store detail by ID (e.g., ID: 1)
+GET http://localhost:8080/api/store-details/2 HTTP/1.1
+Accept: application/json
+
+###
+# POST a new store detail
+POST http://localhost:8080/api/store-details HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "store": { "storeId": 1 },
+    "address": "123 Main St, City, Country",
+    "review": 4.5,
+    "totalProducts": 20,
+    "description": "Main branch of our store",
+    "attachmentUrls": [
+        "http://example.com/image1.jpg",
+        "http://example.com/image2.jpg"
+    ],
+    "followerCount": 100
+}
+
+###
+# PUT to update an existing store detail (e.g., ID: 1)
+PUT http://localhost:8080/api/store-details/1 HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "store": { "storeId": 1 },
+    "address": "456 Updated St, New City, New Country",
+    "review": 4.7,
+    "totalProducts": 25,
+    "description": "Updated description for the store",
+    "attachmentUrls": [
+        "http://example.com/image3.jpg"
+    ],
+    "followerCount": 150
+}
+
+###
+# PATCH to partially update the store detail (e.g., ID: 1)
+PATCH http://localhost:8080/api/store-details/1 HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "address": "789 Partial Update Ave, City",
+    "review": 4.8,
+    "followerCount": 200
+}
+
+###
+# DELETE a store detail by ID (e.g., ID: 1)
+DELETE http://localhost:8080/api/store-details/1 HTTP/1.1

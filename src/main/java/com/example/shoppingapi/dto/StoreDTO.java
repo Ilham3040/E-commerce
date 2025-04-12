@@ -2,11 +2,11 @@ package com.example.shoppingapi.dto;
 
 public class StoreDTO {
     private Long storeId;
-    private String storeName;
+    private Long userId;
 
-    public StoreDTO(Long storeId, String storeName) {
+    public StoreDTO(Long storeId,Long userId) {
         this.storeId = storeId;
-        this.storeName = storeName;
+        this.userId = userId;
     }
 
     public Long getStoreId() {
@@ -17,11 +17,11 @@ public class StoreDTO {
         this.storeId = storeId;
     }
 
-    public String getStoreName() {
-        return storeName;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setStoreName(String storeName) {
-        this.storeName = storeName;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }

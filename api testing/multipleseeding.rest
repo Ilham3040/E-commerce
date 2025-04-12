@@ -101,3 +101,57 @@ Accept: application/json
     },
     "status": "pending"
 }
+
+### 
+POST http://localhost:8080/api/product-details HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "product": {
+        "productId": 2
+    }
+}
+
+###
+PATCH http://localhost:8080/api/users/1 HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "phoneNumber": "99999991"
+}
+
+
+###
+PUT  http://localhost:8080/api/stores/1 HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "storeName": "Ilham Blazingly Fast Tech Store",
+    "storeDescription": "Most Cutting Edge Tech Store HAHAHA",
+    "user": {
+        "userId": 1
+    }
+}
+
+###
+
+PATCH http://localhost:8080/api/users/2 HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "email":"john897doe@gmail.com"
+}
+
+
+###
+PATCh http://localhost:8080/api/orders/2 HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "status": "cancelled"
+}
