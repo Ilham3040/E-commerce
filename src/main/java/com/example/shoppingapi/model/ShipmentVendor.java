@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class ShipmentVendor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "vendor_id")
+    @Column(name = "id")
     private Long vendorId;
 
     @Column(name = "vendor_name", length = 255, nullable = false)

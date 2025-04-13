@@ -11,11 +11,11 @@ import java.time.LocalDateTime;
 public class ProductVariant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "variant_id")
+    @Column(name = "id")
     private Long variantId;
 
     @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
+    @JoinColumn(name = "product_id", referencedColumnName = "id", nullable = false)
     private Product product;
 
     @Column(name = "variant_name", length = 255)
@@ -30,11 +30,14 @@ public class ProductVariant {
     @Column(name = "total_sold", nullable = false, columnDefinition = "INT DEFAULT 0")
     private Integer totalSold = 0;
 
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at", columnDefinition = "TIMESTAMPTZ DEFAULT NOW()")
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", columnDefinition = "TIMESTAMPTZ DEFAULT NOW()")
     private LocalDateTime updatedAt;
+
+    @Column(name = "deleted_at", columnDefinition = "TIMESTAMPTZ")
+    private LocalDateTime deletedAt;
 
     @PrePersist
     public void prePersist() {
@@ -49,5 +52,10 @@ public class ProductVariant {
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    @PreRemove
+    public void preRemove() {
+        this.deletedAt = LocalDateTime.now();
     }
 }

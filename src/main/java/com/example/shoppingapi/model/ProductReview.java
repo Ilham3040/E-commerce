@@ -5,6 +5,8 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 
 @Entity
@@ -14,18 +16,20 @@ public class ProductReview {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "review_id")
+    @Column(name = "id")
     private Long reviewId;
 
     @ManyToOne()
-    @JoinColumn(name = "product_id" , referencedColumnName = "product_id",nullable = false)
+    @JoinColumn(name = "product_id" , referencedColumnName = "id",nullable = false)
     private Product product;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id",nullable = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "id",nullable = false)
     private User user;
 
     @Column(name = "star_rating")
+    @Min(value = 1, message = "Star rating must be at least {value}")
+    @Max(value = 5, message = "Star rating must be at most {value}")
     private Integer starRating;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -35,15 +39,14 @@ public class ProductReview {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column( name = "likes")
-    private Integer likes = 0;
-
-
     @Column(name = "created_at", columnDefinition = "TIMESTAMPTZ DEFAULT NOW()")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at", columnDefinition = "TIMESTAMPTZ DEFAULT NOW()")
     private LocalDateTime updatedAt;
+
+    @Column(name = "deleted_at", columnDefinition = "TIMESTAMPTZ")
+    private LocalDateTime deletedAt;
 
     @PrePersist
     public void prePersist() {
@@ -58,6 +61,11 @@ public class ProductReview {
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    @PreRemove
+    public void preRemove() {
+        this.deletedAt = LocalDateTime.now();
     }
     
 }

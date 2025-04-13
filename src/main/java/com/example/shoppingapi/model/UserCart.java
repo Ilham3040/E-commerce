@@ -7,19 +7,20 @@ import lombok.Data;
 @Table(name = "user_cart")
 @Data
 public class UserCart {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "cart_id")
-    private Long cartId;
-
+    
+    @EmbeddedId
+    private UserCartId id;
+    
+    @MapsId("userId")
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", referencedColumnName="id",nullable = false)
     private User user;
-
+    
+    @MapsId("productId")
     @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
+    @JoinColumn(name = "product_id", referencedColumnName="id",nullable = false)
     private Product product;
-
+    
     @Column(name = "quantity", nullable = false, columnDefinition = "INT DEFAULT 1")
     private Integer quantity = 1;
 }

@@ -14,11 +14,11 @@ public class StoreDetail {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "store_detail_id")
+    @Column(name = "id")
     private Long storeDetailId;
 
     @OneToOne
-    @JoinColumn(name = "store_id", nullable = false)
+    @JoinColumn(name = "store_id",referencedColumnName = "id",nullable = false)
     private Store store;
 
     @Column(name = "address", columnDefinition = "TEXT")
@@ -34,32 +34,38 @@ public class StoreDetail {
     private String description;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "store_detail_attachment_urls", joinColumns = @JoinColumn(name = "store_detail_id"))
-    @Column(name = "attachment_url", columnDefinition = "TEXT")
+    @Column(name = "attacment_urls")
     private List<String> attachmentUrls;
 
     @Column(name = "follower_count", nullable = false, columnDefinition = "INT DEFAULT 0")
     private Integer followerCount = 0;
 
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at", columnDefinition = "TIMESTAMPTZ DEFAULT NOW()")
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", columnDefinition = "TIMESTAMPTZ DEFAULT NOW()")
     private LocalDateTime updatedAt;
+
+    @Column(name = "deleted_at", columnDefinition = "TIMESTAMPTZ")
+    private LocalDateTime deletedAt;
 
     @PrePersist
     public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
         if (createdAt == null) {
-            createdAt = now;
+            createdAt = LocalDateTime.now();
         }
         if (updatedAt == null) {
-            updatedAt = now;
+            updatedAt = LocalDateTime.now();
         }
     }
 
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    @PreRemove
+    public void preRemove() {
+        this.deletedAt = LocalDateTime.now();
     }
 }

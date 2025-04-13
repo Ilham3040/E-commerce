@@ -12,7 +12,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
+    @Column(name = "id")
     private Long userId;
 
     @Column(name = "username", unique = true, nullable = false)
@@ -36,7 +36,7 @@ public class User {
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
-            createdAt = LocalDateTime.now(); 
+            createdAt = LocalDateTime.now();
         }
         if (updatedAt == null) {
             updatedAt = LocalDateTime.now();
@@ -46,6 +46,11 @@ public class User {
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    @PreRemove
+    public void preRemove() {
+        this.deletedAt = LocalDateTime.now();
     }
 
 }

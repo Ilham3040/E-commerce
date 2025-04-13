@@ -12,11 +12,11 @@ public class UserFavorite {
 
     @ManyToOne
     @MapsId("userId")
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id",referencedColumnName="id", nullable = false)
     private User user;
 
     @ManyToOne
     @MapsId("productId")
-    @JoinColumn(name = "product_id", nullable = false)
+    @JoinColumn(name = "product_id", referencedColumnName="id",nullable = false)
     private Product product;
 }

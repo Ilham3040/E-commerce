@@ -20,7 +20,7 @@ CREATE TABLE stores (
 CREATE TABLE products (
     id SERIAL PRIMARY KEY,
     product_name VARCHAR(255) NOT NULL,
-    price DECIMAL(10, 2),
+    price DECIMAL(10, 2) NOT NULL,
     store_id INT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),

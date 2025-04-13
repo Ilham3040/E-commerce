@@ -1,3 +1,58 @@
+DROP TABLE IF EXISTS orders,products,stores, users CASCADE;
+
+DROP TABLE IF EXISTS shipment,
+                    shipment_vendor,
+                    user_favorite,
+                    user_cart,
+                    store_role,
+                    store_categories_item,
+                    store_categories,
+                    store_details,
+                    product_variants,
+                    product_reviews,
+                    product_detail,
+                    product_detail_attachment_urls,
+                    product_review_attachment_urls,
+                    store_detail_attachment_urls
+CASCADE;
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    phoneNumber VARCHAR(16),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ
+);
+
+CREATE TABLE stores (
+    id SERIAL PRIMARY KEY,
+    store_name VARCHAR(255) NOT NULL,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ
+);
+
+CREATE TABLE products (
+    id SERIAL PRIMARY KEY,
+    product_name VARCHAR(255) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    store_id INT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ
+);
+
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    product_id INT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    order_date TIMESTAMPTZ DEFAULT NOW(),
+    status VARCHAR(50) DEFAULT 'pending'
+);
+
 
 CREATE TABLE product_detail (
     id SERIAL PRIMARY KEY,
@@ -116,3 +171,7 @@ CREATE TABLE shipment (
     order_id INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
     PRIMARY KEY (vendor_id, order_id)
 );
+
+
+
+

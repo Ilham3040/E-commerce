@@ -7,17 +7,17 @@ import lombok.Data;
 @Table(name = "shipment")
 @Data
 public class Shipment {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "shipment_id")
-    private Long shipmentId;
 
+    @EmbeddedId
+    private ShipmentId id;
+
+    @MapsId("vendorId")
     @ManyToOne
-    @JoinColumn(name = "vendor_id", nullable = false)
+    @JoinColumn(name = "vendor_id",referencedColumnName="id", nullable = false)
     private ShipmentVendor shipmentVendor;
 
+    @MapsId("orderId")
     @ManyToOne
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_id",referencedColumnName="id", nullable = false)
     private Order order;
-
 }
