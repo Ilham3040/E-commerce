@@ -3,6 +3,7 @@ import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.model.Order;
 import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.ProductDetail;
+import com.example.shoppingapi.model.ProductReview;
 import com.example.shoppingapi.model.ProductVariant;
 import com.example.shoppingapi.model.Store;
 import java.util.Map;
@@ -24,6 +25,7 @@ public class ModelHelperFactory {
         registry.put(Product.class, ProductModelHelper::new);
         registry.put(ProductDetail.class, ProductDetailModelHelper::new);
         registry.put(ProductVariant.class, ProductVariantModelHelper::new);
+        registry.put(ProductReview.class, ProductReviewModelHelper::new);
         registry.put(Order.class, OrderModelHelper::new);
     }
 

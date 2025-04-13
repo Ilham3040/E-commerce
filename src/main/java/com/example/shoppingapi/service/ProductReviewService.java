@@ -2,6 +2,7 @@ package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.model.ProductReview;
 import com.example.shoppingapi.repository.ProductReviewRepository;
+import com.example.shoppingapi.repository.UserRepository;
 import com.example.shoppingapi.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,8 +21,11 @@ public class ProductReviewService {
     private ProductReviewRepository productReviewRepository;
 
 
-     @Autowired
+    @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public List<ProductReview> findAll() {
         return productReviewRepository.findAll();
@@ -37,9 +41,14 @@ public class ProductReviewService {
             throw new IllegalArgumentException("Product ID is required to create a product review.");
         }
     
-        boolean exists = productRepository.existsById(productReview.getProduct().getProductId());
-        if (!exists) {
+        boolean productexists = productRepository.existsById(productReview.getProduct().getProductId());
+        if (!productexists) {
             throw new IllegalArgumentException("Product not found. Cannot create product review.");
+        }
+
+        boolean userexists = userRepository.existsById(productReview.getUser().getUserId());
+        if (!userexists) {
+            throw new IllegalArgumentException("User not found. Cannot create product review.");
         }
     
         return productReviewRepository.save(productReview);
