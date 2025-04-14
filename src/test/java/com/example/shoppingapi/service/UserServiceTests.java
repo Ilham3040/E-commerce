@@ -40,11 +40,8 @@ public class UserServiceTests {
 
     private ModelHelper<User> userHelper =  ModelHelperFactory.getModelHelper(User.class);
 
-
     @Test
     public void testGetAllUsers() {
-        
-
         User user1 = userHelper.createModel(1);
         User user2 = userHelper.createModel(1);
     
@@ -52,10 +49,8 @@ public class UserServiceTests {
     
         when(userRepository.findAll()).thenReturn(mockUsers);
     
-        
         List<User> result = userService.getAllUsers();
     
-        
         assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals(user1.getUsername(), result.get(0).getUsername());
@@ -121,17 +116,13 @@ public class UserServiceTests {
 
         when(userRepository.existsById(eq(user.getUserId()))).thenReturn(true);
         
-        User updatedUser = new User();
-        updatedUser.setUserId(user.getUserId());
-        updatedUser.setUsername(user.getUsername());
-        updatedUser.setEmail(user.getEmail());
-        updatedUser.setPhoneNumber("0987654321");
+        User updatedUser = savedUser.toBuilder().phoneNumber("0987654321").build();
         
         User result = userService.updateUser(updatedUser);
         
         assertNotNull(result);
-        assertEquals(user.getUsername(), savedUser.getUsername());
-        assertEquals(user.getEmail(), savedUser.getEmail());
+        assertEquals(user.getUsername(), result.getUsername());
+        assertEquals(user.getEmail(), result.getEmail());
         assertEquals("0987654321", result.getPhoneNumber());
         
         verify(userRepository, times(2)).save(any(User.class));

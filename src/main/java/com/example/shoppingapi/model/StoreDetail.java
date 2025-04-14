@@ -1,6 +1,7 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -10,6 +11,7 @@ import java.util.List;
 @Entity
 @Table(name = "store_details")
 @Data
+@Builder(toBuilder = true)
 public class StoreDetail {
 
     @Id
@@ -37,6 +39,7 @@ public class StoreDetail {
     @Column(name = "attacment_urls")
     private List<String> attachmentUrls;
 
+    @Builder.Default
     @Column(name = "follower_count", nullable = false, columnDefinition = "INT DEFAULT 0")
     private Integer followerCount = 0;
 

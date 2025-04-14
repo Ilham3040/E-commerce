@@ -3,11 +3,13 @@ package com.example.shoppingapi.model;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 @Entity
 @Table(name = "store_categories")
 @Data
+@Builder(toBuilder = true)
 public class StoreCategory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

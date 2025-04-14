@@ -1,6 +1,7 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -10,6 +11,7 @@ import java.util.List;
 @Entity
 @Table(name = "product_detail")
 @Data
+@Builder(toBuilder = true)
 public class ProductDetail {
 
     @Id

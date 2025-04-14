@@ -4,9 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.shoppingapi.service.UserService;
-import com.example.shoppingapi.dto.UserDTO;
+import com.example.shoppingapi.dto.response.UserDTO;
 import com.example.shoppingapi.model.User;
-import com.example.shoppingapi.dto.ApiResponse;
+import com.example.shoppingapi.dto.response.ApiResponse;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.util.ReflectionUtils;
 

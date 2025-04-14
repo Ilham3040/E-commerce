@@ -1,4 +1,4 @@
-package com.example.shoppingapi.dto;
+package com.example.shoppingapi.dto.response;
 
 public class StoreRoleDTO {
     private Long userId;

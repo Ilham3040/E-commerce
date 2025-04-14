@@ -1,11 +1,13 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 @Entity
 @Table(name = "user_favorite")
 @Data
+@Builder(toBuilder = true)
 public class UserFavorite {
     @EmbeddedId
     private UserFavoriteId id;

@@ -1,6 +1,7 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "product_variants")
 @Data
+@Builder(toBuilder = true)
 public class ProductVariant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,9 +26,11 @@ public class ProductVariant {
     @Column(name = "product_reviews")
     private Integer productReviews;
 
+    @Builder.Default
     @Column(name = "stock_quantity", nullable = false, columnDefinition = "INT DEFAULT 0")
     private Integer stockQuantity = 0;
 
+    @Builder.Default
     @Column(name = "total_sold", nullable = false, columnDefinition = "INT DEFAULT 0")
     private Integer totalSold = 0;
 
