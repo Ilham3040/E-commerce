@@ -1,6 +1,7 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "products")
 @Data
+@Builder(toBuilder = true)
 public class Product {
 
     @Id

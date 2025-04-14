@@ -1,6 +1,7 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ import jakarta.validation.constraints.Min;
 @Entity
 @Table(name = "product_reviews")
 @Data
+@Builder(toBuilder = true)
 public class ProductReview {
 
     @Id

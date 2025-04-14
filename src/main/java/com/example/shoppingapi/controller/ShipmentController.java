@@ -1,7 +1,7 @@
 // package com.example.shoppingapi.controller;
 
-// import com.example.shoppingapi.dto.ApiResponse;
-// import com.example.shoppingapi.dto.ShipmentDTO;
+// import com.example.shoppingapi.dto.response.ApiResponse;
+// import com.example.shoppingapi.dto.response.ShipmentDTO;
 // import com.example.shoppingapi.model.Shipment;
 // import com.example.shoppingapi.service.ShipmentService;
 // import org.springframework.beans.factory.annotation.Autowired;

@@ -1,11 +1,13 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 @Entity
 @Table(name = "user_cart")
 @Data
+@Builder(toBuilder = true)
 public class UserCart {
     
     @EmbeddedId
@@ -21,6 +23,7 @@ public class UserCart {
     @JoinColumn(name = "product_id", referencedColumnName="id",nullable = false)
     private Product product;
     
+    @Builder.Default
     @Column(name = "quantity", nullable = false, columnDefinition = "INT DEFAULT 1")
     private Integer quantity = 1;
 }

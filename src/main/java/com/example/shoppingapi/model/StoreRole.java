@@ -3,12 +3,14 @@ package com.example.shoppingapi.model;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 
 @Entity
 @Data
 @Table(name = "store_role")
+@Builder(toBuilder = true)
 public class StoreRole {
 
     @EmbeddedId
@@ -24,6 +26,7 @@ public class StoreRole {
     @JoinColumn(name = "store_id", referencedColumnName="id",nullable = false)
     private Store store;
 
+    @Builder.Default
     @Column(name = "role", length = 50, columnDefinition = "VARCHAR(50) DEFAULT 'null'")
     private String role = "null";
 

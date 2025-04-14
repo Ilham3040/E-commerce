@@ -1,6 +1,7 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "shipment_vendor")
 @Data
+@Builder(toBuilder = true)
 public class ShipmentVendor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

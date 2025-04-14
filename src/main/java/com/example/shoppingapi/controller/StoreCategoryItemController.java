@@ -1,7 +1,7 @@
 package com.example.shoppingapi.controller;
 
-import com.example.shoppingapi.dto.ApiResponse;
-import com.example.shoppingapi.dto.StoreCategoryItemDTO;
+import com.example.shoppingapi.dto.response.ApiResponse;
+import com.example.shoppingapi.dto.response.StoreCategoryItemDTO;
 import com.example.shoppingapi.model.StoreCategoryItem;
 import com.example.shoppingapi.service.StoreCategoryItemService;
 import org.springframework.beans.factory.annotation.Autowired;

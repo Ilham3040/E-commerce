@@ -3,11 +3,13 @@ package com.example.shoppingapi.model;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 @Entity
 @Table(name = "store_categories_item")
 @Data
+@Builder(toBuilder = true)
 public class StoreCategoryItem {
 
     @EmbeddedId

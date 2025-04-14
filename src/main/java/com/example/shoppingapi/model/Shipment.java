@@ -1,11 +1,13 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 @Entity
 @Table(name = "shipment")
 @Data
+@Builder(toBuilder = true)
 public class Shipment {
 
     @EmbeddedId

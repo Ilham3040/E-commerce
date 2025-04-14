@@ -1,26 +1,35 @@
-// package com.example.shoppingapi.modelhelper;
-// import com.example.shoppingapi.model.ProductReview;
+package com.example.shoppingapi.modelhelper;
 
-// public class ProductReviewModelHelper implements ModelHelper<ProductReview> {
+import com.example.shoppingapi.model.Product;
+import com.example.shoppingapi.model.ProductReview;
+import com.example.shoppingapi.model.User;
 
-//     public ProductReviewModelHelper(){};
+import lombok.NoArgsConstructor;
 
-//     public ProductReview createModel(Integer num){
-//         if (num == 1) {
-//             ProductReview productReview = new ProductReview();
-//             productReview.setReviewId(1L);
-//             productReview.setDescription("Here is the description");
-//             productReview.setStarRating(5);
-//             productReview.setLikes(1);
-//             return productReview;
-//         }
+@NoArgsConstructor
+public class ProductReviewModelHelper implements ModelHelper<ProductReview> {
 
-//         ProductReview productReview = new ProductReview();
-//             productReview.setReviewId(2L);
-//             productReview.setDescription("Here is the description");
-//             productReview.setStarRating(3);
-//             productReview.setLikes(1);
-//             return productReview;
-//     }
-    
-// }
+    private ModelHelper<Product> productHelper =  ModelHelperFactory.getModelHelper(Product.class);
+    private ModelHelper<User> userHelper =  ModelHelperFactory.getModelHelper(User.class);
+
+    @Override
+    public ProductReview createModel(Integer num) {
+        if (num == 1) {
+            return ProductReview.builder()
+                .reviewId(1L)
+                .description("Here is the description")
+                .starRating(5)
+                .product(productHelper.createModel(1))
+                .user(userHelper.createModel(1))
+                .build();
+        } else {
+            return ProductReview.builder()
+                .reviewId(2L)
+                .description("Here is the description")
+                .starRating(3)
+                .product(productHelper.createModel(2))
+                .user(userHelper.createModel(2))
+                .build();
+        }
+    }
+}

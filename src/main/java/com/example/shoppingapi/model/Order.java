@@ -1,6 +1,7 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "orders")
 @Data
+@Builder(toBuilder = true)
 public class Order {
 
     @Id
@@ -26,6 +28,7 @@ public class Order {
     @Column(name = "order_date", columnDefinition = "TIMESTAMPTZ DEFAULT NOW()")
     private LocalDateTime orderDate;
 
+    @Builder.Default
     @Column(name = "status", length = 50, nullable = false)
     private String status = "pending";
 

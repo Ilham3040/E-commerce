@@ -1,12 +1,25 @@
-package com.example.shoppingapi.dto;
+package com.example.shoppingapi.dto.response;
 
-public class UserFavoriteDTO {
+public class OrderDTO {
+    private Long orderId;
+
     private Long userId;
     private Long productId;
 
-    public UserFavoriteDTO(Long userId, Long productId) {
+    public OrderDTO(Long orderId,
+                    Long userId, Long productId) {
+        this.orderId = orderId;
         this.userId = userId;
         this.productId = productId;
+    }
+
+    
+    public Long getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
     }
 
     public Long getUserId() {
