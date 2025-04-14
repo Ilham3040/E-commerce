@@ -1,6 +1,7 @@
 package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.model.Shipment;
+import com.example.shoppingapi.model.ShipmentId;
 import com.example.shoppingapi.repository.ShipmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ public class ShipmentService {
         return shipmentRepository.findAll();
     }
 
-    public Optional<Shipment> findById(Long id) {
+    public Optional<Shipment> findById(ShipmentId id) {
         return shipmentRepository.findById(id);
     }
 
@@ -29,16 +30,17 @@ public class ShipmentService {
         return shipmentRepository.save(shipment);
     }
 
-    public Shipment updateShipment(Long id, Shipment shipment) {
+    public Shipment updateShipment(ShipmentId id, Shipment shipment) {
         Optional<Shipment> existingOpt = shipmentRepository.findById(id);
         if (existingOpt.isEmpty()) {
             throw new IllegalArgumentException("Shipment not found with ID: " + id);
         }
-        shipment.setShipmentId(id);
+        // Set the composite key
+        shipment.setId(id);
         return shipmentRepository.save(shipment);
     }
 
-    public Shipment partialUpdateShipment(Long id, Map<String, Object> updates) {
+    public Shipment partialUpdateShipment(ShipmentId id, Map<String, Object> updates) {
         Optional<Shipment> existingOpt = shipmentRepository.findById(id);
         if (existingOpt.isEmpty()) {
             throw new IllegalArgumentException("Shipment not found with ID: " + id);
@@ -54,7 +56,7 @@ public class ShipmentService {
         return shipmentRepository.save(shipment);
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(ShipmentId id) {
         shipmentRepository.deleteById(id);
     }
 }
