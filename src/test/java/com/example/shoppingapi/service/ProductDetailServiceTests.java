@@ -12,6 +12,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
@@ -151,9 +153,34 @@ public class ProductDetailServiceTests {
     }
 
     @Test
-    public void testDeleteById() {
-        Long id = 1L;
-        productDetailService.deleteById(id);
-        verify(productDetailRepository, times(1)).deleteById(id);
+    public void testSoftdeleteById() {
+        ProductDetail productDetail = productDetailHelper.createModel(1);
+
+        when(productDetailRepository.findById(productDetail.getProductDetailId())).thenReturn(Optional.of(productDetail));
+        when(productDetailRepository.save(any(ProductDetail.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProductDetail deletedDetail = productDetailService.deleteById(productDetail.getProductDetailId());
+
+        assertNotNull(deletedDetail);
+        assertNotNull(deletedDetail.getDeletedAt());
+        assertEquals(deletedDetail.getProductDetailId(), productDetail.getProductDetailId());
+
+        verify(productDetailRepository, times(1)).save(productDetail);
+        verify(productDetailRepository, times(1)).findById(productDetail.getProductDetailId());
     }
+
+    @Test
+    public void testSoftdeleteById_NotFound() {
+        when(productDetailRepository.findById(1L)).thenReturn(Optional.empty());
+
+        try {
+            productDetailService.deleteById(1L);
+            fail("Expected ResourceNotFoundException to be thrown");
+        } catch (ResourceNotFoundException e) {
+            assertEquals("Product Detail not found with ID: 1", e.getMessage());
+        }
+
+        verify(productDetailRepository, times(1)).findById(1L);
+    }
+
 }

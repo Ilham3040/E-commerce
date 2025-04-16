@@ -8,17 +8,16 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
-import java.util.Optional;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.List;
-
+import java.util.Optional;
 
 @Service
 public class UserService {
 
     @Autowired
     private UserRepository userRepository;
-
 
     public List<User> getAllUsers(){
         return userRepository.findAll();
@@ -36,18 +35,24 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
-
-    public User updateUser(User user) {
-        
-        if (!userRepository.existsById(user.getUserId())) {
-            throw new ResourceNotFoundException("User not found with ID: " + user.getUserId());
+    public User updateUser(Long id, User user) {
+        if (!id.equals(user.getUserId())) {
+            throw new IllegalArgumentException("User ID in URL and body must match.");
         }
-        
-        return userRepository.save(user);
+    
+        Optional<User> existingUserOpt = userRepository.findById(id);
+        if (existingUserOpt.isEmpty()) {
+            throw new IllegalArgumentException("User not found with ID: " + id);
+        }
+    
+        User updatedUser = user;
+        updatedUser.setUserId(id);
+    
+        return userRepository.save(updatedUser);
     }
+    
 
     public User partialUpdateUser(Long id, Map<String, Object> updates) {
-        
         User existingUser = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
 
@@ -59,9 +64,15 @@ public class UserService {
             }
         });
 
+        existingUser.setUserId(id);
+        return userRepository.save(existingUser);
+    }
+
+    public User deleteById(Long id) {
+        User existingUser = userRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+
+        existingUser.setDeletedAt(LocalDateTime.now());
         return userRepository.save(existingUser);
     }
 }
-
-
-

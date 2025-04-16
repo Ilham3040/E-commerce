@@ -67,7 +67,7 @@ public class StoreCategoryController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteStoreCategory(@PathVariable Long id) {
+    public void deleteByIdCategory(@PathVariable Long id) {
         storeCategoryService.deleteById(id);
     }
 }

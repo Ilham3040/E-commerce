@@ -72,7 +72,7 @@ public class StoreCategoryItemController {
     }
 
     @DeleteMapping("/{categoryId}/{productId}")
-    public void deleteStoreCategoryItem(@PathVariable Long categoryId,
+    public void deleteByIdCategoryItem(@PathVariable Long categoryId,
                                         @PathVariable Long productId) {
         storeCategoryItemService.deleteById(categoryId, productId);
     }

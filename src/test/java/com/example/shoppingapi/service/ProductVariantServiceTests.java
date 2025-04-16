@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -113,7 +114,6 @@ public class ProductVariantServiceTests {
     @Test
     public void testUpdateProductVariant_Success() {
         ProductVariant existing = productVariantHelper.createModel(1);
-        // Create updated data: Change variantName and productReviews for example.
         ProductVariant updated = productVariantHelper.createModel(2);
         updated.setVariantId(existing.getVariantId());
 
@@ -155,9 +155,32 @@ public class ProductVariantServiceTests {
     }
 
     @Test
-    public void testDeleteById() {
-        Long id = 1L;
-        productVariantService.deleteById(id);
-        verify(productVariantRepository, times(1)).deleteById(id);
+    public void testSoftdeleteById() {
+        ProductVariant productVariant = productVariantHelper.createModel(1);
+        when(productVariantRepository.findById(productVariant.getVariantId())).thenReturn(Optional.of(productVariant));
+        when(productVariantRepository.save(any(ProductVariant.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProductVariant deletedVariant = productVariantService.deleteById(productVariant.getVariantId());
+
+        assertNotNull(deletedVariant);
+        assertNotNull(deletedVariant.getDeletedAt());
+        assertEquals(deletedVariant.getVariantId(),productVariant.getVariantId());
+
+        verify(productVariantRepository, times(1)).save(productVariant);
+        verify(productVariantRepository, times(1)).findById(productVariant.getVariantId());
     }
+
+    @Test
+    public void testSoftdeleteById_NotFound() {
+        when(productVariantRepository.findById(1L)).thenReturn(Optional.empty());
+
+        try {
+            productVariantService.deleteById(1L);
+        } catch (ResourceNotFoundException e) {
+            assertEquals("ProductVariant not found with ID: 1", e.getMessage());
+        }
+
+        verify(productVariantRepository, times(1)).findById(1L);
+    }
+
 }

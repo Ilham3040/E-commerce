@@ -70,7 +70,7 @@ public class UserFavoriteController {
     }
 
     @DeleteMapping("/{userId}/{productId}")
-    public void deleteUserFavorite(@PathVariable Long userId,
+    public void deleteByIdFavorite(@PathVariable Long userId,
                                    @PathVariable Long productId) {
         userFavoriteService.deleteById(userId, productId);
     }

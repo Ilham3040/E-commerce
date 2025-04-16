@@ -67,7 +67,7 @@
 //     }
 
 //     @DeleteMapping("/{id}")
-//     public void deleteUserCart(@PathVariable Long id) {
+//     public void deleteByIdCart(@PathVariable Long id) {
 //         userCartService.deleteById(id);
 //     }
 // }

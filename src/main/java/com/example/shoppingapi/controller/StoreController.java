@@ -77,8 +77,8 @@ public class StoreController {
 
     // Delete a store by ID
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteStore(@PathVariable Long id) {
-        storeService.deleteStore(id);
+    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
+        storeService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }

@@ -68,7 +68,7 @@ public class StoreDetailController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteStoreDetail(@PathVariable Long id) {
+    public void deleteByIdDetail(@PathVariable Long id) {
         storeDetailService.deleteById(id);
     }
 }
