@@ -7,8 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.shoppingapi.dto.ApiResponse;
-import com.example.shoppingapi.dto.ProductDTO;
+import com.example.shoppingapi.dto.response.ApiResponse;
+import com.example.shoppingapi.dto.response.ProductDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -85,8 +85,8 @@ public class ProductController {
     
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
+    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
+        productService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }

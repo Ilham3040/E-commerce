@@ -7,8 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.shoppingapi.dto.ApiResponse;
-import com.example.shoppingapi.dto.ProductReviewDTO;
+import com.example.shoppingapi.dto.response.ApiResponse;
+import com.example.shoppingapi.dto.response.ProductReviewDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -72,7 +72,7 @@ public class ProductReviewController {
     }
     
     @DeleteMapping("/{id}")
-    public void deleteProductReview(@PathVariable Long id) {
+    public void deleteByIdReview(@PathVariable Long id) {
         productReviewService.deleteById(id);
     }
 }

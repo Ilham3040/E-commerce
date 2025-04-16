@@ -13,7 +13,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class StoreCategoryItemId implements Serializable {
-    private Long categoryId;
-    private Long productId;
+public class ShipmentId implements Serializable {
+    private Long vendorId;
+    private Long orderId;
 }

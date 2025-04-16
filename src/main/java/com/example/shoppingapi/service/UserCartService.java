@@ -1,6 +1,7 @@
 package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.model.UserCart;
+import com.example.shoppingapi.model.UserCartId;
 import com.example.shoppingapi.repository.UserCartRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ public class UserCartService {
         return userCartRepository.findAll();
     }
 
-    public Optional<UserCart> findById(Long id) {
+    public Optional<UserCart> findById(UserCartId id) {
         return userCartRepository.findById(id);
     }
 
@@ -29,16 +30,16 @@ public class UserCartService {
         return userCartRepository.save(userCart);
     }
 
-    public UserCart updateUserCart(Long id, UserCart userCart) {
+    public UserCart updateUserCart(UserCartId id, UserCart userCart) {
         Optional<UserCart> existingOpt = userCartRepository.findById(id);
         if (existingOpt.isEmpty()) {
             throw new IllegalArgumentException("UserCart not found with ID: " + id);
         }
-        userCart.setCartId(id);
+        userCart.setId(id);
         return userCartRepository.save(userCart);
     }
 
-    public UserCart partialUpdateUserCart(Long id, Map<String, Object> updates) {
+    public UserCart partialUpdateUserCart(UserCartId id, Map<String, Object> updates) {
         Optional<UserCart> existingOpt = userCartRepository.findById(id);
         if (existingOpt.isEmpty()) {
             throw new IllegalArgumentException("UserCart not found with ID: " + id);
@@ -54,7 +55,7 @@ public class UserCartService {
         return userCartRepository.save(userCart);
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(UserCartId id) {
         userCartRepository.deleteById(id);
     }
 }

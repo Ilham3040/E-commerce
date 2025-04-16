@@ -7,8 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.shoppingapi.dto.ApiResponse;
-import com.example.shoppingapi.dto.ProductVariantDTO;
+import com.example.shoppingapi.dto.response.ApiResponse;
+import com.example.shoppingapi.dto.response.ProductVariantDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -77,7 +77,7 @@ public class ProductVariantController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteProductVariant(@PathVariable Long id) {
+    public void deleteByIdVariant(@PathVariable Long id) {
         productVariantService.deleteById(id);
     }
 }

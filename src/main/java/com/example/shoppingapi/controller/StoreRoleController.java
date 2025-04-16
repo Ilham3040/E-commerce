@@ -1,7 +1,7 @@
 package com.example.shoppingapi.controller;
 
-import com.example.shoppingapi.dto.ApiResponse;
-import com.example.shoppingapi.dto.StoreRoleDTO;
+import com.example.shoppingapi.dto.response.ApiResponse;
+import com.example.shoppingapi.dto.response.StoreRoleDTO;
 import com.example.shoppingapi.model.StoreRole;
 import com.example.shoppingapi.service.StoreRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +70,7 @@ public class StoreRoleController {
     }
 
     @DeleteMapping("/{userId}/{storeId}")
-    public void deleteStoreRole(@PathVariable Long userId,
+    public void deleteByIdRole(@PathVariable Long userId,
                                 @PathVariable Long storeId) {
         storeRoleService.deleteById(userId, storeId);
     }

@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
 import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.Store;
@@ -184,4 +185,35 @@ public class ProductServiceTests {
         verify(storeRepository,times(1)).findById(store.getStoreId());
         verify(productRepository,times(1)).findById(store.getStoreId());
     }
+
+    @Test
+    public void testSoftdeleteById() {
+        Product product = productHelper.createModel(1);
+
+        when(productRepository.findById(product.getProductId())).thenReturn(Optional.of(product));
+        when(productRepository.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Product deletedProduct = productService.deleteById(product.getProductId());
+
+        assertNotNull(deletedProduct);
+        assertNotNull(deletedProduct.getDeletedAt());
+        assertEquals(deletedProduct.getProductId(), product.getProductId());
+
+        verify(productRepository, times(1)).save(product);
+        verify(productRepository, times(1)).findById(product.getProductId());
+    }
+
+    @Test
+    public void testSoftdeleteById_NotFound() {
+        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+
+        try {
+            productService.deleteById(1L);
+        } catch (ResourceNotFoundException e) {
+            assertEquals("Product not found with ID: 1", e.getMessage());
+        }
+
+        verify(productRepository, times(1)).findById(1L);
+    }
+
 }

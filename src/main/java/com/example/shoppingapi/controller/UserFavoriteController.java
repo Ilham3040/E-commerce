@@ -1,7 +1,7 @@
 package com.example.shoppingapi.controller;
 
-import com.example.shoppingapi.dto.ApiResponse;
-import com.example.shoppingapi.dto.UserFavoriteDTO;
+import com.example.shoppingapi.dto.response.ApiResponse;
+import com.example.shoppingapi.dto.response.UserFavoriteDTO;
 import com.example.shoppingapi.model.UserFavorite;
 import com.example.shoppingapi.service.UserFavoriteService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +70,7 @@ public class UserFavoriteController {
     }
 
     @DeleteMapping("/{userId}/{productId}")
-    public void deleteUserFavorite(@PathVariable Long userId,
+    public void deleteByIdFavorite(@PathVariable Long userId,
                                    @PathVariable Long productId) {
         userFavoriteService.deleteById(userId, productId);
     }

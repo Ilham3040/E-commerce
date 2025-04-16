@@ -1,18 +1,25 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.SoftDelete;
+import org.hibernate.annotations.SoftDeleteType;
+import org.hibernate.type.YesNoConverter;
+
 @Entity
 @Table(name = "users")
 @Data
+@Builder(toBuilder = true)
+@SoftDelete(columnName = "deleted_at", strategy = SoftDeleteType.DELETED, converter = YesNoConverter.class)
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
+    @Column(name = "id")
     private Long userId;
 
     @Column(name = "username", unique = true, nullable = false)
@@ -36,7 +43,7 @@ public class User {
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
-            createdAt = LocalDateTime.now(); 
+            createdAt = LocalDateTime.now();
         }
         if (updatedAt == null) {
             updatedAt = LocalDateTime.now();
@@ -46,6 +53,11 @@ public class User {
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    @PreRemove
+    public void preRemove() {
+        this.deletedAt = LocalDateTime.now();
     }
 
 }

@@ -1,7 +1,7 @@
 package com.example.shoppingapi.controller;
 
-import com.example.shoppingapi.dto.ApiResponse;
-import com.example.shoppingapi.dto.StoreDetailDTO;
+import com.example.shoppingapi.dto.response.ApiResponse;
+import com.example.shoppingapi.dto.response.StoreDetailDTO;
 import com.example.shoppingapi.model.StoreDetail;
 import com.example.shoppingapi.service.StoreDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +68,7 @@ public class StoreDetailController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteStoreDetail(@PathVariable Long id) {
+    public void deleteByIdDetail(@PathVariable Long id) {
         storeDetailService.deleteById(id);
     }
 }

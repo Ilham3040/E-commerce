@@ -1,6 +1,7 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -8,24 +9,26 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "orders")
 @Data
+@Builder(toBuilder = true)
 public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "order_id")
+    @Column(name = "id")
     private Long orderId;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "product_id", referencedColumnName = "product_id", nullable = false)
+    @JoinColumn(name = "product_id", referencedColumnName = "id", nullable = false)
     private Product product;
 
     @Column(name = "order_date", columnDefinition = "TIMESTAMPTZ DEFAULT NOW()")
     private LocalDateTime orderDate;
 
+    @Builder.Default
     @Column(name = "status", length = 50, nullable = false)
     private String status = "pending";
 
