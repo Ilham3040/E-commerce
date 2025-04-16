@@ -4,11 +4,13 @@ import com.example.shoppingapi.model.ProductDetail;
 import com.example.shoppingapi.repository.ProductDetailRepository;
 import com.example.shoppingapi.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,12 +50,12 @@ public class ProductDetailService {
     }
 
     public ProductDetail updateProductDetail(Long id, ProductDetail productDetail) {
+        if (!id.equals(productDetail.getProductDetailId())) {
+            throw new IllegalArgumentException("User ID in URL and body must match.");
+        }
         Optional<ProductDetail> existingProductDetailOpt = productDetailRepository.findById(id);
         if (existingProductDetailOpt.isEmpty()) {
             throw new IllegalArgumentException("ProductDetail not found with ID: " + id);
-        }
-        if (productDetail.getProduct() == null || productDetail.getProduct().getProductId() == null) {
-            throw new IllegalArgumentException("User ID is required to create a product detail.");
         }
 
         Optional<ProductDetail> product = productDetailRepository.findById(productDetail.getProduct().getProductId());
@@ -91,10 +93,13 @@ public class ProductDetailService {
         return productDetailRepository.save(existingProductDetail);
     }
 
-    
-    
+    public ProductDetail deleteById(Long id) {
+        ProductDetail productDetail = productDetailRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found with ID: " + id));
 
-    public void deleteById(Long id) {
-        productDetailRepository.deleteById(id);
+        productDetail.setDeletedAt(LocalDateTime.now());
+        productDetailRepository.save(productDetail);
+        return productDetail;
     }
+
 }

@@ -70,7 +70,7 @@ public class StoreRoleController {
     }
 
     @DeleteMapping("/{userId}/{storeId}")
-    public void deleteStoreRole(@PathVariable Long userId,
+    public void deleteByIdRole(@PathVariable Long userId,
                                 @PathVariable Long storeId) {
         storeRoleService.deleteById(userId, storeId);
     }

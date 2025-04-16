@@ -50,6 +50,7 @@ public class OrderServiceTests {
 
         assertNotNull(result);
         assertEquals(2, result.size());
+        assertEquals(mockOrders, result);
         verify(orderRepository, times(1)).findAll();
     }
 

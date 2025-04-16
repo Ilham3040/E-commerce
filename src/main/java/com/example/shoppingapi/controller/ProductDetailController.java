@@ -78,7 +78,7 @@ public class ProductDetailController {
     
 
     @DeleteMapping("/{id}")
-    public void deleteProductDetail(@PathVariable Long id) {
+    public void deleteByIdDetail(@PathVariable Long id) {
         productDetailService.deleteById(id);
     }
 }

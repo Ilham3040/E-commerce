@@ -77,7 +77,7 @@ public class ProductVariantController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteProductVariant(@PathVariable Long id) {
+    public void deleteByIdVariant(@PathVariable Long id) {
         productVariantService.deleteById(id);
     }
 }

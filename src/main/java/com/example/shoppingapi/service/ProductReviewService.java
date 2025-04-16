@@ -1,15 +1,19 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.ProductReview;
+import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.repository.ProductReviewRepository;
 import com.example.shoppingapi.repository.UserRepository;
 import com.example.shoppingapi.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,13 +45,13 @@ public class ProductReviewService {
             throw new IllegalArgumentException("Product ID is required to create a product review.");
         }
     
-        boolean productexists = productRepository.existsById(productReview.getProduct().getProductId());
-        if (!productexists) {
+        Optional<Product> productexists = productRepository.findById(productReview.getProduct().getProductId());
+        if (productexists.isEmpty()) {
             throw new IllegalArgumentException("Product not found. Cannot create product review.");
         }
 
-        boolean userexists = userRepository.existsById(productReview.getUser().getUserId());
-        if (!userexists) {
+        Optional<User> userexists = userRepository.findById(productReview.getUser().getUserId());
+        if (userexists.isEmpty()) {
             throw new IllegalArgumentException("User not found. Cannot create product review.");
         }
     
@@ -55,17 +59,22 @@ public class ProductReviewService {
     }
 
     public ProductReview updateProductReview(Long id, ProductReview productReview) {
+        if (!id.equals(productReview.getReviewId())) {
+            throw new IllegalArgumentException("Review ID in URL and body must match.");
+        }
         Optional<ProductReview> existingProductReviewOpt = productReviewRepository.findById(id);
         if (existingProductReviewOpt.isEmpty()) {
             throw new IllegalArgumentException("ProductReview not found with ID: " + id);
         }
-        if (productReview.getProduct() == null || productReview.getProduct().getProductId() == null) {
-            throw new IllegalArgumentException("User ID is required to create a product review.");
+
+        Optional<User> user = userRepository.findById(productReview.getUser().getUserId());
+        if (user.isEmpty()) {
+            throw new IllegalArgumentException("User not found. Cannot create product review.");
         }
 
-        Optional<ProductReview> product = productReviewRepository.findById(productReview.getProduct().getProductId());
+        Optional<Product> product = productRepository.findById(productReview.getProduct().getProductId());
         if (product.isEmpty()) {
-            throw new IllegalArgumentException("User not found. Cannot create product review.");
+            throw new IllegalArgumentException("Product not found. Cannot create product review.");
         }
         ProductReview updatedProductReview = productReview;
         updatedProductReview.setReviewId(id);
@@ -98,7 +107,13 @@ public class ProductReviewService {
         return productReviewRepository.save(existingProductReview);
     }
 
-    public void deleteById(Long id) {
-        productReviewRepository.deleteById(id);
+    public ProductReview deleteById(Long id) {
+        ProductReview productReview = productReviewRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("ProductReview not found with ID: " + id));
+
+        productReview.setDeletedAt(LocalDateTime.now());
+        productReviewRepository.save(productReview);
+        return productReview;
     }
+
 }
