@@ -1,4 +1,3 @@
-// src/test/java/com/example/shoppingapi/service/UserCartServiceTests.java
 package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.model.UserCart;
@@ -18,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
 import java.util.*;
 
@@ -128,5 +128,36 @@ public class UserCartServiceTests {
 
         verify(userCartRepository, times(1)).findById(id);
         verify(userCartRepository, times(1)).save(cart);
+    }
+
+        @Test
+        public void testDeleteUserCart() {
+        UserCartId id = new UserCartId(1L, 2L);
+
+        when(userCartRepository.existsById(id))
+            .thenReturn(true);
+        doNothing().when(userCartRepository).deleteById(id);
+
+        userCartService.deleteUserCart(id);
+
+        verify(userCartRepository, times(1)).existsById(id);
+        verify(userCartRepository, times(1)).deleteById(id);
+    }
+
+    @Test
+    public void testDeleteUserCart_NotFound() {
+        UserCartId id = new UserCartId(9L, 9L);
+
+        when(userCartRepository.existsById(id)).thenReturn(false);
+
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> userCartService.deleteUserCart(id)
+        );
+
+        assertEquals("UserCart not found with ID: " + id, ex.getMessage());
+
+        verify(userCartRepository, times(1)).existsById(id);
+        verify(userCartRepository, never()).deleteById(any());
     }
 }

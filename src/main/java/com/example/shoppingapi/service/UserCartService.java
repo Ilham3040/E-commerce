@@ -4,6 +4,7 @@ import com.example.shoppingapi.model.UserCart;
 import com.example.shoppingapi.model.UserCartId;
 import com.example.shoppingapi.repository.UserCartRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
@@ -53,5 +54,12 @@ public class UserCartService {
             }
         });
         return userCartRepository.save(userCart);
+    }
+
+    public void deleteUserCart(UserCartId id) {
+        if (!userCartRepository.existsById(id)) {
+            throw new ResourceNotFoundException("UserCart not found with ID: " + id);
+        }
+        userCartRepository.deleteById(id);
     }
 }

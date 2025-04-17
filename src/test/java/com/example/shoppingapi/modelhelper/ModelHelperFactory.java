@@ -1,9 +1,7 @@
 package com.example.shoppingapi.modelhelper;
 import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.model.UserCart;
-
-import lombok.NoArgsConstructor;
-
+import com.example.shoppingapi.model.UserFavorite;
 import com.example.shoppingapi.model.Order;
 import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.ProductDetail;
@@ -12,6 +10,8 @@ import com.example.shoppingapi.model.ProductVariant;
 import com.example.shoppingapi.model.ShipmentVendor;
 import com.example.shoppingapi.model.Store;
 import com.example.shoppingapi.model.StoreDetail;
+
+import lombok.NoArgsConstructor;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -25,6 +25,7 @@ public class ModelHelperFactory {
     static {
         registry.put(User.class, UserModelHelper::new);
         registry.put(UserCart.class, UserCartModelHelper::new);
+        registry.put(UserFavorite.class, UserFavoriteModelHelper::new);
         registry.put(Store.class, StoreModelHelper::new);
         registry.put(StoreDetail.class, StoreDetailModelHelper::new);
         registry.put(Product.class, ProductModelHelper::new);
