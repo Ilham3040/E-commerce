@@ -106,51 +106,52 @@ public class ProductDetailServiceTests {
         Product product = pd.getProduct();
 
         when(productRepository.existsById(product.getProductId())).thenReturn(false);
+
         Exception exception = assertThrows(IllegalArgumentException.class, () -> productDetailService.saveProductDetail(pd));
         assertEquals("Product not found. Cannot create product detail.", exception.getMessage());
+        
         verify(productRepository, times(1)).existsById(product.getProductId());
         verify(productDetailRepository, never()).save(any(ProductDetail.class));
     }
-
     @Test
-    public void testUpdateProductDetail_Success() {
-        
+    public void testUpdateProductDetail() {
         ProductDetail existing = productDetailHelper.createModel(1);
-        
-        ProductDetail updated = productDetailHelper.createModel(2);
-        updated.setProductDetailId(existing.getProductDetailId());
 
-        when(productDetailRepository.findById(existing.getProductDetailId())).thenReturn(Optional.of(existing));
-        
-        when(productDetailRepository.findById(updated.getProduct().getProductId())).thenReturn(Optional.of(existing));
-        when(productDetailRepository.save(any(ProductDetail.class))).thenReturn(updated);
-
-        ProductDetail result = productDetailService.updateProductDetail(existing.getProductDetailId(), updated);
-        assertNotNull(result);
-        assertEquals(updated.getReviewRating(), result.getReviewRating());
-        verify(productDetailRepository, times(1)).findById(existing.getProductDetailId());
-        verify(productDetailRepository, times(1)).save(updated);
-    }
-
-    @Test
-    public void testPartialUpdateProductDetail_Success() {
-        ProductDetail existing = productDetailHelper.createModel(1);
         when(productDetailRepository.findById(existing.getProductDetailId())).thenReturn(Optional.of(existing));
         when(productDetailRepository.save(any(ProductDetail.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
+        ProductDetail updated = existing.toBuilder().totalSold(300).build();
+        ProductDetail result = productDetailService.updateProductDetail(existing.getProductDetailId(),updated);
+    
+        assertNotNull(result);
+        assertEquals(updated, result);
+    
+        verify(productDetailRepository, times(2)).findById(existing.getProductDetailId());
+        verify(productDetailRepository, times(1)).save(updated);
+    }
+    
+    @Test
+    public void testPartialUpdateProductDetail() {
+        ProductDetail existing = productDetailHelper.createModel(1);
+    
+        when(productDetailRepository.findById(existing.getProductDetailId())).thenReturn(Optional.of(existing));
+        when(productDetailRepository.save(any(ProductDetail.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    
         Map<String, Object> updates = Map.of(
             "reviewRating", 4.75,
-            "totalSold", 150
+            "totalSold",    150
         );
-
-        ProductDetail result = productDetailService.partialUpdateProductDetail(existing.getProductDetailId(), updates);
+        ProductDetail result = productDetailService.partialUpdateProductDetail(existing.getProductDetailId(),updates
+        );
+    
         assertNotNull(result);
-        
-        assertEquals(BigDecimal.valueOf(4.75).setScale(2), result.getReviewRating().setScale(2));
+        assertEquals(BigDecimal.valueOf(4.75).setScale(2),result.getReviewRating().setScale(2));
         assertEquals(150, result.getTotalSold());
+    
         verify(productDetailRepository, times(1)).findById(existing.getProductDetailId());
         verify(productDetailRepository, times(1)).save(existing);
     }
+    
 
     @Test
     public void testSoftdeleteById() {

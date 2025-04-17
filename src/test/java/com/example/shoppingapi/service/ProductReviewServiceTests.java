@@ -115,61 +115,44 @@ public class ProductReviewServiceTests {
     }
 
     @Test
-    public void testSaveThenUpdateProductReview() {
-        ProductReview productReview = productReviewHelper.createModel(1);
-        ProductReview updatedProductReview = productReview.toBuilder().description("Pretty good").build();
-
-        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(productReview);
-        when(userRepository.findById(productReview.getUser().getUserId())).thenReturn(Optional.of(productReview.getUser()));
-        when(productRepository.findById(productReview.getProduct().getProductId())).thenReturn(Optional.of(productReview.getProduct()));
-
-        ProductReview savedProductReview = productReviewService.saveProductReview(productReview);
+    public void testUpdateProductReview() {
+        ProductReview existing = productReviewHelper.createModel(1);
         
-        assertNotNull(savedProductReview);
-        assertEquals(productReview, savedProductReview);
+        when(productReviewRepository.findById(existing.getReviewId())).thenReturn(Optional.of(existing));
+        when(userRepository.findById(existing.getUser().getUserId())).thenReturn(Optional.of(existing.getUser()));
+        when(productRepository.findById(existing.getProduct().getProductId())).thenReturn(Optional.of(existing.getProduct()));
+        when(productReviewRepository.save(any(ProductReview.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(productReviewRepository.findById(productReview.getReviewId())).thenReturn(Optional.of(savedProductReview));
-        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(updatedProductReview);
-
-        ProductReview result = productReviewService.updateProductReview(productReview.getReviewId(), updatedProductReview);
+        ProductReview updated = existing.toBuilder().description("Pretty good").build();
+        ProductReview result = productReviewService.updateProductReview(existing.getReviewId(), updated);
 
         assertNotNull(result);
-        assertEquals(updatedProductReview.getDescription(), result.getDescription());
+        assertEquals(updated, result);
+        assertEquals("Pretty good", result.getDescription());
 
-        verify(productReviewRepository, times(2)).save(any(ProductReview.class));
-        verify(productRepository, times(2)).findById(productReview.getProduct().getProductId());
-        verify(userRepository, times(2)).findById(productReview.getUser().getUserId());
-        verify(productReviewRepository, times(1)).findById(productReview.getReviewId());
+        verify(productReviewRepository, times(1)).findById(existing.getReviewId());
+        verify(userRepository, times(1)).findById(existing.getUser().getUserId());
+        verify(productRepository, times(1)).findById(existing.getProduct().getProductId());
+        verify(productReviewRepository, times(1)).save(updated);
     }
-
+    
     @Test
-    public void testSaveThenPartiallyUpdateProductReview() {
-        ProductReview productReview = productReviewHelper.createModel(1);
-    
-        when(productReviewRepository.save(any(ProductReview.class))).thenReturn(productReview);
-        when(userRepository.findById(productReview.getUser().getUserId())).thenReturn(Optional.of(productReview.getUser()));
-        when(productRepository.findById(productReview.getProduct().getProductId())).thenReturn(Optional.of(productReview.getProduct()));
-    
-        ProductReview savedProductReview = productReviewService.saveProductReview(productReview);
-        assertNotNull(savedProductReview);
-        assertEquals(productReview, savedProductReview);
-    
-        when(productReviewRepository.findById(savedProductReview.getReviewId())).thenReturn(Optional.of(savedProductReview));
-    
-        Map<String, Object> updates = Map.of(
-            "description", "Updated description"
-        );
-    
-        ProductReview result = productReviewService.partialUpdateProductReview(savedProductReview.getReviewId(), updates);
-    
+    public void testPartialUpdateProductReview() {
+        ProductReview existing = productReviewHelper.createModel(1);
+        
+        when(productReviewRepository.findById(existing.getReviewId())).thenReturn(Optional.of(existing));
+        when(productReviewRepository.save(any(ProductReview.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Map<String, Object> updates = Map.of("description", "Updated description");
+        ProductReview result = productReviewService.partialUpdateProductReview(existing.getReviewId(), updates);
+
         assertNotNull(result);
         assertEquals("Updated description", result.getDescription());
-    
-        verify(productReviewRepository, times(2)).save(any(ProductReview.class));
-        verify(productReviewRepository, times(1)).findById(savedProductReview.getReviewId());
-        verify(productRepository,times(1)).findById(productReview.getProduct().getProductId());
-        verify(userRepository,times(1)).findById(productReview.getUser().getUserId());
+
+        verify(productReviewRepository, times(1)).findById(existing.getReviewId());
+        verify(productReviewRepository, times(1)).save(existing);
     }
+    
     
     @Test
     public void testSoftdeleteById() {

@@ -3,10 +3,12 @@ package com.example.shoppingapi.service;
 import com.example.shoppingapi.model.ShipmentVendor;
 import com.example.shoppingapi.repository.ShipmentVendorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,7 +43,7 @@ public class ShipmentVendorService {
     public ShipmentVendor partialUpdateShipmentVendor(Long id, Map<String, Object> updates) {
         Optional<ShipmentVendor> existingOpt = shipmentVendorRepository.findById(id);
         if (existingOpt.isEmpty()) {
-            throw new IllegalArgumentException("ShipmentVendor not found with ID: " + id);
+            throw new IllegalArgumentException("Shipment Vendor not found with ID: " + id);
         }
         ShipmentVendor shipmentVendor = existingOpt.get();
         updates.forEach((key, value) -> {
@@ -54,7 +56,12 @@ public class ShipmentVendorService {
         return shipmentVendorRepository.save(shipmentVendor);
     }
 
-    public void deleteById(Long id) {
-        shipmentVendorRepository.deleteById(id);
+    public ShipmentVendor deleteById(Long id) {
+        ShipmentVendor shipmentVendor = shipmentVendorRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Shipment Vendor not found with ID: " + id));
+
+        shipmentVendor.setDeletedAt(LocalDateTime.now());
+        shipmentVendorRepository.save(shipmentVendor);
+        return shipmentVendor;
     }
 }

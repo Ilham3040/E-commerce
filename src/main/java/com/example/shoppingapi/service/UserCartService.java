@@ -54,8 +54,4 @@ public class UserCartService {
         });
         return userCartRepository.save(userCart);
     }
-
-    public void deleteById(UserCartId id) {
-        userCartRepository.deleteById(id);
-    }
 }
