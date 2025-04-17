@@ -9,6 +9,7 @@ import com.example.shoppingapi.model.ProductReview;
 import com.example.shoppingapi.model.ProductVariant;
 import com.example.shoppingapi.model.ShipmentVendor;
 import com.example.shoppingapi.model.Store;
+import com.example.shoppingapi.model.StoreCategory;
 import com.example.shoppingapi.model.StoreDetail;
 import com.example.shoppingapi.model.StoreRole;
 
@@ -29,6 +30,7 @@ public class ModelHelperFactory {
         registry.put(UserFavorite.class, UserFavoriteModelHelper::new);
         registry.put(Store.class, StoreModelHelper::new);
         registry.put(StoreDetail.class, StoreDetailModelHelper::new);
+        registry.put(StoreCategory.class, StoreCategoryModelHelper::new);
         registry.put(StoreRole.class, StoreRoleModelHelper::new);
         registry.put(Product.class, ProductModelHelper::new);
         registry.put(ProductDetail.class, ProductDetailModelHelper::new);
