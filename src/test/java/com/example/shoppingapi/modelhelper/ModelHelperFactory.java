@@ -10,6 +10,7 @@ import com.example.shoppingapi.model.ProductVariant;
 import com.example.shoppingapi.model.ShipmentVendor;
 import com.example.shoppingapi.model.Store;
 import com.example.shoppingapi.model.StoreDetail;
+import com.example.shoppingapi.model.StoreRole;
 
 import lombok.NoArgsConstructor;
 
@@ -28,6 +29,7 @@ public class ModelHelperFactory {
         registry.put(UserFavorite.class, UserFavoriteModelHelper::new);
         registry.put(Store.class, StoreModelHelper::new);
         registry.put(StoreDetail.class, StoreDetailModelHelper::new);
+        registry.put(StoreRole.class, StoreRoleModelHelper::new);
         registry.put(Product.class, ProductModelHelper::new);
         registry.put(ProductDetail.class, ProductDetailModelHelper::new);
         registry.put(ProductVariant.class, ProductVariantModelHelper::new);

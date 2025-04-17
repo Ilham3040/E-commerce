@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
 
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -108,17 +109,17 @@ public class UserFavoriteServiceTests {
     @Test
     public void testDeleteUserFavorite_NotFound() {
         UserFavoriteId id = new UserFavoriteId(9L, 9L);
-
         when(userFavoriteRepository.existsById(id)).thenReturn(false);
 
-        ResourceNotFoundException ex = assertThrows(
-            ResourceNotFoundException.class,
-            () -> userFavoriteService.deleteById(id)
-        );
-
-        assertEquals("UserFavorite not found with ID: " + id, ex.getMessage());
+        try {
+            userFavoriteService.deleteById(id);
+            fail("Expected ResourceNotFoundException");
+        } catch (ResourceNotFoundException e) {
+            assertEquals("UserFavorite not found with ID: " + id, e.getMessage());
+        }
 
         verify(userFavoriteRepository, times(1)).existsById(id);
         verify(userFavoriteRepository, never()).deleteById(any());
     }
+
 }
