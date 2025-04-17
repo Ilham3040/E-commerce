@@ -114,7 +114,7 @@ public class OrderServiceTests {
     }
 
     @Test
-    public void testUpdateOrder_Success() {
+    public void testUpdateOrder() {
         Order order = orderHelper.createModel(1);
 
 
@@ -134,7 +134,7 @@ public class OrderServiceTests {
     }
 
     @Test
-    public void testPartialUpdateOrder_Success() {
+    public void testPartialUpdateOrder() {
         
         Order order = orderHelper.createModel(1);
         order.setStatus("pending");

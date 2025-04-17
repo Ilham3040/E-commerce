@@ -36,14 +36,13 @@ public class ProductVariantServiceTests {
     @InjectMocks
     private ProductVariantService productVariantService;
 
-    // Helper for creating sample ProductVariant objects.
     private ModelHelper<ProductVariant> productVariantHelper = ModelHelperFactory.getModelHelper(ProductVariant.class);
 
     @Test
     public void testFindAll() {
-        ProductVariant pv1 = productVariantHelper.createModel(1);
-        ProductVariant pv2 = productVariantHelper.createModel(2);
-        List<ProductVariant> variantList = Arrays.asList(pv1, pv2);
+        ProductVariant productVariant1 = productVariantHelper.createModel(1);
+        ProductVariant productVariant2 = productVariantHelper.createModel(2);
+        List<ProductVariant> variantList = Arrays.asList(productVariant1, productVariant2);
 
         when(productVariantRepository.findAll()).thenReturn(variantList);
 
@@ -55,13 +54,13 @@ public class ProductVariantServiceTests {
 
     @Test
     public void testFindById_Found() {
-        ProductVariant pv = productVariantHelper.createModel(1);
-        when(productVariantRepository.findById(pv.getVariantId())).thenReturn(Optional.of(pv));
+        ProductVariant productVariant = productVariantHelper.createModel(1);
+        when(productVariantRepository.findById(productVariant.getVariantId())).thenReturn(Optional.of(productVariant));
 
-        Optional<ProductVariant> result = productVariantService.findById(pv.getVariantId());
+        Optional<ProductVariant> result = productVariantService.findById(productVariant.getVariantId());
         assertTrue(result.isPresent());
-        assertEquals(pv.getVariantId(), result.get().getVariantId());
-        verify(productVariantRepository, times(1)).findById(pv.getVariantId());
+        assertEquals(productVariant.getVariantId(), result.get().getVariantId());
+        verify(productVariantRepository, times(1)).findById(productVariant.getVariantId());
     }
 
     @Test
@@ -74,9 +73,9 @@ public class ProductVariantServiceTests {
 
     @Test
     public void testFindByProductId() {
-        ProductVariant pv = productVariantHelper.createModel(1);
-        Long productId = pv.getProduct().getProductId();
-        when(productVariantRepository.findProductVariantbyProductId(productId)).thenReturn(Optional.of(pv));
+        ProductVariant productVariant = productVariantHelper.createModel(1);
+        Long productId = productVariant.getProduct().getProductId();
+        when(productVariantRepository.findProductVariantbyProductId(productId)).thenReturn(Optional.of(productVariant));
 
         Optional<ProductVariant> result = productVariantService.findByProductId(productId);
         assertTrue(result.isPresent());
@@ -85,55 +84,58 @@ public class ProductVariantServiceTests {
     }
 
     @Test
-    public void testSaveProductVariant_Success() {
-        ProductVariant pv = productVariantHelper.createModel(1);
-        Product product = pv.getProduct();
+    public void testSaveProductVariant() {
+        ProductVariant productVariant = productVariantHelper.createModel(1);
+        Product product = productVariant.getProduct();
 
         when(productRepository.existsById(product.getProductId())).thenReturn(true);
-        when(productVariantRepository.save(any(ProductVariant.class))).thenReturn(pv);
+        when(productVariantRepository.save(any(ProductVariant.class))).thenReturn(productVariant);
 
-        ProductVariant created = productVariantService.saveProductVariant(pv);
+        ProductVariant created = productVariantService.saveProductVariant(productVariant);
         assertNotNull(created);
-        assertEquals(pv.getVariantId(), created.getVariantId());
+        assertEquals(productVariant.getVariantId(), created.getVariantId());
         verify(productRepository, times(1)).existsById(product.getProductId());
-        verify(productVariantRepository, times(1)).save(pv);
+        verify(productVariantRepository, times(1)).save(productVariant);
     }
 
     @Test
     public void testSaveProductVariant_ProductNotFound_ThrowsException() {
-        ProductVariant pv = productVariantHelper.createModel(1);
-        Product product = pv.getProduct();
+        ProductVariant productVariant = productVariantHelper.createModel(1);
+        Product product = productVariant.getProduct();
 
         when(productRepository.existsById(product.getProductId())).thenReturn(false);
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> productVariantService.saveProductVariant(pv));
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> productVariantService.saveProductVariant(productVariant));
         assertEquals("Product not found. Cannot create product variant.", exception.getMessage());
         verify(productRepository, times(1)).existsById(product.getProductId());
         verify(productVariantRepository, never()).save(any(ProductVariant.class));
     }
 
     @Test
-    public void testUpdateProductVariant_Success() {
+    public void testUpdateProductVariant() {
         ProductVariant existing = productVariantHelper.createModel(1);
-        ProductVariant updated = productVariantHelper.createModel(2);
+        
+        when(productVariantRepository.findById(existing.getVariantId())).thenReturn(Optional.of(existing));
+        when(productRepository.findById(existing.getProduct().getProductId())).thenReturn(Optional.of(existing.getProduct()));
+
+        ProductVariant updated = existing.toBuilder().variantName("choco").build();
         updated.setVariantId(existing.getVariantId());
 
-        when(productVariantRepository.findById(existing.getVariantId())).thenReturn(Optional.of(existing));
-
-        when(productVariantRepository.findById(updated.getProduct().getProductId()))
-                .thenReturn(Optional.of(existing));
+        when(productVariantRepository.findById(updated.getProduct().getProductId())).thenReturn(Optional.of(existing));
         when(productVariantRepository.save(any(ProductVariant.class))).thenReturn(updated);
 
         ProductVariant result = productVariantService.updateProductVariant(existing.getVariantId(), updated);
         assertNotNull(result);
-        assertEquals(updated.getVariantId(), result.getVariantId());
-        assertEquals(updated.getVariantName(), result.getVariantName());
+        assertEquals(updated, result);
+
         verify(productVariantRepository, times(1)).findById(existing.getVariantId());
+        verify(productRepository, times(1)).findById(existing.getProduct().getProductId());
         verify(productVariantRepository, times(1)).save(updated);
     }
 
     @Test
-    public void testPartialUpdateProductVariant_Success() {
+    public void testPartialUpdateProductVariant() {
         ProductVariant existing = productVariantHelper.createModel(1);
+
         when(productVariantRepository.findById(existing.getVariantId())).thenReturn(Optional.of(existing));
         when(productVariantRepository.save(any(ProductVariant.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -143,16 +145,18 @@ public class ProductVariantServiceTests {
             "stockQuantity", 25,
             "totalSold", 100
         );
-
         ProductVariant result = productVariantService.partialUpdateProductVariant(existing.getVariantId(), updates);
+
         assertNotNull(result);
         assertEquals("Updated Variant Name", result.getVariantName());
         assertEquals(150, result.getProductReviews());
         assertEquals(25, result.getStockQuantity());
         assertEquals(100, result.getTotalSold());
+        
         verify(productVariantRepository, times(1)).findById(existing.getVariantId());
         verify(productVariantRepository, times(1)).save(existing);
     }
+
 
     @Test
     public void testSoftdeleteById() {

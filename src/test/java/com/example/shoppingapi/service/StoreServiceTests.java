@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.eq;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -104,62 +103,40 @@ public class StoreServiceTests {
 
 
     @Test
-    public void testSaveThenUpdateUser() {
-        Store store = storeHelper.createModel(1);
-        
+    public void testUpdateStore() {
+        Store existing = storeHelper.createModel(1);
+        Store updatedPayload = existing.toBuilder().storeName("bakul pakan").build();
+        when(storeRepository.findById(existing.getStoreId()))
+            .thenReturn(Optional.of(existing));
+        when(userRepository.findById(existing.getUser().getUserId()))
+            .thenReturn(Optional.of(existing.getUser()));
         when(storeRepository.save(any(Store.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
-
-        when(userRepository.findById(store.getUser().getUserId())).thenReturn(Optional.of(store.getUser()));
-        
-        Store savedStore = storeService.saveStore(store);
-        
-        assertNotNull(savedStore);
-        assertEquals(store, savedStore);
-
-        when(storeRepository.findById(store.getStoreId())).thenReturn(Optional.of(store));
-        
-        Store updatedStore = store.toBuilder().storeName("bakul pakan").build();
-        Store result = storeService.updateStore(store.getStoreId(), updatedStore);
-        
+        Store result = storeService.updateStore(existing.getStoreId(), updatedPayload);
         assertNotNull(result);
-        assertEquals(updatedStore, result);
-        
-        verify(storeRepository, times(2)).save(any(Store.class));
-        verify(storeRepository, times(1)).findById(eq(store.getStoreId()));
-        verify(userRepository, times(2)).findById(eq(store.getUser().getUserId()));
+        assertEquals("bakul pakan", result.getStoreName());
+        verify(storeRepository, times(1)).findById(existing.getStoreId());
+        verify(userRepository, times(1)).findById(existing.getUser().getUserId());
+        verify(storeRepository, times(1)).save(updatedPayload);
     }
-
+    
     @Test
-    public void testSaveThenPartiallyUpdateStore() {
-        Store store = storeHelper.createModel(1);
-        
+    public void testPartialUpdateStore() {
+        Store existing = storeHelper.createModel(1);
+        when(storeRepository.findById(existing.getStoreId()))
+            .thenReturn(Optional.of(existing));
         when(storeRepository.save(any(Store.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
-
-        when(userRepository.findById(store.getUser().getUserId())).thenReturn(Optional.of(store.getUser()));
-        
-        Store savedStore = storeService.saveStore(store);
-        
-        assertNotNull(savedStore);
-        assertEquals(store, savedStore);
-
-        when(storeRepository.findById(store.getStoreId())).thenReturn(Optional.of(store));
-
-        Map<String, Object> updatedStore = Map.of(
-
-            "storeName","Sniper Kudus 69, One shot one kill"
+        Map<String, Object> updates = Map.of(
+            "storeName", "Sniper Kudus 69, One shot one kill"
         );
-        
-        Store result = storeService.partialUpdateStore(store.getStoreId(), updatedStore);
-        
+        Store result = storeService.partialUpdateStore(existing.getStoreId(), updates);
         assertNotNull(result);
         assertEquals("Sniper Kudus 69, One shot one kill", result.getStoreName());
-        
-        verify(storeRepository, times(2)).save(any(Store.class));
-        verify(storeRepository, times(1)).findById(eq(store.getStoreId()));
-        verify(userRepository, times(1)).findById(eq(store.getUser().getUserId()));
+        verify(storeRepository, times(1)).findById(existing.getStoreId());
+        verify(storeRepository, times(1)).save(existing);
     }
+    
 
     @Test
     public void testSoftdeleteById() {

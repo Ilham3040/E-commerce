@@ -1,5 +1,6 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.ProductVariant;
 import com.example.shoppingapi.repository.ProductVariantRepository;
 import com.example.shoppingapi.repository.ProductRepository;
@@ -55,13 +56,13 @@ public class ProductVariantService {
         }
         Optional<ProductVariant> existingProductVariantOpt = productVariantRepository.findById(id);
         if (existingProductVariantOpt.isEmpty()) {
-            throw new IllegalArgumentException("ProductVariant not found with ID: " + id);
+            throw new IllegalArgumentException("Product Variant not found with ID: " + id);
         }
         if (productVariant.getProduct() == null || productVariant.getProduct().getProductId() == null) {
             throw new IllegalArgumentException("Product ID is required to update a product variant.");
         }
 
-        Optional<ProductVariant> product = productVariantRepository.findById(productVariant.getProduct().getProductId());
+        Optional<Product> product = productRepository.findById(productVariant.getProduct().getProductId());
         if (product.isEmpty()) {
             throw new IllegalArgumentException("Product not found. Cannot update product variant.");
         }
