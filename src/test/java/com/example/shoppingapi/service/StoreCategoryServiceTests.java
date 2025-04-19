@@ -35,7 +35,7 @@ public class StoreCategoryServiceTests {
     @InjectMocks
     private StoreCategoryService storeCategoryService;
 
-    private ModelHelper<StoreCategory> storeCategoryHelper = ModelHelperFactory.getModelHelper(StoreCategory.class);
+    private final ModelHelper<StoreCategory> storeCategoryHelper = ModelHelperFactory.getModelHelper(StoreCategory.class);
 
     @Test
     public void testFindAll() {

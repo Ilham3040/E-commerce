@@ -29,7 +29,7 @@ public class UserFavoriteServiceTests {
     @InjectMocks
     private UserFavoriteService userFavoriteService;
 
-    private ModelHelper<UserFavorite> favoriteHelper =
+    private final ModelHelper<UserFavorite> favoriteHelper =
         ModelHelperFactory.getModelHelper(UserFavorite.class);
 
     @Test

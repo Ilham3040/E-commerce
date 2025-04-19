@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StoreModelHelper implements ModelHelper<Store> {
 
-    private ModelHelper<User> userHelper =  ModelHelperFactory.getModelHelper(User.class);
+    private final ModelHelper<User> userHelper =  ModelHelperFactory.getModelHelper(User.class);
 
     @Override
     public Store createModel(Integer num) {

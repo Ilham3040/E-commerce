@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StoreCategoryItemModelHelper implements ModelHelper<StoreCategoryItem> {
 
-    private ModelHelper<StoreCategory> storeCategoryHelper = ModelHelperFactory.getModelHelper(StoreCategory.class);
-    private ModelHelper<Product> productHelper = ModelHelperFactory.getModelHelper(Product.class);
+    private final ModelHelper<StoreCategory> storeCategoryHelper = ModelHelperFactory.getModelHelper(StoreCategory.class);
+    private final ModelHelper<Product> productHelper = ModelHelperFactory.getModelHelper(Product.class);
 
     @Override
     public StoreCategoryItem createModel(Integer num) {
@@ -29,9 +29,7 @@ public class StoreCategoryItemModelHelper implements ModelHelper<StoreCategoryIt
             product = productHelper.createModel(2);
         }
 
-        id = new StoreCategoryItemId();
-        id.setCategoryId(category.getCategoryId());
-        id.setProductId(product.getProductId());
+        id = StoreCategoryItemId.builder().categoryId(category.getCategoryId()).productId(product.getProductId()).build();
 
         return StoreCategoryItem.builder()
                         .id(id)

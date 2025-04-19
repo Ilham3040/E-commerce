@@ -31,7 +31,7 @@ public class UserCartServiceTests {
     @InjectMocks
     private UserCartService userCartService;
 
-    private ModelHelper<UserCart> cartHelper =
+    private final ModelHelper<UserCart> cartHelper =
         ModelHelperFactory.getModelHelper(UserCart.class);
 
     @Test

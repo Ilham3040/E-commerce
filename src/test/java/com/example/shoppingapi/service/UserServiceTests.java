@@ -35,7 +35,7 @@ public class UserServiceTests {
     @InjectMocks
     private UserService userService;
 
-    private ModelHelper<User> userHelper = ModelHelperFactory.getModelHelper(User.class);
+    private final ModelHelper<User> userHelper = ModelHelperFactory.getModelHelper(User.class);
 
     @Test
     public void testGetAllUsers() {

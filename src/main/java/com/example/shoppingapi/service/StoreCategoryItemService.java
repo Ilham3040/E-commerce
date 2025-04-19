@@ -80,7 +80,7 @@ public class StoreCategoryItemService {
 
     public StoreCategoryItem deleteById(StoreCategoryItemId id) {
         StoreCategoryItem storeCategoryItem = storeCategoryItemRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("StoreCategory not found with ID: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Item on this category not found with ID: " + id));
 
         storeCategoryItem.setDeletedAt(LocalDateTime.now());
         storeCategoryItemRepository.save(storeCategoryItem);

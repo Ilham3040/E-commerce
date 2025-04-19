@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProductReviewModelHelper implements ModelHelper<ProductReview> {
 
-    private ModelHelper<Product> productHelper =  ModelHelperFactory.getModelHelper(Product.class);
-    private ModelHelper<User> userHelper =  ModelHelperFactory.getModelHelper(User.class);
+    private final ModelHelper<Product> productHelper =  ModelHelperFactory.getModelHelper(Product.class);
+    private final ModelHelper<User> userHelper =  ModelHelperFactory.getModelHelper(User.class);
 
     @Override
     public ProductReview createModel(Integer num) {

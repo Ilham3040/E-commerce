@@ -31,7 +31,7 @@ public class StoreDetailServiceTests {
     @InjectMocks
     private StoreDetailService storeDetailService;
 
-    private ModelHelper<StoreDetail> storeDetailHelper = ModelHelperFactory.getModelHelper(StoreDetail.class);
+    private final ModelHelper<StoreDetail> storeDetailHelper = ModelHelperFactory.getModelHelper(StoreDetail.class);
 
     @Test
     public void testFindAll() {

@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StoreRoleModelHelper implements ModelHelper<StoreRole> {
 
-    private ModelHelper<User> userHelper = ModelHelperFactory.getModelHelper(User.class);
-    private ModelHelper<Store> storeHelper = ModelHelperFactory.getModelHelper(Store.class);
+    private final ModelHelper<User> userHelper = ModelHelperFactory.getModelHelper(User.class);
+    private final ModelHelper<Store> storeHelper = ModelHelperFactory.getModelHelper(Store.class);
 
     @Override
     public StoreRole createModel(Integer num) {

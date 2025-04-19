@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class OrderModelHelper implements ModelHelper<Order> {
 
-    private ModelHelper<User> userHelper =  ModelHelperFactory.getModelHelper(User.class);
-    private ModelHelper<Product> productHelper =  ModelHelperFactory.getModelHelper(Product.class);
+    private final ModelHelper<User> userHelper =  ModelHelperFactory.getModelHelper(User.class);
+    private final ModelHelper<Product> productHelper =  ModelHelperFactory.getModelHelper(Product.class);
 
     @Override
     public Order createModel(Integer num) {

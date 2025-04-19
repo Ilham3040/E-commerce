@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserCartModelHelper implements ModelHelper<UserCart> {
 
-    private ModelHelper<User> userHelper = ModelHelperFactory.getModelHelper(User.class);
-    private ModelHelper<Product> productHelper = ModelHelperFactory.getModelHelper(Product.class);
+    private final ModelHelper<User> userHelper = ModelHelperFactory.getModelHelper(User.class);
+    private final ModelHelper<Product> productHelper = ModelHelperFactory.getModelHelper(Product.class);
 
     @Override
     public UserCart createModel(Integer num) {

@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class StoreDetailModelHelper implements ModelHelper<StoreDetail> {
 
-    private ModelHelper<Store> storeHelper = ModelHelperFactory.getModelHelper(Store.class);
+    private final ModelHelper<Store> storeHelper = ModelHelperFactory.getModelHelper(Store.class);
 
     @Override
     public StoreDetail createModel(Integer num) {
