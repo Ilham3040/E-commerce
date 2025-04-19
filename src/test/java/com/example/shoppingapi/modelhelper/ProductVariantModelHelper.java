@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ProductVariantModelHelper implements ModelHelper<ProductVariant> {
 
-    private ModelHelper<Product> productHelper =  ModelHelperFactory.getModelHelper(Product.class);
+    private final ModelHelper<Product> productHelper =  ModelHelperFactory.getModelHelper(Product.class);
 
     @Override
     public ProductVariant createModel(Integer num) {

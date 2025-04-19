@@ -37,7 +37,7 @@ public class ProductDetailServiceTests {
     private ProductDetailService productDetailService;
 
     
-    private ModelHelper<ProductDetail> productDetailHelper = ModelHelperFactory.getModelHelper(ProductDetail.class);
+    private final ModelHelper<ProductDetail> productDetailHelper = ModelHelperFactory.getModelHelper(ProductDetail.class);
 
     @Test
     public void testFindAll() {

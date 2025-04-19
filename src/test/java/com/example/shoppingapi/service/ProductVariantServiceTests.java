@@ -36,7 +36,7 @@ public class ProductVariantServiceTests {
     @InjectMocks
     private ProductVariantService productVariantService;
 
-    private ModelHelper<ProductVariant> productVariantHelper = ModelHelperFactory.getModelHelper(ProductVariant.class);
+    private final ModelHelper<ProductVariant> productVariantHelper = ModelHelperFactory.getModelHelper(ProductVariant.class);
 
     @Test
     public void testFindAll() {

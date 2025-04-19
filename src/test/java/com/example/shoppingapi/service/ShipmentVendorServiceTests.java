@@ -35,7 +35,7 @@ public class ShipmentVendorServiceTests {
     @InjectMocks
     private ShipmentVendorService shipmentVendorService;
 
-    private ModelHelper<ShipmentVendor> shipmentVendorHelper = ModelHelperFactory.getModelHelper(ShipmentVendor.class);
+    private final ModelHelper<ShipmentVendor> shipmentVendorHelper = ModelHelperFactory.getModelHelper(ShipmentVendor.class);
 
     @Test
     public void testGetAllShipmentVendors() {

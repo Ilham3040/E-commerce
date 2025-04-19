@@ -34,3 +34,4 @@ build/
 
 src/main/resources/.env
 target/classes/application.properties
+/.apt_generated_tests/

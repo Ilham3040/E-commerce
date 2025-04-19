@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 public class ProductModelHelper implements ModelHelper<Product> {
 
 
-    private ModelHelper<Store> storeHelper =  ModelHelperFactory.getModelHelper(Store.class);
+    private final ModelHelper<Store> storeHelper =  ModelHelperFactory.getModelHelper(Store.class);
 
     @Override
     public Product createModel(Integer num) {

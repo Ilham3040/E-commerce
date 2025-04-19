@@ -47,7 +47,7 @@ public class ProductReviewServiceTests {
     private ProductReviewService productReviewService;
 
     
-    private ModelHelper<ProductReview> productReviewHelper = ModelHelperFactory.getModelHelper(ProductReview.class);
+    private final ModelHelper<ProductReview> productReviewHelper = ModelHelperFactory.getModelHelper(ProductReview.class);
 
 
     @Test

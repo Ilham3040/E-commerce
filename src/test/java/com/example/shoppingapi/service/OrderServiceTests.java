@@ -36,7 +36,7 @@ public class OrderServiceTests {
     private OrderService orderService;
 
     
-    private ModelHelper<Order> orderHelper = ModelHelperFactory.getModelHelper(Order.class);
+    private final ModelHelper<Order> orderHelper = ModelHelperFactory.getModelHelper(Order.class);
     
     @Test
     public void testGetAllOrders() {

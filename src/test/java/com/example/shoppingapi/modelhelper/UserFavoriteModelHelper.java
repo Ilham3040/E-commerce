@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserFavoriteModelHelper implements ModelHelper<UserFavorite> {
 
-    private ModelHelper<User> userHelper = ModelHelperFactory.getModelHelper(User.class);
-    private ModelHelper<Product> productHelper = ModelHelperFactory.getModelHelper(Product.class);
+    private final ModelHelper<User> userHelper = ModelHelperFactory.getModelHelper(User.class);
+    private final ModelHelper<Product> productHelper = ModelHelperFactory.getModelHelper(Product.class);
 
     @Override
     public UserFavorite createModel(Integer num) {
