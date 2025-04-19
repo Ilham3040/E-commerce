@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.eq;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,7 +35,7 @@ public class UserServiceTests {
     @InjectMocks
     private UserService userService;
 
-    private ModelHelper<User> userHelper = ModelHelperFactory.getModelHelper(User.class);
+    private final ModelHelper<User> userHelper = ModelHelperFactory.getModelHelper(User.class);
 
     @Test
     public void testGetAllUsers() {
@@ -92,59 +91,46 @@ public class UserServiceTests {
         assertFalse(result.isPresent());
         verify(userRepository, times(1)).findById(1L);
     }
-
     @Test
-    public void testSaveThenUpdateUser() {
+    public void testUpdateUser() {
         User user = userHelper.createModel(1);
-    
-        when(userRepository.save(any(User.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
-    
-        User savedUser = userService.createUser(user);
-        assertNotNull(savedUser);
-        assertEquals(user, savedUser);
-    
-        when(userRepository.findById(eq(user.getUserId()))).thenReturn(Optional.of(savedUser));
-    
-        User updatedUser = savedUser.toBuilder().phoneNumber("0987654321").build();
-    
-        User result = userService.updateUser(savedUser.getUserId(), updatedUser);
-    
+        
+        when(userRepository.findById(user.getUserId())).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        User updatedUser = user.toBuilder().phoneNumber("0123456789").build();
+        User result = userService.updateUser(user.getUserId(), updatedUser);
+
         assertNotNull(result);
-        assertEquals(updatedUser.getPhoneNumber(), result.getPhoneNumber());
-    
-        verify(userRepository, times(2)).save(any(User.class));
-        verify(userRepository, times(1)).findById(eq(user.getUserId()));
+        assertEquals(updatedUser, result);
+
+        verify(userRepository, times(1)).findById(user.getUserId());
+        verify(userRepository, times(1)).save(updatedUser);
     }
     
+    
 
     @Test
-    public void testSaveThenPartiallyUpdateUser() {
-        User user = userHelper.createModel(1);
-        
-        when(userRepository.save(any(User.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
-        
-        User savedUser = userService.createUser(user);
-        assertNotNull(savedUser);
-        assertEquals(user, savedUser);
+    public void testPartialUpdateUser() {
+        User existing = userHelper.createModel(1);
 
-        when(userRepository.findById(savedUser.getUserId())).thenReturn(Optional.of(savedUser));
-        
-        Map<String, Object> updatedUser = Map.of(
+        when(userRepository.findById(existing.getUserId())).thenReturn(Optional.of(existing));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Map<String, Object> updates = Map.of(
             "email", "heyguys@example.com",
             "phoneNumber", "0987654321"
         );
-        
-        User result = userService.partialUpdateUser(savedUser.getUserId(), updatedUser);
-        
+        User result = userService.partialUpdateUser(existing.getUserId(), updates);
+
         assertNotNull(result);
         assertEquals("heyguys@example.com", result.getEmail());
         assertEquals("0987654321", result.getPhoneNumber());
         
-        verify(userRepository, times(2)).save(any(User.class));
-        verify(userRepository, times(1)).findById(savedUser.getUserId());
+        verify(userRepository, times(1)).findById(existing.getUserId());
+        verify(userRepository, times(1)).save(existing);
     }
+    
 
     @Test
     public void testSoftDeleteById() {

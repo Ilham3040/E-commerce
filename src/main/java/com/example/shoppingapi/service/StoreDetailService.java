@@ -3,10 +3,12 @@ package com.example.shoppingapi.service;
 import com.example.shoppingapi.model.StoreDetail;
 import com.example.shoppingapi.repository.StoreDetailRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -54,7 +56,13 @@ public class StoreDetailService {
         return storeDetailRepository.save(storeDetail);
     }
 
-    public void deleteById(Long id) {
-        storeDetailRepository.deleteById(id);
+    public StoreDetail deleteById(Long id) {
+        StoreDetail storeDetail = storeDetailRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("StoreDetail not found with ID: " + id));
+
+        storeDetail.setDeletedAt(LocalDateTime.now());
+        storeDetailRepository.save(storeDetail);
+        return storeDetail;
     }
+
 }

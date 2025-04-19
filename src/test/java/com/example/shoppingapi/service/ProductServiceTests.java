@@ -44,8 +44,8 @@ public class ProductServiceTests {
     @InjectMocks
     private ProductService productService;
 
-    private ModelHelper<Product> productHelper = ModelHelperFactory.getModelHelper(Product.class);
-    private ModelHelper<Store> storeHelper =  ModelHelperFactory.getModelHelper(Store.class);
+    private final ModelHelper<Product> productHelper = ModelHelperFactory.getModelHelper(Product.class);
+    private final ModelHelper<Store> storeHelper =  ModelHelperFactory.getModelHelper(Store.class);
 
     @Test
     public void testGetAllProducts() {
@@ -119,71 +119,41 @@ public class ProductServiceTests {
     }
 
     @Test
-    public void testSaveThenUpdateProduct(){
-        Product product = productHelper.createModel(1);
-        Store store = storeHelper.createModel(1);
-        product.setStore(store);
-
-        when(productRepository.save(any(Product.class))).thenReturn(product);
-        when(storeRepository.findById(store.getStoreId())).thenReturn(Optional.of(store));
+    public void testUpdateProduct() {
+        Product existing = productHelper.createModel(1);
         
-        Product savedProduct = productService.saveProduct(product);
+        when(productRepository.findById(existing.getProductId())).thenReturn(Optional.of(existing));
+        when(storeRepository.findById(existing.getStore().getStoreId())).thenReturn(Optional.of(existing.getStore()));
+        when(productRepository.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertNotNull(savedProduct);
-        assertEquals(product.getProductId(), savedProduct.getProductId());
-        assertEquals(product.getProductName(), savedProduct.getProductName());
-        assertEquals(product.getPrice(), savedProduct.getPrice());
-
-        when(productRepository.findById(product.getProductId())).thenReturn(Optional.of(product));
-
-        Product updatedProduct = savedProduct;
-        updatedProduct.setStore(store);
-        updatedProduct.setPrice(BigDecimal.valueOf(35000));
-
-        Product result = productService.updateProduct(updatedProduct.getProductId(),updatedProduct);
+        Product updated = existing.toBuilder().price(BigDecimal.valueOf(35000)).build();
+        Product result = productService.updateProduct(existing.getProductId(), updated);
 
         assertNotNull(result);
-        assertEquals(product.getProductId(), result.getProductId());
-        assertEquals(product.getProductName(), result.getProductName());
+        assertEquals(existing.getProductId(), result.getProductId());
         assertEquals(BigDecimal.valueOf(35000), result.getPrice());
 
-        verify(productRepository,times(2)).save(product);
-        verify(storeRepository,times(2)).findById(store.getStoreId());
-        verify(productRepository,times(1)).findById(store.getStoreId());
+        verify(productRepository, times(1)).findById(existing.getProductId());
+        verify(storeRepository, times(1)).findById(existing.getStore().getStoreId());
+        verify(productRepository, times(1)).save(updated);
     }
 
     @Test
-    public void testSaveThenUpdatePartiallyProduct(){
-        Product product = productHelper.createModel(1);
-        Store store = storeHelper.createModel(1);
-        product.setStore(store);
+    public void testPartialUpdateProduct() {
+        Product existing = productHelper.createModel(1);
 
-        when(productRepository.save(any(Product.class))).thenReturn(product);
-        when(storeRepository.findById(store.getStoreId())).thenReturn(Optional.of(store));
-        
-        Product savedProduct = productService.saveProduct(product);
+        when(productRepository.findById(existing.getProductId())).thenReturn(Optional.of(existing));
+        when(productRepository.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertNotNull(savedProduct);
-        assertEquals(product.getProductId(), savedProduct.getProductId());
-        assertEquals(product.getProductName(), savedProduct.getProductName());
-        assertEquals(product.getPrice(), savedProduct.getPrice());
-
-        when(productRepository.findById(product.getProductId())).thenReturn(Optional.of(product));
-
-        Map<String,Object> updatedProduct = Map.of(
-            "price",35000
-        );
-
-        Product result = productService.partialUpdateProduct(product.getProductId(),updatedProduct);
+        Map<String, Object> updates = Map.of("price", 35000);
+        Product result = productService.partialUpdateProduct(existing.getProductId(), updates);
 
         assertNotNull(result);
-        assertEquals(product.getProductId(), result.getProductId());
-        assertEquals(product.getProductName(), result.getProductName());
+        assertEquals(existing.getProductId(), result.getProductId());
         assertEquals(BigDecimal.valueOf(35000), result.getPrice());
 
-        verify(productRepository,times(2)).save(product);
-        verify(storeRepository,times(1)).findById(store.getStoreId());
-        verify(productRepository,times(1)).findById(store.getStoreId());
+        verify(productRepository, times(1)).findById(existing.getProductId());
+        verify(productRepository, times(1)).save(existing);
     }
 
     @Test

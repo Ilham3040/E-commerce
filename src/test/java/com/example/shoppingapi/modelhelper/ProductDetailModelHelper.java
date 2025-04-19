@@ -10,7 +10,7 @@ import java.util.Arrays;
 @NoArgsConstructor
 public class ProductDetailModelHelper implements ModelHelper<ProductDetail> {
 
-    private ModelHelper<Product> productHelper =  ModelHelperFactory.getModelHelper(Product.class);
+    private final ModelHelper<Product> productHelper =  ModelHelperFactory.getModelHelper(Product.class);
 
     @Override
     public ProductDetail createModel(Integer num) {
