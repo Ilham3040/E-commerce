@@ -1,0 +1,6 @@
+for the future vscode use of any java project:
+
+1. The latest version java redhat support extension of vscode always demand requirement of the latest jdk version. So instead of auto update, turn the auto update off and manually select the version installation that support jdk that you have.
+2. The real problem was from point number 1 is that the latest version of jdks aren't always support lombok project and that makes us can't leverage the code simplification of lombok annotations.
+3. For another optimazation use the vmargs to add more memory and more threads for processing the jvm inside the java redhat language support
+4. Turn of enable javac support for the extension redhat java language support so that way this extension leverage eclipse compiler which support lombok.
