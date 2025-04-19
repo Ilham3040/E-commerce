@@ -2,181 +2,117 @@ package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.model.StoreCategoryItem;
 import com.example.shoppingapi.model.StoreCategoryItemId;
+import com.example.shoppingapi.modelhelper.ModelHelper;
+import com.example.shoppingapi.modelhelper.ModelHelperFactory;
 import com.example.shoppingapi.repository.ProductRepository;
 import com.example.shoppingapi.repository.StoreCategoryItemRepository;
 import com.example.shoppingapi.repository.StoreCategoryRepository;
-import com.example.shoppingapi.modelhelper.ModelHelper;
-import com.example.shoppingapi.modelhelper.ModelHelperFactory;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
-import java.util.*;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@SpringBootTest(classes = StoreCategoryItemServiceTests.class)
-public class StoreCategoryItemServiceTests {
+class StoreCategoryItemServiceTest {
 
-    @Mock
-    private StoreCategoryItemRepository storeCategoryItemRepository;
+    @Mock private StoreCategoryItemRepository itemRepo;
+    @Mock private StoreCategoryRepository     categoryRepo;
+    @Mock private ProductRepository           productRepo;
+    @InjectMocks private StoreCategoryItemService service;
 
-    @Mock
-    private ProductRepository productRepository;
-
-    @Mock
-    private StoreCategoryRepository storeCategoryRepository;
-
-    @InjectMocks
-    private StoreCategoryItemService storeCategoryItemService;
-
-    private final ModelHelper<StoreCategoryItem> storeCategoryItemHelper = ModelHelperFactory.getModelHelper(StoreCategoryItem.class);
+    private final ModelHelper<StoreCategoryItem> helper =
+        ModelHelperFactory.getModelHelper(StoreCategoryItem.class);
 
     @Test
-    public void testFindAll() {
-        StoreCategoryItem storeCategoryItem1 = storeCategoryItemHelper.createModel(1);
-        StoreCategoryItem storeCategoryItem2 = storeCategoryItemHelper.createModel(2);
+    void findAll_returnsAll() {
+        List<StoreCategoryItem> list = Arrays.asList(helper.createModel(1), helper.createModel(2));
+        when(itemRepo.findAll()).thenReturn(list);
 
-        List<StoreCategoryItem> mockList = Arrays.asList(storeCategoryItem1, storeCategoryItem2);
-
-        when(storeCategoryItemRepository.findAll()).thenReturn(mockList);
-
-        List<StoreCategoryItem> result = storeCategoryItemService.findAll();
-
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(storeCategoryItem1, result.get(0));
-        assertEquals(storeCategoryItem2, result.get(1));
-
-        verify(storeCategoryItemRepository, times(1)).findAll();
+        assertEquals(list, service.findAll());
+        verify(itemRepo).findAll();
     }
 
     @Test
-    public void testFindById() {
-        StoreCategoryItem storeCategoryItem = storeCategoryItemHelper.createModel(1);
-        StoreCategoryItemId id = storeCategoryItem.getId();
-        when(storeCategoryItemRepository.findById(id))
-            .thenReturn(Optional.of(storeCategoryItem));
-        StoreCategoryItem result = storeCategoryItemService.findById(id).orElseThrow(() -> new AssertionError("Item on this category doesn't exist"));
-        assertNotNull(result);
-        assertEquals(storeCategoryItem, result);
+    void findById_found_returnsItem() {
+        StoreCategoryItem item = helper.createModel(1);
+        StoreCategoryItemId id = item.getId();
+        when(itemRepo.findById(id)).thenReturn(Optional.of(item));
 
-        verify(storeCategoryItemRepository, times(1)).findById(id);
+        assertEquals(item, service.findById(id));
+        verify(itemRepo).findById(id);
     }
 
     @Test
-    public void testFindById_NotFound() {
-        StoreCategoryItemId missingId = StoreCategoryItemId.builder().categoryId(9L).productId(9L).build();
-
-        when(storeCategoryItemRepository.findById(missingId)).thenReturn(Optional.empty());
-
-        Optional<StoreCategoryItem> result = storeCategoryItemService.findById(missingId);
-
-        assertFalse(result.isPresent());
-
-        verify(storeCategoryItemRepository, times(1)).findById(missingId);
+    void findById_notFound_throws() {
+        StoreCategoryItemId id = new StoreCategoryItemId(9L,9L);
+        when(itemRepo.findById(id)).thenReturn(Optional.empty());
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.findById(id)
+        );
+        assertEquals("StoreCategoryItem not found with ID: " + id, ex.getMessage());
     }
 
     @Test
-    public void testSaveStoreCategoryItem() {
-        StoreCategoryItem storeCategoryItem = storeCategoryItemHelper.createModel(1);
+    void save_valid_savesAndReturns() {
+        StoreCategoryItem item = helper.createModel(1);
+        when(categoryRepo.findById(item.getStoreCategory().getCategoryId()))
+            .thenReturn(Optional.of(item.getStoreCategory()));
+        when(productRepo.findById(item.getProduct().getProductId()))
+            .thenReturn(Optional.of(item.getProduct()));
+        when(itemRepo.save(item)).thenReturn(item);
 
-        when(storeCategoryRepository.findById(storeCategoryItem.getStoreCategory().getCategoryId()))
-            .thenReturn(Optional.of(storeCategoryItem.getStoreCategory()));
-        when(productRepository.findById(storeCategoryItem.getProduct().getProductId()))
-            .thenReturn(Optional.of(storeCategoryItem.getProduct()));
-        when(storeCategoryItemRepository.save(any(StoreCategoryItem.class))).thenReturn(storeCategoryItem);
-
-        StoreCategoryItem created = storeCategoryItemService.saveStoreCategoryItem(storeCategoryItem);
-        
-        assertNotNull(created);
-        assertEquals(storeCategoryItem, created);
-
-        verify(storeCategoryItemRepository, times(1)).save(storeCategoryItem);
-        verify(productRepository, times(1)).findById(storeCategoryItem.getProduct().getProductId());
-        verify(storeCategoryRepository, times(1)).findById(storeCategoryItem.getStoreCategory().getCategoryId());
+        assertEquals(item, service.saveStoreCategoryItem(item));
+        verify(itemRepo).save(item);
     }
 
     @Test
-    public void testUpdateStoreCategoryItem() {
-        StoreCategoryItem storeCategoryItem = storeCategoryItemHelper.createModel(1);
-        StoreCategoryItemId id = storeCategoryItem.getId();
+    void update_valid_savesUpdated() {
+        StoreCategoryItem item = helper.createModel(1);
+        StoreCategoryItemId id = item.getId();
+        when(itemRepo.findById(id)).thenReturn(Optional.of(item));
+        when(categoryRepo.findById(item.getStoreCategory().getCategoryId()))
+            .thenReturn(Optional.of(item.getStoreCategory()));
+        when(productRepo.findById(item.getProduct().getProductId()))
+            .thenReturn(Optional.of(item.getProduct()));
+        when(itemRepo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        when(storeCategoryRepository.findById(storeCategoryItem.getStoreCategory().getCategoryId()))
-            .thenReturn(Optional.of(storeCategoryItem.getStoreCategory()));
-        when(productRepository.findById(storeCategoryItem.getProduct().getProductId()))
-            .thenReturn(Optional.of(storeCategoryItem.getProduct()));
-        when(storeCategoryItemRepository.save(any(StoreCategoryItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(storeCategoryItemRepository.findById(id)).thenReturn(Optional.of(storeCategoryItem));
-
-
-        StoreCategoryItem updated  = storeCategoryItem.toBuilder().updatedAt(LocalDateTime.now()).build();
-        StoreCategoryItem result = storeCategoryItemService.updateStoreCategoryItem(storeCategoryItem.getId(), updated);
-
-        assertNotNull(result);
-        assertEquals(updated, result);
-        
-        verify(storeCategoryItemRepository, times(1)).save(updated);
-        verify(productRepository, times(1)).findById(storeCategoryItem.getProduct().getProductId());
-        verify(storeCategoryRepository, times(1)).findById(storeCategoryItem.getStoreCategory().getCategoryId());
-        verify(storeCategoryItemRepository, times(1)).findById(id);
+        StoreCategoryItem updated = item.toBuilder().updatedAt(LocalDateTime.now()).build();
+        assertEquals(updated, service.updateStoreCategoryItem(id, updated));
+        verify(itemRepo).save(updated);
     }
 
     @Test
-    public void testPartialUpdateStoreCategoryItem() {
-        StoreCategoryItem storeCategoryItem = storeCategoryItemHelper.createModel(2);
-        StoreCategoryItemId id = storeCategoryItem.getId();
-
-        when(storeCategoryItemRepository.save(any(StoreCategoryItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(storeCategoryItemRepository.findById(id)).thenReturn(Optional.of(storeCategoryItem));
+    void partialUpdate_appliesField() {
+        StoreCategoryItem item = helper.createModel(1);
+        StoreCategoryItemId id = item.getId();
+        when(itemRepo.findById(id)).thenReturn(Optional.of(item));
+        when(itemRepo.save(any())).thenAnswer(i -> i.getArgument(0));
 
         LocalDateTime now = LocalDateTime.now();
-        Map<String, Object> updates = Map.of("updatedAt", now);
-        StoreCategoryItem result = storeCategoryItemService.partialUpdateStoreCategoryItem(id, updates);
-
-        assertNotNull(result);
+        var result = service.partialUpdateStoreCategoryItem(id, Map.of("updatedAt", now));
         assertEquals(now, result.getUpdatedAt());
-
-        verify(storeCategoryItemRepository, times(1)).save(storeCategoryItem);
-        verify(storeCategoryItemRepository, times(1)).findById(id);
-    }
-
-        @Test
-        public void testDeleteStoreCategoryItem() {
-        StoreCategoryItem storeCategoryItem  = storeCategoryItemHelper.createModel(1);
-        StoreCategoryItemId id = storeCategoryItem.getId();
-
-        when(storeCategoryItemRepository.findById(id)).thenReturn(Optional.of(storeCategoryItem));
-        when(storeCategoryItemRepository.save(any(StoreCategoryItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        
-        storeCategoryItemService.deleteById(id);
-
-        verify(storeCategoryItemRepository, times(1)).findById(id);
-        verify(storeCategoryItemRepository, times(1)).save(storeCategoryItem);
     }
 
     @Test
-    public void testDeleteStoreCategoryItem_NotFound() {
-        StoreCategoryItemId id = new StoreCategoryItemId(9L, 9L);
-            when(storeCategoryItemRepository.findById(id)).thenReturn(Optional.empty());
-    
-        try {
-            storeCategoryItemService.deleteById(id);
-        } catch (ResourceNotFoundException e) {
-            assertEquals(("Item on this category not found with ID: " + id), e.getMessage());
-        }
-    
-        verify(storeCategoryItemRepository, times(1)).findById(id);
+    void softDelete_setsDeletedAt() {
+        StoreCategoryItem item = helper.createModel(1);
+        StoreCategoryItemId id = item.getId();
+        when(itemRepo.findById(id)).thenReturn(Optional.of(item));
+        when(itemRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        var result = service.softDeleteStoreCategoryItem(id);
+        assertNotNull(result.getDeletedAt());
     }
-    
 }

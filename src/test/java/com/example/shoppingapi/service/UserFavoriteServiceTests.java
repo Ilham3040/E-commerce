@@ -2,124 +2,93 @@ package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.model.UserFavorite;
 import com.example.shoppingapi.model.UserFavoriteId;
-import com.example.shoppingapi.repository.UserFavoriteRepository;
 import com.example.shoppingapi.modelhelper.ModelHelper;
 import com.example.shoppingapi.modelhelper.ModelHelperFactory;
+import com.example.shoppingapi.repository.UserFavoriteRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@SpringBootTest(classes = UserFavoriteServiceTests.class)
-public class UserFavoriteServiceTests {
+class UserFavoriteServiceTest {
 
-    @Mock
-    private UserFavoriteRepository userFavoriteRepository;
+    @Mock private UserFavoriteRepository favRepo;
+    @InjectMocks private UserFavoriteService service;
 
-    @InjectMocks
-    private UserFavoriteService userFavoriteService;
-
-    private final ModelHelper<UserFavorite> favoriteHelper =
+    private final ModelHelper<UserFavorite> helper =
         ModelHelperFactory.getModelHelper(UserFavorite.class);
 
     @Test
-    public void testFindAll() {
-        UserFavorite fav1 = favoriteHelper.createModel(1);
-        UserFavorite fav2 = favoriteHelper.createModel(2);
-        List<UserFavorite> mockList = Arrays.asList(fav1, fav2);
+    void findAll_returnsAllFavorites() {
+        List<UserFavorite> list = Arrays.asList(helper.createModel(1), helper.createModel(2));
+        when(favRepo.findAll()).thenReturn(list);
 
-        when(userFavoriteRepository.findAll()).thenReturn(mockList);
-
-        List<UserFavorite> result = userFavoriteService.findAll();
-
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(fav1, result.get(0));
-        assertEquals(fav2, result.get(1));
-
-        verify(userFavoriteRepository, times(1)).findAll();
+        assertEquals(list, service.findAll());
+        verify(favRepo).findAll();
     }
 
     @Test
-    public void testFindById() {
-        UserFavorite fav = favoriteHelper.createModel(1);
+    void findById_found_returnsFavorite() {
+        UserFavorite fav = helper.createModel(1);
         UserFavoriteId id = fav.getId();
+        when(favRepo.findById(id)).thenReturn(Optional.of(fav));
 
-        when(userFavoriteRepository.findById(id)).thenReturn(Optional.of(fav));
-
-        Optional<UserFavorite> result = userFavoriteService.findById(id.getUserId(), id.getProductId());
-
-        assertTrue(result.isPresent());
-        assertEquals(fav, result.get());
-
-        verify(userFavoriteRepository, times(1)).findById(id);
+        assertEquals(fav, service.findById(id.getUserId(), id.getProductId()));
+        verify(favRepo).findById(id);
     }
 
     @Test
-    public void testFindById_NotFound() {
+    void findById_notFound_throws() {
         UserFavoriteId id = new UserFavoriteId(9L, 9L);
+        when(favRepo.findById(id)).thenReturn(Optional.empty());
 
-        when(userFavoriteRepository.findById(id)).thenReturn(Optional.empty());
-
-        Optional<UserFavorite> result = userFavoriteService.findById(id.getUserId(), id.getProductId());
-
-        assertFalse(result.isPresent());
-
-        verify(userFavoriteRepository, times(1)).findById(id);
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.findById(id.getUserId(), id.getProductId())
+        );
+        assertEquals("UserFavorite not found with ID: " + id, ex.getMessage());
     }
 
     @Test
-    public void testSaveUserFavorite() {
-        UserFavorite fav = favoriteHelper.createModel(1);
+    void saveUserFavorite_savesAndReturns() {
+        UserFavorite fav = helper.createModel(1);
+        when(favRepo.save(fav)).thenReturn(fav);
 
-        when(userFavoriteRepository.save(any(UserFavorite.class))).thenReturn(fav);
-
-        UserFavorite created = userFavoriteService.saveUserFavorite(fav);
-
-        assertNotNull(created);
-        assertEquals(fav, created);
-
-        verify(userFavoriteRepository, times(1)).save(fav);
+        assertEquals(fav, service.saveUserFavorite(fav));
+        verify(favRepo).save(fav);
     }
 
     @Test
-    public void testDeleteUserFavorite() {
-        UserFavorite fav = favoriteHelper.createModel(1);
+    void deleteById_existing_deletes() {
+        UserFavorite fav = helper.createModel(1);
         UserFavoriteId id = fav.getId();
+        when(favRepo.findById(id)).thenReturn(Optional.of(fav));
+        doNothing().when(favRepo).deleteById(id);
 
-        when(userFavoriteRepository.existsById(id)).thenReturn(true);
-        doNothing().when(userFavoriteRepository).deleteById(id);
-
-        userFavoriteService.deleteById(id);
-
-        verify(userFavoriteRepository, times(1)).existsById(id);
-        verify(userFavoriteRepository, times(1)).deleteById(id);
+        service.deleteById(id);
+        verify(favRepo).deleteById(id);
     }
 
     @Test
-    public void testDeleteUserFavorite_NotFound() {
-        UserFavoriteId id = new UserFavoriteId(9L, 9L);
-        when(userFavoriteRepository.existsById(id)).thenReturn(false);
+    void deleteById_notFound_throws() {
+        UserFavoriteId id = new UserFavoriteId(9L,9L);
+        when(favRepo.findById(id)).thenReturn(Optional.empty());
 
-        try {
-            userFavoriteService.deleteById(id);
-            fail("Expected ResourceNotFoundException");
-        } catch (ResourceNotFoundException e) {
-            assertEquals("UserFavorite not found with ID: " + id, e.getMessage());
-        }
-
-        verify(userFavoriteRepository, times(1)).existsById(id);
-        verify(userFavoriteRepository, never()).deleteById(any());
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.deleteById(id)
+        );
+        assertEquals("UserFavorite not found with ID: " + id, ex.getMessage());
+        verify(favRepo, never()).deleteById(any());
     }
-
 }

@@ -1,33 +1,27 @@
 package com.example.shoppingapi.service;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import static org.mockito.ArgumentMatchers.any;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
-
 import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.modelhelper.ModelHelper;
 import com.example.shoppingapi.modelhelper.ModelHelperFactory;
 import com.example.shoppingapi.repository.UserRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@SpringBootTest(classes = UserServiceTests.class)
-public class UserServiceTests {
+class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -35,130 +29,171 @@ public class UserServiceTests {
     @InjectMocks
     private UserService userService;
 
-    private final ModelHelper<User> userHelper = ModelHelperFactory.getModelHelper(User.class);
+    private final ModelHelper<User> userHelper =
+        ModelHelperFactory.getModelHelper(User.class);
 
     @Test
-    public void testGetAllUsers() {
-        User user1 = userHelper.createModel(1);
-        User user2 = userHelper.createModel(2);
-    
-        List<User> mockUsers = Arrays.asList(user1, user2);
-    
-        when(userRepository.findAll()).thenReturn(mockUsers);
-    
-        List<User> result = userService.getAllUsers();
-    
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(mockUsers, result);
-
-        verify(userRepository, times(1)).findAll();
-    }
-
-    @Test
-    public void testCreateUser() {
-        User user = userHelper.createModel(1);
-
-        when(userRepository.save(any(User.class))).thenReturn(user);
-
-        User createdUser = userService.createUser(user);
-
-        assertNotNull(createdUser);
-        assertEquals(user, createdUser);
-
-        verify(userRepository, times(1)).save(user);
-    }
-
-    @Test
-    public void testGetUserById() {
-        User user = userHelper.createModel(1);
-        when(userRepository.findById(user.getUserId())).thenReturn(Optional.of(user));
-
-        User result = userService.getUserById(user.getUserId()).orElseThrow(() -> new AssertionError("User not found"));
-
-        assertNotNull(result);
-        assertEquals(user, result);
-
-        verify(userRepository, times(1)).findById(user.getUserId());
-    }
-
-    @Test
-    public void testGetUserById_NotFound() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
-
-        Optional<User> result = userService.getUserById(1L);
-
-        assertFalse(result.isPresent());
-        verify(userRepository, times(1)).findById(1L);
-    }
-    @Test
-    public void testUpdateUser() {
-        User user = userHelper.createModel(1);
-        
-        when(userRepository.findById(user.getUserId())).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        User updatedUser = user.toBuilder().phoneNumber("0123456789").build();
-        User result = userService.updateUser(user.getUserId(), updatedUser);
-
-        assertNotNull(result);
-        assertEquals(updatedUser, result);
-
-        verify(userRepository, times(1)).findById(user.getUserId());
-        verify(userRepository, times(1)).save(updatedUser);
-    }
-    
-    
-
-    @Test
-    public void testPartialUpdateUser() {
-        User existing = userHelper.createModel(1);
-
-        when(userRepository.findById(existing.getUserId())).thenReturn(Optional.of(existing));
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        Map<String, Object> updates = Map.of(
-            "email", "heyguys@example.com",
-            "phoneNumber", "0987654321"
+    void getAllUsers_returnsAllUsers() {
+        List<User> expected = List.of(
+            userHelper.createModel(1),
+            userHelper.createModel(2)
         );
-        User result = userService.partialUpdateUser(existing.getUserId(), updates);
+        when(userRepository.findAll()).thenReturn(expected);
 
-        assertNotNull(result);
-        assertEquals("heyguys@example.com", result.getEmail());
-        assertEquals("0987654321", result.getPhoneNumber());
-        
-        verify(userRepository, times(1)).findById(existing.getUserId());
-        verify(userRepository, times(1)).save(existing);
+        List<User> actual = userService.getAllUsers();
+
+        assertEquals(expected, actual);
+        verify(userRepository).findAll();
     }
-    
 
     @Test
-    public void testSoftDeleteById() {
+    void createUser_savesAndReturnsUser() {
+        User toCreate = userHelper.createModel(1);
+        when(userRepository.save(any())).thenReturn(toCreate);
+
+        User created = userService.createUser(toCreate);
+
+        assertEquals(toCreate, created);
+        verify(userRepository).save(toCreate);
+    }
+
+    @Test
+    void getUserById_found_returnsUser() {
+        User expected = userHelper.createModel(1);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(expected));
+
+        User actual = userService.getUserById(1L);
+
+        assertEquals(expected, actual);
+        verify(userRepository).findById(1L);
+    }
+
+    @Test
+    void getUserById_notFound_throwsException() {
+        when(userRepository.findById(2L)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> userService.getUserById(2L)
+        );
+        assertEquals("User not found with ID: 2", ex.getMessage());
+        verify(userRepository).findById(2L);
+    }
+
+    @Test
+    void getUserByUsername_found_returnsUser() {
+        User expected = userHelper.createModel(1);
+        when(userRepository.findByUsername("alice"))
+            .thenReturn(expected);
+
+        User actual = userService.getUserByUsername("alice");
+
+        assertEquals(expected, actual);
+        verify(userRepository).findByUsername("alice");
+    }
+
+    @Test
+    void getUserByUsername_notFound_throwsException() {
+        when(userRepository.findByUsername("bob"))
+            .thenReturn(null);
+
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> userService.getUserByUsername("bob")
+        );
+        assertEquals("User not found with username: bob", ex.getMessage());
+        verify(userRepository).findByUsername("bob");
+    }
+
+    @Test
+    void updateUser_idMismatch_throwsException() {
         User user = userHelper.createModel(1);
-        
-        when(userRepository.findById(user.getUserId())).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        User deletedUser = userService.deleteById(user.getUserId());
-
-        assertNotNull(deletedUser);
-        assertNotNull(deletedUser.getDeletedAt());
-        assertEquals(user.getUserId(), deletedUser.getUserId());
-
-        verify(userRepository, times(1)).save(deletedUser);
-        verify(userRepository, times(1)).findById(user.getUserId());
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> userService.updateUser(2L, user)
+        );
+        assertEquals("User ID in URL and body must match.", ex.getMessage());
+        verify(userRepository, never()).save(any());
     }
 
     @Test
-    public void testSoftDeleteById_NotFound() {
+    void updateUser_notFound_throwsException() {
+        User user = userHelper.createModel(1);
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        try {
-            userService.deleteById(1L);
-        } catch (ResourceNotFoundException e) {
-            assertEquals("User not found with ID: 1", e.getMessage());
-        }
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> userService.updateUser(1L, user)
+        );
+        assertEquals("User not found with ID: 1", ex.getMessage());
+        verify(userRepository).findById(1L);
+    }
 
-        verify(userRepository, times(1)).findById(1L);
+    @Test
+    void updateUser_existing_savesUpdatedUser() {
+        User original = userHelper.createModel(1);
+        User updated  = original.toBuilder()
+                                .phoneNumber("9999999999")
+                                .build();
+
+        when(userRepository.findById(1L))
+            .thenReturn(Optional.of(original));
+        when(userRepository.save(any()))
+            .thenReturn(updated);
+
+        User result = userService.updateUser(1L, updated);
+
+        assertEquals(updated, result);
+        verify(userRepository).findById(1L);
+        verify(userRepository).save(updated);
+    }
+
+    @Test
+    void partialUpdateUser_existing_appliesUpdates() {
+        User existing = userHelper.createModel(1);
+        when(userRepository.findById(1L))
+            .thenReturn(Optional.of(existing));
+        when(userRepository.save(any()))
+            .thenAnswer(inv -> inv.getArgument(0));
+
+        Map<String, Object> changes = Map.of(
+            "email", "new@example.com",
+            "phoneNumber", "1112223333"
+        );
+        User result = userService.partialUpdateUser(1L, changes);
+
+        assertEquals("new@example.com", result.getEmail());
+        assertEquals("1112223333",      result.getPhoneNumber());
+        verify(userRepository).findById(1L);
+        verify(userRepository).save(existing);
+    }
+
+    @Test
+    void deleteById_existing_setsDeletedAt() {
+        User existing = userHelper.createModel(1);
+        when(userRepository.findById(1L))
+            .thenReturn(Optional.of(existing));
+        when(userRepository.save(any()))
+            .thenAnswer(inv -> inv.getArgument(0));
+
+        User result = userService.deleteById(1L);
+
+        assertNotNull(result.getDeletedAt());
+        assertTrue(result.getDeletedAt().isBefore(LocalDateTime.now().plusSeconds(1)));
+        verify(userRepository).findById(1L);
+        verify(userRepository).save(existing);
+    }
+
+    @Test
+    void deleteById_notFound_throwsException() {
+        when(userRepository.findById(4L)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> userService.deleteById(4L)
+        );
+        assertEquals("User not found with ID: 4", ex.getMessage());
+        verify(userRepository).findById(4L);
     }
 }

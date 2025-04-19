@@ -1,151 +1,108 @@
 package com.example.shoppingapi.service;
 
-import com.example.shoppingapi.modelhelper.ModelHelper;
-import com.example.shoppingapi.modelhelper.ModelHelperFactory;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
-
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
-
-import java.util.*;
-
 import com.example.shoppingapi.model.Shipment;
 import com.example.shoppingapi.model.ShipmentId;
+import com.example.shoppingapi.modelhelper.ModelHelper;
+import com.example.shoppingapi.modelhelper.ModelHelperFactory;
 import com.example.shoppingapi.repository.OrderRepository;
 import com.example.shoppingapi.repository.ShipmentRepository;
 import com.example.shoppingapi.repository.ShipmentVendorRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@SpringBootTest(classes = ShipmentServiceTests.class)
-public class ShipmentServiceTests {
+class ShipmentServiceTest {
 
-    @Mock
-    private ShipmentRepository shipmentRepository;
+    @Mock private ShipmentRepository       shipmentRepo;
+    @Mock private ShipmentVendorRepository vendorRepo;
+    @Mock private OrderRepository          orderRepo;
+    @InjectMocks private ShipmentService    service;
 
-    @Mock
-    private ShipmentVendorRepository shipmentVendorRepository;
-
-    @Mock
-    private OrderRepository orderRepository;
-
-    @InjectMocks
-    private ShipmentService shipmentService;
-
-    private final ModelHelper<Shipment> shipmentHelper = ModelHelperFactory.getModelHelper(Shipment.class);
+    private final ModelHelper<Shipment> helper =
+        ModelHelperFactory.getModelHelper(Shipment.class);
 
     @Test
-    public void testFindAll() {
-        Shipment shipment1 = shipmentHelper.createModel(1);
-        Shipment shipment2 = shipmentHelper.createModel(2);
+    void findAll_returnsAllShipments() {
+        List<Shipment> list = List.of(helper.createModel(1), helper.createModel(2));
+        when(shipmentRepo.findAll()).thenReturn(list);
 
-        List<Shipment> mockList = Arrays.asList(shipment1, shipment2);
-
-        when(shipmentRepository.findAll()).thenReturn(mockList);
-
-        List<Shipment> result = shipmentService.findAll();
-
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(shipment1, result.get(0));
-        assertEquals(shipment2, result.get(1));
-
-        verify(shipmentRepository, times(1)).findAll();
+        assertEquals(list, service.findAll());
+        verify(shipmentRepo).findAll();
     }
 
     @Test
-    public void testFindById() {
-        Shipment shipment = shipmentHelper.createModel(1);
-        ShipmentId id = shipment.getId();
-        when(shipmentRepository.findById(id))
-            .thenReturn(Optional.of(shipment));
-        Shipment result = shipmentService.findById(id).orElseThrow(() -> new AssertionError("Shipment doesn't exist"));
-        assertNotNull(result);
-        assertEquals(shipment, result);
+    void findById_found_returnsShipment() {
+        Shipment s = helper.createModel(1);
+        ShipmentId id = s.getId();
+        when(shipmentRepo.findById(id)).thenReturn(Optional.of(s));
 
-        verify(shipmentRepository, times(1)).findById(id);
+        assertEquals(s, service.findById(id));
+        verify(shipmentRepo).findById(id);
     }
 
     @Test
-    public void testFindById_NotFound() {
-        ShipmentId missingId = ShipmentId.builder().vendorId(9L).orderId(9L).build();
+    void findById_notFound_throwsException() {
+        ShipmentId id = ShipmentId.builder().vendorId(9L).orderId(9L).build();
+        when(shipmentRepo.findById(id)).thenReturn(Optional.empty());
 
-        when(shipmentRepository.findById(missingId)).thenReturn(Optional.empty());
-
-        Optional<Shipment> result = shipmentService.findById(missingId);
-
-        assertFalse(result.isPresent());
-
-        verify(shipmentRepository, times(1)).findById(missingId);
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.findById(id)
+        );
+        assertEquals("Shipment not found with ID: " + id, ex.getMessage());
     }
 
     @Test
-    public void testSaveShipment() {
-        Shipment shipment = shipmentHelper.createModel(1);
+    void saveShipment_success_savesAndReturnsShipment() {
+        Shipment s = helper.createModel(1);
+        when(vendorRepo.findById(s.getShipmentVendor().getVendorId()))
+            .thenReturn(Optional.of(s.getShipmentVendor()));
+        when(orderRepo.findById(s.getOrder().getOrderId()))
+            .thenReturn(Optional.of(s.getOrder()));
+        when(shipmentRepo.save(any())).thenReturn(s);
 
-        when(orderRepository.findById(shipment.getOrder().getOrderId()))
-            .thenReturn(Optional.of(shipment.getOrder()));
-        when(shipmentVendorRepository.findById(shipment.getShipmentVendor().getVendorId()))
-            .thenReturn(Optional.of(shipment.getShipmentVendor()));
-        when(shipmentRepository.save(any(Shipment.class))).thenReturn(shipment);
-
-        Shipment created = shipmentService.saveShipment(shipment);
-        
-        assertNotNull(created);
-        assertEquals(shipment, created);
-
-        verify(shipmentRepository, times(1)).save(shipment);
-        verify(shipmentVendorRepository, times(1)).findById(shipment.getShipmentVendor().getVendorId());
-        verify(orderRepository, times(1)).findById(shipment.getOrder().getOrderId());
+        assertEquals(s, service.saveShipment(s));
+        verify(shipmentRepo).save(s);
     }
 
-    // @Test
-    // public void testUpdateShipment() {
-    //     Shipment shipment = shipmentHelper.createModel(1);
-    //     ShipmentId id = shipment.getId();
+    @Test
+    void saveShipment_vendorNotFound_throwsException() {
+        Shipment s = helper.createModel(1);
+        when(vendorRepo.findById(s.getShipmentVendor().getVendorId()))
+            .thenReturn(Optional.empty());
 
-    //     when(orderRepository.findById(shipment.getOrder().getOrderId()))
-    //         .thenReturn(Optional.of(shipment.getOrder()));
-    //     when(shipmentVendorRepository.findById(shipment.getShipmentVendor().getVendorId()))
-    //         .thenReturn(Optional.of(shipment.getShipmentVendor()));
-    //     when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> invocation.getArgument(0));
-    //     when(shipmentRepository.findById(id)).thenReturn(Optional.of(shipment));
-
-
-    //     Shipment updated  = shipment.toBuilder().updatedAt(LocalDateTime.now()).build();
-    //     Shipment result = shipmentService.updateShipment(shipment.getId(), updated);
-
-    //     assertNotNull(result);
-    //     assertEquals(updated, result);
-        
-    //     verify(shipmentRepository, times(1)).save(updated);
-    //     verify(shipmentVendorRepository, times(1)).findById(shipment.getShipmentVendor().getVendorId());
-    //     verify(orderRepository, times(1)).findById(shipment.getOrder().getOrderId());
-    //     verify(shipmentRepository, times(1)).findById(id);
-    // }
-
-    // @Test
-    // public void testPartialUpdateShipment() {
-    //     Shipment shipment = shipmentHelper.createModel(2);
-    //     ShipmentId id = shipment.getId();
-
-    //     when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> invocation.getArgument(0));
-    //     when(shipmentRepository.findById(id)).thenReturn(Optional.of(shipment));
-
-    //     LocalDateTime now = LocalDateTime.now();
-    //     Map<String, Object> updates = Map.of("updatedAt", now);
-    //     Shipment result = shipmentService.partialUpdateShipment(id, updates);
-
-    //     assertNotNull(result);
-    //     assertEquals(now, result.getUpdatedAt());
-
-    //     verify(shipmentRepository, times(1)).save(shipment);
-    //     verify(shipmentRepository, times(1)).findById(id);
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.saveShipment(s)
+        );
+        assertEquals("Vendor not found", ex.getMessage());
+        verify(shipmentRepo, never()).save(any());
     }
+
+    @Test
+    void saveShipment_orderNotFound_throwsException() {
+        Shipment s = helper.createModel(1);
+        when(vendorRepo.findById(s.getShipmentVendor().getVendorId()))
+            .thenReturn(Optional.of(s.getShipmentVendor()));
+        when(orderRepo.findById(s.getOrder().getOrderId()))
+            .thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.saveShipment(s)
+        );
+        assertEquals("Order not found", ex.getMessage());
+        verify(shipmentRepo, never()).save(any());
+    }
+}
