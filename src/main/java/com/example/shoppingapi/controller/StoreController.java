@@ -1,84 +1,85 @@
+// src/main/java/com/example/shoppingapi/controller/StoreController.java
 package com.example.shoppingapi.controller;
 
-import com.example.shoppingapi.model.Store;
-import com.example.shoppingapi.service.StoreService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
+import com.example.shoppingapi.dto.request.StoreRequestDTO;
 import com.example.shoppingapi.dto.response.ApiResponse;
 import com.example.shoppingapi.dto.response.StoreDTO;
+import com.example.shoppingapi.model.Store;
+import com.example.shoppingapi.model.User;
+import com.example.shoppingapi.service.StoreService;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @RestController
 @RequestMapping("/api/stores")
+@RequiredArgsConstructor
 public class StoreController {
-
-    @Autowired
-    private StoreService storeService;
-
+    private final StoreService storeService;
 
     @GetMapping
-    public List<Store> getAllStores() {
-        return storeService.getAllStores();
+    public ApiResponse<List<StoreDTO>> getAllStores() {
+        List<StoreDTO> dtos = storeService.getAllStores()
+            .stream()
+            .map(s -> new StoreDTO(s.getStoreId(), s.getUser().getUserId()))
+            .collect(Collectors.toList());
+        return new ApiResponse<>("Fetched all stores", dtos);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Store> getStoreById(@PathVariable Long id) {
+    public ApiResponse<StoreDTO> getStoreById(@PathVariable Long id) {
         Store store = storeService.getStoreById(id);
-        return store.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return new ApiResponse<>(
+            "Fetched store",
+            new StoreDTO(store.getStoreId(), store.getUser().getUserId())
+        );
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<StoreDTO>> createStore(@RequestBody Store store) {
-        Store savedStore = storeService.saveStore(store);
-        
-        StoreDTO storeDTO = new StoreDTO(savedStore.getStoreId(),savedStore.getUser().getUserId());
-        ApiResponse<StoreDTO> response = new ApiResponse<>("Store successfully added", storeDTO);
-        return ResponseEntity.ok(response);
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<StoreDTO> createStore(@Validated @RequestBody StoreRequestDTO dto) {
+        Store toCreate = Store.builder()
+            .storeName(dto.getStoreName())
+            .user(User.builder().userId(dto.getUserId()).build())
+            .build();
+        Store created = storeService.saveStore(toCreate);
+        return new ApiResponse<>("Store created", new StoreDTO(created.getStoreId(), created.getUser().getUserId()));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<StoreDTO>> updateStore(
-            @PathVariable Long id,
-            @RequestBody Store store) {
-        try {
-            Store updatedStore = storeService.updateStore(id, store);
-            StoreDTO storeDTO = new StoreDTO(updatedStore.getStoreId(), updatedStore.getUser().getUserId());
-            ApiResponse<StoreDTO> response = new ApiResponse<>("Store successfully updated", storeDTO);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            ApiResponse<StoreDTO> response = new ApiResponse<>(e.getMessage(), null);
-            return ResponseEntity.badRequest().body(response);
-        }
+    public ApiResponse<StoreDTO> updateStore(
+        @PathVariable Long id,
+        @Validated @RequestBody StoreRequestDTO dto
+    ) {
+        Store toUpdate = Store.builder()
+            .storeId(id)
+            .storeName(dto.getStoreName())
+            .user(User.builder().userId(dto.getUserId()).build())
+            .build();
+        Store updated = storeService.updateStore(id, toUpdate);
+        return new ApiResponse<>("Store updated", new StoreDTO(updated.getStoreId(), updated.getUser().getUserId()));
     }
 
-    // Partial Update (PATCH)
     @PatchMapping("/{id}")
-    public ResponseEntity<ApiResponse<StoreDTO>> partialUpdateStore(
-            @PathVariable Long id,
-            @RequestBody Map<String, Object> updates) {
-        try {
-            Store updatedStore = storeService.partialUpdateStore(id, updates);
-            StoreDTO storeDTO = new StoreDTO(updatedStore.getStoreId(), updatedStore.getUser().getUserId());
-            ApiResponse<StoreDTO> response = new ApiResponse<>("Store successfully updated", storeDTO);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            ApiResponse<StoreDTO> response = new ApiResponse<>("Error updating store: " + e.getMessage(), null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
+    public ApiResponse<StoreDTO> partialUpdateStore(
+        @PathVariable Long id,
+        @RequestBody Map<String,Object> updates
+    ) {
+        Store updated = storeService.partialUpdateStore(id, updates);
+        return new ApiResponse<>("Store partially updated", new StoreDTO(updated.getStoreId(), updated.getUser().getUserId()));
     }
-    
 
-    // Delete a store by ID
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
+    public ApiResponse<Void> deleteStore(@PathVariable Long id) {
         storeService.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return new ApiResponse<>("Store deleted", null);
     }
 }

@@ -106,13 +106,18 @@ class StoreCategoryItemServiceTest {
     }
 
     @Test
-    void softDelete_setsDeletedAt() {
-        StoreCategoryItem item = helper.createModel(1);
-        StoreCategoryItemId id = item.getId();
-        when(itemRepo.findById(id)).thenReturn(Optional.of(item));
-        when(itemRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+    void deleteById_existing_invokesSoftDelete() {
 
-        var result = service.softDeleteStoreCategoryItem(id);
-        assertNotNull(result.getDeletedAt());
+        StoreCategoryItem original = helper.createModel(1);
+        StoreCategoryItemId id = original.getId();
+
+        when(itemRepo.findById(id))
+            .thenReturn(Optional.of(original));
+        doNothing().when(itemRepo).delete(original);
+
+        service.deleteById(id);
+
+        verify(itemRepo).findById(id);
+        verify(itemRepo).delete(original);
     }
 }

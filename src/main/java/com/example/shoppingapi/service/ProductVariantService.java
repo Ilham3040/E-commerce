@@ -1,7 +1,7 @@
 package com.example.shoppingapi.service;
 
-import com.example.shoppingapi.model.ProductVariant;
 import com.example.shoppingapi.repository.ProductVariantRepository;
+import com.example.shoppingapi.model.*;
 import com.example.shoppingapi.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanWrapper;
@@ -10,7 +10,6 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -82,9 +81,10 @@ public class ProductVariantService {
         return variantRepo.save(existing);
     }
 
-    public ProductVariant softDeleteProductVariant(Long id) {
-        ProductVariant existing = findById(id);
-        existing.setDeletedAt(LocalDateTime.now());
-        return variantRepo.save(existing);
+    public void deleteById(Long id) {
+        ProductVariant productVariant = variantRepo.findById(id)
+        .orElseThrow(() ->
+            new ResourceNotFoundException("Product Variant not found with ID: " + id));
+        variantRepo.delete(productVariant);
     }
 }

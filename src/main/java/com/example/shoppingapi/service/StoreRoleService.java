@@ -63,7 +63,7 @@ public class StoreRoleService {
     }
 
     public void deleteById(StoreRoleId id) {
-        findById(id);  // will 404 if missing
+        findById(id);
         storeRoleRepository.deleteById(id);
     }
 }

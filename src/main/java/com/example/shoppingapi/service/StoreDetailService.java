@@ -1,6 +1,6 @@
 package com.example.shoppingapi.service;
 
-import com.example.shoppingapi.model.StoreDetail;
+import com.example.shoppingapi.model.*;
 import com.example.shoppingapi.repository.StoreDetailRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanWrapper;
@@ -8,7 +8,6 @@ import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -45,9 +44,10 @@ public class StoreDetailService {
         return storeDetailRepository.save(existing);
     }
 
-    public StoreDetail softDeleteStoreDetail(Long id) {
-        StoreDetail existing = findById(id);
-        existing.setDeletedAt(LocalDateTime.now());
-        return storeDetailRepository.save(existing);
+    public void deleteById(Long id) {
+        StoreDetail storeDetail = storeDetailRepository.findById(id)
+        .orElseThrow(() ->
+            new ResourceNotFoundException("Store Detail not found with ID: " + id));
+        storeDetailRepository.delete(storeDetail);
     }
 }

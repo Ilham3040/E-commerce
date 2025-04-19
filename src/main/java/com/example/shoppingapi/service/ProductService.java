@@ -13,7 +13,6 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,7 +52,7 @@ public class ProductService {
             throw new IllegalArgumentException("Product ID in URL and body must match.");
         }
 
-        getProductById(id); // throws if not found
+        getProductById(id);
 
         Long storeId = Optional.ofNullable(product.getStore())
             .map(Store::getStoreId)
@@ -87,9 +86,10 @@ public class ProductService {
         return productRepository.findByStoreStoreId(storeId);
     }
 
-    public Product softDeleteProduct(Long id) {
-        Product existing = getProductById(id);
-        existing.setDeletedAt(LocalDateTime.now());
-        return productRepository.save(existing);
+    public void deleteById(Long id) {
+        Product product = productRepository.findById(id)
+        .orElseThrow(() ->
+            new ResourceNotFoundException("Product not found with ID: " + id));
+        productRepository.delete(product);
     }
 }

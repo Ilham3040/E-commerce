@@ -39,7 +39,7 @@ public class ShipmentVendor {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "deleted_at")
+    @Column(name = "deleted_at",insertable=false, updatable = false)
     private LocalDateTime deletedAt;
 
     @PrePersist

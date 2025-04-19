@@ -150,9 +150,9 @@ class OrderServiceTest {
         verify(orderRepository).findByProductProductId(o.getProduct().getProductId());
     }
 
-    @Test
-    void deleteOrder_invokesRepositoryDelete() {
-        orderService.deleteOrder(1L);
-        verify(orderRepository).deleteById(1L);
-    }
+    // @Test
+    // void deleteOrder_invokesRepositoryDelete() {
+    //     orderService.deleteOrder(1L);
+    //     verify(orderRepository).deleteById(1L);
+    // }
 }

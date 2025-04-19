@@ -14,7 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
-import java.time.LocalDateTime;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -127,13 +127,17 @@ class ProductReviewServiceTest {
     }
 
     @Test
-    void softDeleteProductReview_setsDeletedAt() {
-        ProductReview pr = helper.createModel(1);
-        when(reviewRepo.findById(1L)).thenReturn(Optional.of(pr));
-        when(reviewRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+    void deleteById_existing_invokesSoftDelete() {
 
-        ProductReview res = service.softDeleteProductReview(1L);
-        assertNotNull(res.getDeletedAt());
-        assertTrue(res.getDeletedAt().isBefore(LocalDateTime.now().plusSeconds(1)));
+        ProductReview original = helper.createModel(1);
+
+        when(reviewRepo.findById(1L))
+            .thenReturn(Optional.of(original));
+        doNothing().when(reviewRepo).delete(original);
+
+        service.deleteById(1L);
+
+        verify(reviewRepo).findById(1L);
+        verify(reviewRepo).delete(original);
     }
 }

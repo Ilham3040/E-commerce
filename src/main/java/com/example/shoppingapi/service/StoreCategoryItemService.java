@@ -1,7 +1,6 @@
 package com.example.shoppingapi.service;
 
-import com.example.shoppingapi.model.StoreCategoryItem;
-import com.example.shoppingapi.model.StoreCategoryItemId;
+import com.example.shoppingapi.model.*;
 import com.example.shoppingapi.repository.ProductRepository;
 import com.example.shoppingapi.repository.StoreCategoryItemRepository;
 import com.example.shoppingapi.repository.StoreCategoryRepository;
@@ -11,7 +10,6 @@ import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -63,10 +61,10 @@ public class StoreCategoryItemService {
         updates.forEach(wrapper::setPropertyValue);
         return storeCategoryItemRepository.save(existing);
     }
-
-    public StoreCategoryItem softDeleteStoreCategoryItem(StoreCategoryItemId id) {
-        StoreCategoryItem existing = findById(id);
-        existing.setDeletedAt(LocalDateTime.now());
-        return storeCategoryItemRepository.save(existing);
+    public void deleteById(StoreCategoryItemId id) {
+        StoreCategoryItem storeCategoryItem = storeCategoryItemRepository.findById(id)
+        .orElseThrow(() ->
+            new ResourceNotFoundException("Item not found with ID: " + id.getProductId() + "in category with ID" + id.getCategoryId()));
+        storeCategoryItemRepository.delete(storeCategoryItem);
     }
 }

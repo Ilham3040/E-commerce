@@ -79,11 +79,17 @@ class StoreDetailServiceTest {
     }
 
     @Test
-    void softDelete_setsDeletedAt() {
-        StoreDetail d = helper.createModel(1);
-        when(detailRepo.findById(1L)).thenReturn(Optional.of(d));
-        when(detailRepo.save(any())).thenAnswer(i -> i.getArgument(0));
-        StoreDetail res = service.softDeleteStoreDetail(1L);
-        assertNotNull(res.getDeletedAt());
+    void deleteById_existing_invokesSoftDelete() {
+
+        StoreDetail original = helper.createModel(1);
+
+        when(detailRepo.findById(1L))
+            .thenReturn(Optional.of(original));
+        doNothing().when(detailRepo).delete(original);
+
+        service.deleteById(1L);
+
+        verify(detailRepo).findById(1L);
+        verify(detailRepo).delete(original);
     }
 }

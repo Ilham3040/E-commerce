@@ -78,7 +78,7 @@ public class StoreService {
         return storeRepository.save(existing);
     }
 
-    public Store softDeleteStore(Long id) {
+    public Store deleteById(Long id) {
         Store existing = getStoreById(id);  // throws if missing
         existing.setDeletedAt(LocalDateTime.now());
         return storeRepository.save(existing);

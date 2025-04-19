@@ -12,7 +12,6 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -76,9 +75,9 @@ public class ProductDetailService {
         return productDetailRepository.save(existing);
     }
 
-    public ProductDetail softDeleteProductDetail(Long id) {
-        ProductDetail existing = findById(id);
-        existing.setDeletedAt(LocalDateTime.now());
-        return productDetailRepository.save(existing);
+    public void deleteById(Long id) {
+        ProductDetail existing = productDetailRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found"));
+        productDetailRepository.delete(existing);
     }
 }

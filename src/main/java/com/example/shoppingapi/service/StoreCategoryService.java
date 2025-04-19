@@ -1,7 +1,6 @@
 package com.example.shoppingapi.service;
 
-import com.example.shoppingapi.model.StoreCategory;
-import com.example.shoppingapi.model.Store;
+import com.example.shoppingapi.model.*;
 import com.example.shoppingapi.repository.StoreCategoryRepository;
 import com.example.shoppingapi.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +9,6 @@ import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -66,9 +64,10 @@ public class StoreCategoryService {
         return storeCategoryRepository.save(existing);
     }
 
-    public StoreCategory softDeleteStoreCategory(Long id) {
-        StoreCategory existing = findById(id);
-        existing.setDeletedAt(LocalDateTime.now());
-        return storeCategoryRepository.save(existing);
+    public void deleteById(Long id) {
+        StoreCategory category = storeCategoryRepository.findById(id)
+        .orElseThrow(() ->
+            new ResourceNotFoundException("Store Category not found with ID: " + id));
+        storeCategoryRepository.delete(category);
     }
 }

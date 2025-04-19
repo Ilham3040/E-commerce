@@ -13,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -122,13 +121,17 @@ class ProductVariantServiceTest {
     }
 
     @Test
-    void softDeleteProductVariant_setsDeletedAt() {
-        ProductVariant v = helper.createModel(1);
-        when(variantRepo.findById(1L)).thenReturn(Optional.of(v));
-        when(variantRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+    void deleteById_existing_invokesSoftDelete() {
 
-        ProductVariant res = service.softDeleteProductVariant(1L);
-        assertNotNull(res.getDeletedAt());
-        assertTrue(res.getDeletedAt().isBefore(LocalDateTime.now().plusSeconds(1)));
+        ProductVariant original = helper.createModel(1);
+
+        when(variantRepo.findById(1L))
+            .thenReturn(Optional.of(original));
+        doNothing().when(variantRepo).delete(original);
+
+        service.deleteById(1L);
+
+        verify(variantRepo).findById(1L);
+        verify(variantRepo).delete(original);
     }
 }

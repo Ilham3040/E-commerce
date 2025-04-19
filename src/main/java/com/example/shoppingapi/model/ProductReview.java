@@ -53,7 +53,7 @@ public class ProductReview {
     @Column(name = "updated_at", columnDefinition = "TIMESTAMPTZ DEFAULT NOW()")
     private LocalDateTime updatedAt;
 
-    @Column(name = "deleted_at", columnDefinition = "TIMESTAMPTZ")
+    @Column(name = "deleted_at",insertable=false, updatable = false)
     private LocalDateTime deletedAt;
 
     @PrePersist
@@ -71,9 +71,5 @@ public class ProductReview {
         updatedAt = LocalDateTime.now();
     }
 
-    @PreRemove
-    public void preRemove() {
-        this.deletedAt = LocalDateTime.now();
-    }
     
 }

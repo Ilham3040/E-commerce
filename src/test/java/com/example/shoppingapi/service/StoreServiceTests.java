@@ -216,13 +216,13 @@ class StoreServiceTest {
     }
 
     @Test
-    void softDeleteStore_existing_setsDeletedAt() {
+    void deleteById_existing_setsDeletedAt() {
         Store existing = storeHelper.createModel(1);
         when(storeRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(storeRepository.save(any()))
             .thenAnswer(inv -> inv.getArgument(0));
 
-        Store result = storeService.softDeleteStore(1L);
+        Store result = storeService.deleteById(1L);
         assertNotNull(result.getDeletedAt());
         assertTrue(result.getDeletedAt().isBefore(LocalDateTime.now().plusSeconds(1)));
         verify(storeRepository).findById(1L);
@@ -230,12 +230,12 @@ class StoreServiceTest {
     }
 
     @Test
-    void softDeleteStore_notFound_throwsException() {
+    void deleteById_notFound_throwsException() {
         when(storeRepository.findById(3L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(
             ResourceNotFoundException.class,
-            () -> storeService.softDeleteStore(3L)
+            () -> storeService.deleteById(3L)
         );
         assertEquals("Store not found with ID: 3", ex.getMessage());
         verify(storeRepository).findById(3L);

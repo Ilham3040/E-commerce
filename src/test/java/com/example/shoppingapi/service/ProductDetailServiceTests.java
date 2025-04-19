@@ -166,14 +166,18 @@ class ProductDetailServiceTest {
     }
 
     @Test
-    void softDeleteProductDetail_existing_setsDeletedAt() {
-        ProductDetail pd = helper.createModel(1);
-        when(detailRepo.findById(1L)).thenReturn(Optional.of(pd));
-        when(detailRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+    void deleteById_existing_invokesSoftDelete() {
 
-        ProductDetail result = service.softDeleteProductDetail(1L);
-        assertNotNull(result.getDeletedAt());
-        verify(detailRepo).save(pd);
+        ProductDetail original = helper.createModel(1);
+
+        when(detailRepo.findById(1L))
+            .thenReturn(Optional.of(original));
+        doNothing().when(detailRepo).delete(original);
+
+        service.deleteById(1L);
+
+        verify(detailRepo).findById(1L);
+        verify(detailRepo).delete(original);
     }
 
     @Test
@@ -181,7 +185,7 @@ class ProductDetailServiceTest {
         when(detailRepo.findById(2L)).thenReturn(Optional.empty());
         ResourceNotFoundException ex = assertThrows(
             ResourceNotFoundException.class,
-            () -> service.softDeleteProductDetail(2L)
+            () -> service.deleteById(2L)
         );
         assertEquals("ProductDetail not found with ID: 2", ex.getMessage());
     }

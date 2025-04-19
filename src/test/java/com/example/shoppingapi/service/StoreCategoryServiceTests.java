@@ -84,11 +84,17 @@ class StoreCategoryServiceTest {
     }
 
     @Test
-    void softDelete_setsDeletedAt() {
-        StoreCategory c = helper.createModel(1);
-        when(categoryRepo.findById(1L)).thenReturn(Optional.of(c));
-        when(categoryRepo.save(any())).thenAnswer(i -> i.getArgument(0));
-        StoreCategory res = service.softDeleteStoreCategory(1L);
-        assertNotNull(res.getDeletedAt());
+    void deleteById_existing_invokesSoftDelete() {
+
+        StoreCategory original = helper.createModel(1);
+
+        when(categoryRepo.findById(1L))
+            .thenReturn(Optional.of(original));
+        doNothing().when(categoryRepo).delete(original);
+
+        service.deleteById(1L);
+
+        verify(categoryRepo).findById(1L);
+        verify(categoryRepo).delete(original);
     }
 }

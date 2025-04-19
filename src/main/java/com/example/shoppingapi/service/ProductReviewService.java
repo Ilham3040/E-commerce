@@ -13,7 +13,6 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -97,9 +96,10 @@ public class ProductReviewService {
         return reviewRepo.save(existing);
     }
 
-    public ProductReview softDeleteProductReview(Long id) {
-        ProductReview existing = findById(id);
-        existing.setDeletedAt(LocalDateTime.now());
-        return reviewRepo.save(existing);
+    public void deleteById(Long id) {
+        ProductReview productReview = reviewRepo.findById(id)
+        .orElseThrow(() ->
+            new ResourceNotFoundException("Product Review not found with ID: " + id));
+        reviewRepo.delete(productReview);
     }
 }

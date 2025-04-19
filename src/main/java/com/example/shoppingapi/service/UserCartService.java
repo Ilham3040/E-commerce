@@ -45,7 +45,7 @@ public class UserCartService {
         return userCartRepository.save(existing);
     }
 
-    public void deleteUserCart(UserCartId id) {
+    public void deleteById(UserCartId id) {
         findById(id);
         userCartRepository.deleteById(id);
     }

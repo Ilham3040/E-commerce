@@ -87,7 +87,7 @@ public class OrderService {
         return orderRepository.findByProductProductId(productId);
     }
 
-    public void deleteOrder(Long id) {
-        orderRepository.deleteById(id);
-    }
+    // public void deleteOrder(Long id) {
+    //     orderRepository.deleteById(id);
+    // }
 }

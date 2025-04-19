@@ -100,7 +100,7 @@ class UserCartServiceTest {
         when(cartRepo.findById(id)).thenReturn(Optional.of(existing));
         doNothing().when(cartRepo).deleteById(id);
 
-        service.deleteUserCart(id);
+        service.deleteById(id);
         verify(cartRepo).deleteById(id);
     }
 
@@ -111,7 +111,7 @@ class UserCartServiceTest {
 
         ResourceNotFoundException ex = assertThrows(
             ResourceNotFoundException.class,
-            () -> service.deleteUserCart(id)
+            () -> service.deleteById(id)
         );
         assertEquals("UserCart not found with ID: " + id, ex.getMessage());
         verify(cartRepo, never()).deleteById(any());
