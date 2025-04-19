@@ -24,10 +24,6 @@ public class StoreCategoryService {
     @Autowired
     private StoreCategoryRepository storeCategoryRepository;
 
-    StoreCategoryService(StoreRepository storeRepository) {
-        this.storeRepository = storeRepository;
-    }
-
     public List<StoreCategory> findAll() {
         return storeCategoryRepository.findAll();
     }

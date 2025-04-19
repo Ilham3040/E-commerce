@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.function.Supplier;
 
+import com.example.shoppingapi.model.Shipment;
 import com.example.shoppingapi.model.StoreCategoryItem;
 
 @NoArgsConstructor
@@ -40,6 +41,7 @@ public class ModelHelperFactory {
         registry.put(ProductVariant.class, ProductVariantModelHelper::new);
         registry.put(ProductReview.class, ProductReviewModelHelper::new);
         registry.put(Order.class, OrderModelHelper::new);
+        registry.put(Shipment.class, ShipmentModelHelper::new);
         registry.put(ShipmentVendor.class, ShipmentVendorModelHelper::new);
     }
 
