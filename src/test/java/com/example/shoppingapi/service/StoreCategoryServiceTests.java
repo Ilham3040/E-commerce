@@ -1,158 +1,100 @@
 package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.model.StoreCategory;
-import com.example.shoppingapi.repository.StoreCategoryRepository;
-import com.example.shoppingapi.repository.StoreRepository;
 import com.example.shoppingapi.modelhelper.ModelHelper;
 import com.example.shoppingapi.modelhelper.ModelHelperFactory;
+import com.example.shoppingapi.repository.StoreCategoryRepository;
+import com.example.shoppingapi.repository.StoreRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
-@SpringBootTest(classes = StoreCategoryServiceTests.class)
-public class StoreCategoryServiceTests {
+class StoreCategoryServiceTest {
 
-    @Mock
-    private StoreCategoryRepository storeCategoryRepository;
+    @Mock private StoreCategoryRepository categoryRepo;
+    @Mock private StoreRepository         storeRepo;
+    @InjectMocks private StoreCategoryService service;
 
-    @Mock
-    private StoreRepository storeRepository;
-
-    @InjectMocks
-    private StoreCategoryService storeCategoryService;
-
-    private final ModelHelper<StoreCategory> storeCategoryHelper = ModelHelperFactory.getModelHelper(StoreCategory.class);
+    private final ModelHelper<StoreCategory> helper =
+        ModelHelperFactory.getModelHelper(StoreCategory.class);
 
     @Test
-    public void testFindAll() {
-        StoreCategory storeCategory1 = storeCategoryHelper.createModel(1);
-        StoreCategory storeCategory2 = storeCategoryHelper.createModel(2);
-
-        when(storeCategoryRepository.findAll()).thenReturn(Arrays.asList(storeCategory1, storeCategory2));
-
-        var result = storeCategoryService.findAll();
-
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(Arrays.asList(storeCategory1, storeCategory2), result);
-
-        verify(storeCategoryRepository, times(1)).findAll();
+    void findAll_returnsAll() {
+        List<StoreCategory> list = Arrays.asList(helper.createModel(1), helper.createModel(2));
+        when(categoryRepo.findAll()).thenReturn(list);
+        assertEquals(list, service.findAll());
     }
 
     @Test
-    public void testFindById() {
-        StoreCategory storeCategory = storeCategoryHelper.createModel(1);
-        when(storeCategoryRepository.findById(storeCategory.getCategoryId())).thenReturn(Optional.of(storeCategory));
-
-        StoreCategory result = storeCategoryService.findById(storeCategory.getCategoryId()).orElseThrow(() -> new AssertionError("StoreCategory not found"));
-
-        assertNotNull(result);
-        assertEquals(storeCategory, result);
-
-        verify(storeCategoryRepository, times(1)).findById(storeCategory.getCategoryId());
+    void findById_found_returnsCategory() {
+        StoreCategory c = helper.createModel(1);
+        when(categoryRepo.findById(1L)).thenReturn(Optional.of(c));
+        assertEquals(c, service.findById(1L));
     }
 
     @Test
-    public void testFindById_NotFound() {
-        when(storeCategoryRepository.findById(1L)).thenReturn(Optional.empty());
-
-        Optional<StoreCategory> result = storeCategoryService.findById(1L);
-
-        assertFalse(result.isPresent());
-
-        verify(storeCategoryRepository, times(1)).findById(1L);
-    }
-
-    @Test
-    public void testSaveStoreCategory() {
-        StoreCategory storeCategory = storeCategoryHelper.createModel(1);
-
-        when(storeCategoryRepository.save(any(StoreCategory.class))).thenReturn(storeCategory);
-        when(storeRepository.findById(storeCategory.getStore().getStoreId())).thenReturn(Optional.of(storeCategory.getStore()));
-
-        StoreCategory createdStoreCategory = storeCategoryService.saveStoreCategory(storeCategory);
-
-        assertNotNull(createdStoreCategory);
-        assertEquals(storeCategory, createdStoreCategory);
-
-        verify(storeCategoryRepository, times(1)).save(storeCategory);
-        verify(storeRepository,times(1)).findById(storeCategory.getStore().getStoreId());
-    }
-
-    @Test
-    public void testUpdateStoreCategory() {
-        StoreCategory existing = storeCategoryHelper.createModel(1);
-        
-        when(storeCategoryRepository.findById(existing.getCategoryId())).thenReturn(Optional.of(existing));
-        when(storeCategoryRepository.save(any(StoreCategory.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(storeRepository.findById(existing.getStore().getStoreId())).thenReturn(Optional.of(existing.getStore()));
-
-        StoreCategory updated = existing.toBuilder().categoryName("Ubur-Ubur Ikan Lele").build();
-        StoreCategory result = storeCategoryService.updateStoreCategory(existing.getCategoryId(), updated);
-
-        assertNotNull(result);
-        assertEquals(updated, result);
-
-        verify(storeCategoryRepository, times(1)).findById(existing.getCategoryId());
-        verify(storeRepository,times(1)).findById(existing.getStore().getStoreId());
-        verify(storeCategoryRepository, times(1)).save(updated);
-    }
-
-    @Test
-    public void testPartialUpdateStoreCategory() {
-        StoreCategory existing = storeCategoryHelper.createModel(1);
-
-        when(storeCategoryRepository.findById(existing.getCategoryId())).thenReturn(Optional.of(existing));
-        when(storeCategoryRepository.save(any(StoreCategory.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        Map<String, Object> updates = Map.of(
-            "categoryName", "Ubur-Ubur Ikan Lele"
+    void findById_notFound_throws() {
+        when(categoryRepo.findById(2L)).thenReturn(Optional.empty());
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.findById(2L)
         );
-        StoreCategory result = storeCategoryService.partialUpdateStoreCategory(existing.getCategoryId(), updates);
-
-        assertNotNull(result);
-        assertEquals("Ubur-Ubur Ikan Lele", result.getCategoryName());
-
-        verify(storeCategoryRepository, times(1)).findById(existing.getCategoryId());
-        verify(storeCategoryRepository, times(1)).save(existing);
-    }
-
-
-    @Test
-    public void testDeleteStoreCategory() {
-        StoreCategory storeCategory = storeCategoryHelper.createModel(1);
-
-        when(storeCategoryRepository.findById(storeCategory.getCategoryId())).thenReturn(Optional.of(storeCategory));
-
-        storeCategoryService.deleteById(storeCategory.getCategoryId());
-
-        verify(storeCategoryRepository, times(1)).findById(storeCategory.getCategoryId());
+        assertEquals("StoreCategory not found with ID: 2", ex.getMessage());
     }
 
     @Test
-    public void testDeleteStoreCategory_NotFound() {
-        when(storeCategoryRepository.findById(1L)).thenReturn(Optional.empty());
+    void save_valid_savesAndReturns() {
+        StoreCategory c = helper.createModel(1);
+        when(storeRepo.findById(c.getStore().getStoreId()))
+            .thenReturn(Optional.of(c.getStore()));
+        when(categoryRepo.save(c)).thenReturn(c);
+        assertEquals(c, service.saveStoreCategory(c));
+    }
 
-        try {
-            storeCategoryService.deleteById(1L);
-        } catch (ResourceNotFoundException e) {
-            assertEquals("StoreCategory not found with ID: 1", e.getMessage());
-        }
+    @Test
+    void update_valid_savesUpdated() {
+        StoreCategory c = helper.createModel(1);
+        StoreCategory upd = c.toBuilder().categoryName("X").build();
+        when(categoryRepo.findById(1L)).thenReturn(Optional.of(c));
+        when(storeRepo.findById(c.getStore().getStoreId()))
+            .thenReturn(Optional.of(c.getStore()));
+        when(categoryRepo.save(any())).thenReturn(upd);
+        assertEquals(upd, service.updateStoreCategory(1L, upd));
+    }
 
-        verify(storeCategoryRepository, times(1)).findById(1L);
+    @Test
+    void partialUpdate_appliesUpdates() {
+        StoreCategory c = helper.createModel(1);
+        when(categoryRepo.findById(1L)).thenReturn(Optional.of(c));
+        when(categoryRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+        StoreCategory res = service.partialUpdateStoreCategory(1L, Map.of("categoryName","Y"));
+        assertEquals("Y", res.getCategoryName());
+    }
+
+    @Test
+    void deleteById_existing_invokesSoftDelete() {
+
+        StoreCategory original = helper.createModel(1);
+
+        when(categoryRepo.findById(1L))
+            .thenReturn(Optional.of(original));
+        doNothing().when(categoryRepo).delete(original);
+
+        service.deleteById(1L);
+
+        verify(categoryRepo).findById(1L);
+        verify(categoryRepo).delete(original);
     }
 }

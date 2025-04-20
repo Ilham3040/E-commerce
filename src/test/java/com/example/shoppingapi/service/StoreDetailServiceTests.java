@@ -1,152 +1,95 @@
 package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.model.StoreDetail;
-import com.example.shoppingapi.repository.StoreDetailRepository;
 import com.example.shoppingapi.modelhelper.ModelHelper;
 import com.example.shoppingapi.modelhelper.ModelHelperFactory;
+import com.example.shoppingapi.repository.StoreDetailRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
-@SpringBootTest(classes = StoreDetailServiceTests.class)
-public class StoreDetailServiceTests {
+class StoreDetailServiceTest {
 
-    @Mock
-    private StoreDetailRepository storeDetailRepository;
+    @Mock private StoreDetailRepository detailRepo;
+    @InjectMocks private StoreDetailService service;
 
-    @InjectMocks
-    private StoreDetailService storeDetailService;
-
-    private final ModelHelper<StoreDetail> storeDetailHelper = ModelHelperFactory.getModelHelper(StoreDetail.class);
+    private final ModelHelper<StoreDetail> helper =
+        ModelHelperFactory.getModelHelper(StoreDetail.class);
 
     @Test
-    public void testFindAll() {
-        StoreDetail storeDetail1 = storeDetailHelper.createModel(1);
-        StoreDetail storeDetail2 = storeDetailHelper.createModel(2);
-
-        when(storeDetailRepository.findAll()).thenReturn(Arrays.asList(storeDetail1, storeDetail2));
-
-        var result = storeDetailService.findAll();
-
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(Arrays.asList(storeDetail1, storeDetail2), result);
-
-        verify(storeDetailRepository, times(1)).findAll();
+    void findAll_returnsAll() {
+        List<StoreDetail> list = Arrays.asList(helper.createModel(1), helper.createModel(2));
+        when(detailRepo.findAll()).thenReturn(list);
+        assertEquals(list, service.findAll());
     }
 
     @Test
-    public void testFindById() {
-        StoreDetail storeDetail = storeDetailHelper.createModel(1);
-        when(storeDetailRepository.findById(storeDetail.getStoreDetailId())).thenReturn(Optional.of(storeDetail));
-
-        StoreDetail result = storeDetailService.findById(storeDetail.getStoreDetailId()).orElseThrow(() -> new AssertionError("StoreDetail not found"));
-
-        assertNotNull(result);
-        assertEquals(storeDetail, result);
-
-        verify(storeDetailRepository, times(1)).findById(storeDetail.getStoreDetailId());
+    void findById_found_returnsDetail() {
+        StoreDetail d = helper.createModel(1);
+        when(detailRepo.findById(1L)).thenReturn(Optional.of(d));
+        assertEquals(d, service.findById(1L));
     }
 
     @Test
-    public void testFindById_NotFound() {
-        when(storeDetailRepository.findById(1L)).thenReturn(Optional.empty());
-
-        Optional<StoreDetail> result = storeDetailService.findById(1L);
-
-        assertFalse(result.isPresent());
-
-        verify(storeDetailRepository, times(1)).findById(1L);
-    }
-
-    @Test
-    public void testSaveStoreDetail() {
-        StoreDetail storeDetail = storeDetailHelper.createModel(1);
-
-        when(storeDetailRepository.save(any(StoreDetail.class))).thenReturn(storeDetail);
-
-        StoreDetail createdStoreDetail = storeDetailService.saveStoreDetail(storeDetail);
-
-        assertNotNull(createdStoreDetail);
-        assertEquals(storeDetail, createdStoreDetail);
-
-        verify(storeDetailRepository, times(1)).save(storeDetail);
-    }
-
-    @Test
-    public void testUpdateStoreDetail() {
-        StoreDetail existing = storeDetailHelper.createModel(1);
-        
-        when(storeDetailRepository.findById(existing.getStoreDetailId())).thenReturn(Optional.of(existing));
-        when(storeDetailRepository.save(any(StoreDetail.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        StoreDetail updated = existing.toBuilder().address("New Address").build();
-        StoreDetail result = storeDetailService.updateStoreDetail(existing.getStoreDetailId(), updated);
-
-        assertNotNull(result);
-        assertEquals(updated, result);
-
-        verify(storeDetailRepository, times(1)).findById(existing.getStoreDetailId());
-        verify(storeDetailRepository, times(1)).save(updated);
-    }
-
-    @Test
-    public void testPartialUpdateStoreDetail() {
-        StoreDetail existing = storeDetailHelper.createModel(1);
-
-        when(storeDetailRepository.findById(existing.getStoreDetailId())).thenReturn(Optional.of(existing));
-        when(storeDetailRepository.save(any(StoreDetail.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        Map<String, Object> updates = Map.of(
-            "address", "Updated Address",
-            "followerCount", 50
+    void findById_notFound_throws() {
+        when(detailRepo.findById(2L)).thenReturn(Optional.empty());
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.findById(2L)
         );
-        StoreDetail result = storeDetailService.partialUpdateStoreDetail(existing.getStoreDetailId(), updates);
-
-        assertNotNull(result);
-        assertEquals("Updated Address", result.getAddress());
-        assertEquals(50, result.getFollowerCount());
-
-        verify(storeDetailRepository, times(1)).findById(existing.getStoreDetailId());
-        verify(storeDetailRepository, times(1)).save(existing);
-    }
-
-
-    @Test
-    public void testDeleteStoreDetail() {
-        StoreDetail storeDetail = storeDetailHelper.createModel(1);
-
-        when(storeDetailRepository.findById(storeDetail.getStoreDetailId())).thenReturn(Optional.of(storeDetail));
-
-        storeDetailService.deleteById(storeDetail.getStoreDetailId());
-
-        verify(storeDetailRepository, times(1)).findById(storeDetail.getStoreDetailId());
+        assertEquals("StoreDetail not found with ID: 2", ex.getMessage());
     }
 
     @Test
-    public void testDeleteStoreDetail_NotFound() {
-        when(storeDetailRepository.findById(1L)).thenReturn(Optional.empty());
+    void save_savesAndReturns() {
+        StoreDetail d = helper.createModel(1);
+        when(detailRepo.save(d)).thenReturn(d);
+        assertEquals(d, service.saveStoreDetail(d));
+    }
 
-        try {
-            storeDetailService.deleteById(1L);
-        } catch (ResourceNotFoundException e) {
-            assertEquals("StoreDetail not found with ID: 1", e.getMessage());
-        }
+    @Test
+    void update_valid_savesUpdated() {
+        StoreDetail d = helper.createModel(1);
+        when(detailRepo.findById(1L)).thenReturn(Optional.of(d));
+        when(detailRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+        StoreDetail upd = d.toBuilder().address("X").build();
+        assertEquals(upd, service.updateStoreDetail(1L, upd));
+    }
 
-        verify(storeDetailRepository, times(1)).findById(1L);
+    @Test
+    void partialUpdate_appliesUpdates() {
+        StoreDetail d = helper.createModel(1);
+        when(detailRepo.findById(1L)).thenReturn(Optional.of(d));
+        when(detailRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+        StoreDetail res = service.partialUpdateStoreDetail(1L, Map.of("address","Y","followerCount",50));
+        assertEquals("Y", res.getAddress());
+        assertEquals(50, res.getFollowerCount());
+    }
+
+    @Test
+    void deleteById_existing_invokesSoftDelete() {
+
+        StoreDetail original = helper.createModel(1);
+
+        when(detailRepo.findById(1L))
+            .thenReturn(Optional.of(original));
+        doNothing().when(detailRepo).delete(original);
+
+        service.deleteById(1L);
+
+        verify(detailRepo).findById(1L);
+        verify(detailRepo).delete(original);
     }
 }

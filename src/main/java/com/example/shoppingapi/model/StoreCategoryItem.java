@@ -14,7 +14,7 @@ import lombok.Data;
 @Table(name = "store_categories_item")
 @Data
 @Builder(toBuilder = true)
-@SoftDelete(columnName = "deleted_at", strategy = SoftDeleteType.DELETED, converter = YesNoConverter.class)
+@SoftDelete(columnName = "is_deleted", strategy = SoftDeleteType.DELETED, converter = YesNoConverter.class)
 public class StoreCategoryItem {
 
     @EmbeddedId
@@ -36,8 +36,13 @@ public class StoreCategoryItem {
     @Column(name = "updated_at", columnDefinition = "TIMESTAMPTZ DEFAULT NOW()")
     private LocalDateTime updatedAt;
 
-    @Column(name = "deleted_at", columnDefinition = "TIMESTAMPTZ")
+    @Column(name = "deleted_at",columnDefinition = "TIMESTAMPTZ")
     private LocalDateTime deletedAt;
+
+    @Column(name = "is_deleted", nullable = false,insertable = false, updatable = false)
+    @Convert(converter = YesNoConverter.class)
+    @Builder.Default
+    private boolean isDeleted = false;
 
     @PrePersist
     public void prePersist() {
@@ -56,7 +61,7 @@ public class StoreCategoryItem {
 
     @PreRemove
     public void preRemove() {
-        this.deletedAt = LocalDateTime.now();
+        deletedAt = LocalDateTime.now();
     }
 
 }

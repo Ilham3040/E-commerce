@@ -14,7 +14,7 @@ import org.hibernate.type.YesNoConverter;
 @Table(name = "shipment_vendor")
 @Data
 @Builder(toBuilder = true)
-@SoftDelete(columnName = "deleted_at", strategy = SoftDeleteType.DELETED, converter = YesNoConverter.class)
+@SoftDelete(columnName = "is_deleted", strategy = SoftDeleteType.DELETED, converter = YesNoConverter.class)
 public class ShipmentVendor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,22 +39,31 @@ public class ShipmentVendor {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "deleted_at")
+    @Column(name = "deleted_at",columnDefinition = "TIMESTAMPTZ")
     private LocalDateTime deletedAt;
+
+    @Column(name = "is_deleted", nullable = false,insertable = false, updatable = false)
+    @Convert(converter = YesNoConverter.class)
+    @Builder.Default
+    private boolean isDeleted = false;
 
     @PrePersist
     public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
         if (createdAt == null) {
-            createdAt = now;
+            createdAt = LocalDateTime.now();
         }
         if (updatedAt == null) {
-            updatedAt = now;
+            updatedAt = LocalDateTime.now();
         }
     }
 
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    @PreRemove
+    public void preRemove() {
+        deletedAt = LocalDateTime.now();
     }
 }

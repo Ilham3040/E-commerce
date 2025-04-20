@@ -2,162 +2,118 @@ package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.model.UserCart;
 import com.example.shoppingapi.model.UserCartId;
-import com.example.shoppingapi.repository.UserCartRepository;
 import com.example.shoppingapi.modelhelper.ModelHelper;
 import com.example.shoppingapi.modelhelper.ModelHelperFactory;
-
+import com.example.shoppingapi.repository.UserCartRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@SpringBootTest(classes = UserCartServiceTests.class)
-public class UserCartServiceTests {
+class UserCartServiceTest {
 
-    @Mock
-    private UserCartRepository userCartRepository;
+    @Mock private UserCartRepository cartRepo;
+    @InjectMocks private UserCartService service;
 
-    @InjectMocks
-    private UserCartService userCartService;
-
-    private final ModelHelper<UserCart> cartHelper =
+    private final ModelHelper<UserCart> helper =
         ModelHelperFactory.getModelHelper(UserCart.class);
 
     @Test
-    public void testFindAll() {
-        UserCart cart1 = cartHelper.createModel(1);
-        UserCart cart2 = cartHelper.createModel(2);
+    void findAll_returnsAllCarts() {
+        List<UserCart> list = Arrays.asList(helper.createModel(1), helper.createModel(2));
+        when(cartRepo.findAll()).thenReturn(list);
 
-        List<UserCart> mockList = Arrays.asList(cart1, cart2);
-
-        when(userCartRepository.findAll()).thenReturn(mockList);
-
-        List<UserCart> result = userCartService.findAll();
-
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals(cart1, result.get(0));
-        assertEquals(cart2, result.get(1));
-
-        verify(userCartRepository, times(1)).findAll();
+        assertEquals(list, service.findAll());
+        verify(cartRepo).findAll();
     }
 
     @Test
-    public void testFindById() {
-        UserCart cart = cartHelper.createModel(1);
-        when(userCartRepository.findById(cart.getId()))
-            .thenReturn(Optional.of(cart));
-
-        UserCart result = userCartService.findById(cart.getId()).orElseThrow(() -> new AssertionError("Cart Item doesn't exist"));
-        assertNotNull(result);
-        assertEquals(cart, result);
-
-        verify(userCartRepository, times(1)).findById(cart.getId());
-    }
-
-    @Test
-    public void testFindById_NotFound() {
-        UserCartId missingId = new UserCartId(9L, 9L);
-
-        when(userCartRepository.findById(missingId)).thenReturn(Optional.empty());
-
-        Optional<UserCart> result = userCartService.findById(missingId);
-
-        assertFalse(result.isPresent());
-
-        verify(userCartRepository, times(1)).findById(missingId);
-    }
-
-    @Test
-    public void testSaveUserCart() {
-        UserCart cart = cartHelper.createModel(1);
-
-        when(userCartRepository.save(any(UserCart.class))).thenReturn(cart);
-
-        UserCart created = userCartService.saveUserCart(cart);
-
-        assertNotNull(created);
-        assertEquals(cart.getId(), created.getId());
-        assertEquals(cart.getQuantity(), created.getQuantity());
-
-        verify(userCartRepository, times(1)).save(cart);
-    }
-
-    @Test
-    public void testUpdateUserCart() {
-        UserCart existing = cartHelper.createModel(1);
-
-        when(userCartRepository.findById(existing.getId())).thenReturn(Optional.of(existing));
-        when(userCartRepository.save(any(UserCart.class)))
-        .thenAnswer(invocation -> invocation.getArgument(0));
-        
-        UserCart updated  = existing.toBuilder().quantity(7).build();
-        UserCart result = userCartService.updateUserCart(existing.getId(), updated);
-
-        assertNotNull(result);
-        assertEquals(7, result.getQuantity());
-
-        verify(userCartRepository, times(1)).findById(existing.getId());
-        verify(userCartRepository, times(1)).save(updated);
-    }
-
-    @Test
-    public void testPartialUpdateUserCart() {
-        UserCart cart = cartHelper.createModel(2);
+    void findById_found_returnsCart() {
+        UserCart cart = helper.createModel(1);
         UserCartId id = cart.getId();
+        when(cartRepo.findById(id)).thenReturn(Optional.of(cart));
 
-        when(userCartRepository.findById(id)).thenReturn(Optional.of(cart));
-        when(userCartRepository.save(any(UserCart.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        Map<String, Object> updates = Map.of("quantity", 10);
-        UserCart result = userCartService.partialUpdateUserCart(id, updates);
-
-        assertNotNull(result);
-        assertEquals(10, result.getQuantity());
-
-        verify(userCartRepository, times(1)).findById(id);
-        verify(userCartRepository, times(1)).save(cart);
-    }
-
-        @Test
-        public void testDeleteUserCart() {
-        UserCartId id = new UserCartId(1L, 2L);
-
-        when(userCartRepository.existsById(id))
-            .thenReturn(true);
-        doNothing().when(userCartRepository).deleteById(id);
-
-        userCartService.deleteUserCart(id);
-
-        verify(userCartRepository, times(1)).existsById(id);
-        verify(userCartRepository, times(1)).deleteById(id);
+        assertEquals(cart, service.findById(id));
+        verify(cartRepo).findById(id);
     }
 
     @Test
-    public void testDeleteUserCart_NotFound() {
+    void findById_notFound_throws() {
         UserCartId id = new UserCartId(9L, 9L);
-
-        when(userCartRepository.existsById(id)).thenReturn(false);
+        when(cartRepo.findById(id)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(
             ResourceNotFoundException.class,
-            () -> userCartService.deleteUserCart(id)
+            () -> service.findById(id)
         );
-
         assertEquals("UserCart not found with ID: " + id, ex.getMessage());
+    }
 
-        verify(userCartRepository, times(1)).existsById(id);
-        verify(userCartRepository, never()).deleteById(any());
+    @Test
+    void saveUserCart_savesAndReturns() {
+        UserCart cart = helper.createModel(1);
+        when(cartRepo.save(cart)).thenReturn(cart);
+
+        assertEquals(cart, service.saveUserCart(cart));
+        verify(cartRepo).save(cart);
+    }
+
+    @Test
+    void updateUserCart_existing_savesUpdated() {
+        UserCart existing = helper.createModel(1);
+        UserCartId id = existing.getId();
+        when(cartRepo.findById(id)).thenReturn(Optional.of(existing));
+        when(cartRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        UserCart updated = existing.toBuilder().quantity(7).build();
+        assertEquals(7, service.updateUserCart(id, updated).getQuantity());
+        verify(cartRepo).save(updated);
+    }
+
+    @Test
+    void partialUpdateUserCart_appliesUpdates() {
+        UserCart existing = helper.createModel(2);
+        UserCartId id = existing.getId();
+        when(cartRepo.findById(id)).thenReturn(Optional.of(existing));
+        when(cartRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        UserCart result = service.partialUpdateUserCart(id, Map.of("quantity", 10));
+        assertEquals(10, result.getQuantity());
+        verify(cartRepo).save(existing);
+    }
+
+    @Test
+    void deleteUserCart_existing_deletes() {
+        UserCart existing = helper.createModel(1);
+        UserCartId id = existing.getId();
+        when(cartRepo.findById(id)).thenReturn(Optional.of(existing));
+        doNothing().when(cartRepo).deleteById(id);
+
+        service.deleteById(id);
+        verify(cartRepo).deleteById(id);
+    }
+
+    @Test
+    void deleteUserCart_notFound_throws() {
+        UserCartId id = new UserCartId(9L,9L);
+        when(cartRepo.findById(id)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.deleteById(id)
+        );
+        assertEquals("UserCart not found with ID: " + id, ex.getMessage());
+        verify(cartRepo, never()).deleteById(any());
     }
 }

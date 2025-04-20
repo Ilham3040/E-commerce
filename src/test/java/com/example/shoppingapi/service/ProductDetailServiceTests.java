@@ -1,7 +1,6 @@
 package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.model.ProductDetail;
-import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.modelhelper.ModelHelper;
 import com.example.shoppingapi.modelhelper.ModelHelperFactory;
 import com.example.shoppingapi.repository.ProductDetailRepository;
@@ -11,177 +10,183 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@SpringBootTest(classes = ProductDetailServiceTests.class)
-public class ProductDetailServiceTests {
+class ProductDetailServiceTest {
 
-    @Mock
-    private ProductDetailRepository productDetailRepository;
+    @Mock private ProductDetailRepository detailRepo;
+    @Mock private ProductRepository       productRepo;
+    @InjectMocks private ProductDetailService service;
 
-    @Mock
-    private ProductRepository productRepository;
-
-    @InjectMocks
-    private ProductDetailService productDetailService;
-
-    
-    private final ModelHelper<ProductDetail> productDetailHelper = ModelHelperFactory.getModelHelper(ProductDetail.class);
+    private final ModelHelper<ProductDetail> helper =
+        ModelHelperFactory.getModelHelper(ProductDetail.class);
 
     @Test
-    public void testFindAll() {
-        ProductDetail pd1 = productDetailHelper.createModel(1);
-        ProductDetail pd2 = productDetailHelper.createModel(2);
-        List<ProductDetail> mockList = Arrays.asList(pd1, pd2);
+    void findAll_returnsAllDetails() {
+        List<ProductDetail> list = List.of(helper.createModel(1), helper.createModel(2));
+        when(detailRepo.findAll()).thenReturn(list);
 
-        when(productDetailRepository.findAll()).thenReturn(mockList);
-
-        List<ProductDetail> result = productDetailService.findAll();
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        verify(productDetailRepository, times(1)).findAll();
+        assertEquals(list, service.findAll());
+        verify(detailRepo).findAll();
     }
 
     @Test
-    public void testFindById_Found() {
-        ProductDetail pd = productDetailHelper.createModel(1);
-        when(productDetailRepository.findById(pd.getProductDetailId())).thenReturn(Optional.of(pd));
+    void findById_found_returnsDetail() {
+        ProductDetail pd = helper.createModel(1);
+        when(detailRepo.findById(1L)).thenReturn(Optional.of(pd));
 
-        Optional<ProductDetail> result = productDetailService.findById(pd.getProductDetailId());
-        assertTrue(result.isPresent());
-        assertEquals(pd.getProductDetailId(), result.get().getProductDetailId());
-        verify(productDetailRepository, times(1)).findById(pd.getProductDetailId());
+        assertEquals(1L, service.findById(1L).getProductDetailId());
+        verify(detailRepo).findById(1L);
     }
 
     @Test
-    public void testFindById_NotFound() {
-        when(productDetailRepository.findById(1L)).thenReturn(Optional.empty());
-        Optional<ProductDetail> result = productDetailService.findById(1L);
-        assertFalse(result.isPresent());
-        verify(productDetailRepository, times(1)).findById(1L);
+    void findById_notFound_throwsException() {
+        when(detailRepo.findById(2L)).thenReturn(Optional.empty());
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.findById(2L)
+        );
+        assertEquals("ProductDetail not found with ID: 2", ex.getMessage());
     }
 
     @Test
-    public void testFindByProductId() {
-        ProductDetail pd = productDetailHelper.createModel(1);
-        Long productId = pd.getProduct().getProductId();
-        when(productDetailRepository.findProductDetailbyProductId(productId)).thenReturn(Optional.of(pd));
+    void findByProductId_found_returnsDetail() {
+        ProductDetail pd = helper.createModel(1);
+        Long pid = pd.getProduct().getProductId();
+        when(detailRepo.findProductDetailbyProductId(pid)).thenReturn(Optional.of(pd));
 
-        Optional<ProductDetail> result = productDetailService.findByProductId(productId);
-        assertTrue(result.isPresent());
-        assertEquals(productId, result.get().getProduct().getProductId());
-        verify(productDetailRepository, times(1)).findProductDetailbyProductId(productId);
+        assertEquals(pid, service.findByProductId(pid).getProduct().getProductId());
+        verify(detailRepo).findProductDetailbyProductId(pid);
     }
 
     @Test
-    public void testSaveProductDetail_Success() {
-        ProductDetail pd = productDetailHelper.createModel(1);
-        Product product = pd.getProduct();
-
-        
-        when(productRepository.existsById(product.getProductId())).thenReturn(true);
-        when(productDetailRepository.save(any(ProductDetail.class))).thenReturn(pd);
-
-        ProductDetail created = productDetailService.saveProductDetail(pd);
-        assertNotNull(created);
-        assertEquals(pd.getProductDetailId(), created.getProductDetailId());
-        verify(productRepository, times(1)).existsById(product.getProductId());
-        verify(productDetailRepository, times(1)).save(pd);
+    void findByProductId_notFound_throwsException() {
+        when(detailRepo.findProductDetailbyProductId(3L)).thenReturn(Optional.empty());
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.findByProductId(3L)
+        );
+        assertEquals("ProductDetail not found for product ID: 3", ex.getMessage());
     }
 
     @Test
-    public void testSaveProductDetail_ProductNotFound_ThrowsException() {
-        ProductDetail pd = productDetailHelper.createModel(1);
-        Product product = pd.getProduct();
-
-        when(productRepository.existsById(product.getProductId())).thenReturn(false);
-
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> productDetailService.saveProductDetail(pd));
-        assertEquals("Product not found. Cannot create product detail.", exception.getMessage());
-        
-        verify(productRepository, times(1)).existsById(product.getProductId());
-        verify(productDetailRepository, never()).save(any(ProductDetail.class));
+    void saveProductDetail_missingProduct_throwsException() {
+        ProductDetail pd = helper.createModel(1);
+        pd.setProduct(null);
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.saveProductDetail(pd)
+        );
+        assertEquals("Product ID is required to create a product detail.", ex.getMessage());
+        verify(detailRepo, never()).save(any());
     }
+
     @Test
-    public void testUpdateProductDetail() {
-        ProductDetail existing = productDetailHelper.createModel(1);
+    void saveProductDetail_productNotFound_throwsException() {
+        ProductDetail pd = helper.createModel(1);
+        when(productRepo.existsById(pd.getProduct().getProductId())).thenReturn(false);
 
-        when(productDetailRepository.findById(existing.getProductDetailId())).thenReturn(Optional.of(existing));
-        when(productDetailRepository.save(any(ProductDetail.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        ProductDetail updated = existing.toBuilder().totalSold(300).build();
-        ProductDetail result = productDetailService.updateProductDetail(existing.getProductDetailId(),updated);
-    
-        assertNotNull(result);
-        assertEquals(updated, result);
-    
-        verify(productDetailRepository, times(2)).findById(existing.getProductDetailId());
-        verify(productDetailRepository, times(1)).save(updated);
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.saveProductDetail(pd)
+        );
+        assertEquals("Product not found. Cannot create product detail.", ex.getMessage());
+        verify(detailRepo, never()).save(any());
     }
-    
+
     @Test
-    public void testPartialUpdateProductDetail() {
-        ProductDetail existing = productDetailHelper.createModel(1);
-    
-        when(productDetailRepository.findById(existing.getProductDetailId())).thenReturn(Optional.of(existing));
-        when(productDetailRepository.save(any(ProductDetail.class))).thenAnswer(invocation -> invocation.getArgument(0));
-    
-        Map<String, Object> updates = Map.of(
+    void saveProductDetail_success_savesAndReturns() {
+        ProductDetail pd = helper.createModel(1);
+        when(productRepo.existsById(pd.getProduct().getProductId())).thenReturn(true);
+        when(detailRepo.save(any())).thenReturn(pd);
+
+        assertEquals(pd, service.saveProductDetail(pd));
+        verify(detailRepo).save(pd);
+    }
+
+    @Test
+    void updateProductDetail_idMismatch_throwsException() {
+        ProductDetail pd = helper.createModel(1);
+        pd.setProductDetailId(2L);
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.updateProductDetail(1L, pd)
+        );
+        assertEquals("ProductDetail ID in URL and body must match.", ex.getMessage());
+    }
+
+    @Test
+    void updateProductDetail_notFound_throwsException() {
+        ProductDetail pd = helper.createModel(1);
+        when(detailRepo.findById(1L)).thenReturn(Optional.empty());
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.updateProductDetail(1L, pd)
+        );
+        assertEquals("ProductDetail not found with ID: 1", ex.getMessage());
+    }
+
+    @Test
+    void updateProductDetail_success_savesUpdated() {
+        ProductDetail pd = helper.createModel(1);
+        ProductDetail updated = pd.toBuilder().totalSold(500).build();
+        when(detailRepo.findById(1L)).thenReturn(Optional.of(pd));
+        when(detailRepo.save(any())).thenReturn(updated);
+
+        assertEquals(updated, service.updateProductDetail(1L, updated));
+        verify(detailRepo).save(updated);
+    }
+
+    @Test
+    void partialUpdateProductDetail_existing_appliesUpdates() {
+        ProductDetail pd = helper.createModel(1);
+        when(detailRepo.findById(1L)).thenReturn(Optional.of(pd));
+        when(detailRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        Map<String,Object> changes = Map.of(
             "reviewRating", 4.75,
             "totalSold",    150
         );
-        ProductDetail result = productDetailService.partialUpdateProductDetail(existing.getProductDetailId(),updates
-        );
-    
-        assertNotNull(result);
-        assertEquals(BigDecimal.valueOf(4.75).setScale(2),result.getReviewRating().setScale(2));
+        ProductDetail result = service.partialUpdateProductDetail(1L, changes);
+
+        assertEquals(BigDecimal.valueOf(4.75), result.getReviewRating());
         assertEquals(150, result.getTotalSold());
-    
-        verify(productDetailRepository, times(1)).findById(existing.getProductDetailId());
-        verify(productDetailRepository, times(1)).save(existing);
-    }
-    
-
-    @Test
-    public void testSoftdeleteById() {
-        ProductDetail productDetail = productDetailHelper.createModel(1);
-
-        when(productDetailRepository.findById(productDetail.getProductDetailId())).thenReturn(Optional.of(productDetail));
-        when(productDetailRepository.save(any(ProductDetail.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        ProductDetail deletedDetail = productDetailService.deleteById(productDetail.getProductDetailId());
-
-        assertNotNull(deletedDetail);
-        assertNotNull(deletedDetail.getDeletedAt());
-        assertEquals(deletedDetail.getProductDetailId(), productDetail.getProductDetailId());
-
-        verify(productDetailRepository, times(1)).save(productDetail);
-        verify(productDetailRepository, times(1)).findById(productDetail.getProductDetailId());
+        verify(detailRepo).save(pd);
     }
 
     @Test
-    public void testSoftdeleteById_NotFound() {
-        when(productDetailRepository.findById(1L)).thenReturn(Optional.empty());
+    void deleteById_existing_invokesSoftDelete() {
 
-        try {
-            productDetailService.deleteById(1L);
-            fail("Expected ResourceNotFoundException to be thrown");
-        } catch (ResourceNotFoundException e) {
-            assertEquals("Product Detail not found with ID: 1", e.getMessage());
-        }
+        ProductDetail original = helper.createModel(1);
 
-        verify(productDetailRepository, times(1)).findById(1L);
+        when(detailRepo.findById(1L))
+            .thenReturn(Optional.of(original));
+        doNothing().when(detailRepo).delete(original);
+
+        service.deleteById(1L);
+
+        verify(detailRepo).findById(1L);
+        verify(detailRepo).delete(original);
     }
 
+    @Test
+    void softDeleteProductDetail_notFound_throwsException() {
+        when(detailRepo.findById(2L)).thenReturn(Optional.empty());
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.deleteById(2L)
+        );
+        assertEquals("ProductDetail not found with ID: 2", ex.getMessage());
+    }
 }
