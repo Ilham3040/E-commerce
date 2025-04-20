@@ -4,87 +4,83 @@ import com.example.shoppingapi.model.Store;
 import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.repository.StoreRepository;
 import com.example.shoppingapi.repository.UserRepository;
-import org.springframework.util.ReflectionUtils;
 
+import lombok.RequiredArgsConstructor;
 
-
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.Map;
-import java.lang.reflect.Field;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class StoreService {
 
-    @Autowired
-    private StoreRepository storeRepository;
-
-    @Autowired
-    private UserRepository usersRepository;
+    private final StoreRepository storeRepository;
+    private final UserRepository userRepository;
 
     public List<Store> getAllStores() {
         return storeRepository.findAll();
     }
 
-    public Optional<Store> getStoreById(Long id) {
-        return storeRepository.findById(id);
+    public Store getStoreById(Long id) {
+        return storeRepository.findById(id)
+            .orElseThrow(() -> 
+                new ResourceNotFoundException("Store not found with ID: " + id));
     }
 
     public Store saveStore(Store store) {
-        if (store.getUser() == null || store.getUser().getUserId() == null) {
-            throw new IllegalArgumentException("User ID is required to create a store.");
-        }
+        Long userId = Optional.ofNullable(store.getUser())
+                              .map(User::getUserId)
+                              .orElseThrow(() ->
+                                  new IllegalArgumentException("User ID is required to create a store."));
 
-        Optional<User> user = usersRepository.findById(store.getUser().getUserId());
-        if (user.isEmpty()) {
-            throw new IllegalArgumentException("User not found. Cannot create store.");
-        }
+        userRepository.findById(userId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException("User not found with ID: " + userId));
 
         return storeRepository.save(store);
     }
 
     public Store updateStore(Long id, Store store) {
-        Optional<Store> existingStoreOpt = storeRepository.findById(id);
-        if (existingStoreOpt.isEmpty()) {
-            throw new IllegalArgumentException("Store not found with ID: " + id);
-        }
-        if (store.getUser() == null || store.getUser().getUserId() == null) {
-            throw new IllegalArgumentException("User ID is required to create a store.");
+        if (!id.equals(store.getStoreId())) {
+            throw new IllegalArgumentException("Store ID in URL and body must match.");
         }
 
-        Optional<User> user = usersRepository.findById(store.getUser().getUserId());
-        if (user.isEmpty()) {
-            throw new IllegalArgumentException("User not found. Cannot create store.");
-        }
-        Store updatedStore = store;
-        updatedStore.setStoreId(id);
+        getStoreById(id);  // throws if missing
 
-        return storeRepository.save(updatedStore);
+        Long userId = Optional.ofNullable(store.getUser())
+                              .map(User::getUserId)
+                              .orElseThrow(() ->
+                                  new IllegalArgumentException("User ID is required to update a store."));
+
+        userRepository.findById(userId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException("User not found with ID: " + userId));
+
+        store.setStoreId(id);
+        return storeRepository.save(store);
     }
 
-    
     public Store partialUpdateStore(Long id, Map<String, Object> updates) {
-        Optional<Store> existingStoreOpt = storeRepository.findById(id);
-        if (existingStoreOpt.isEmpty()) {
-            throw new IllegalArgumentException("Store not found with ID: " + id);
-        }
-        
-        Store existingStore = existingStoreOpt.get();
-        updates.forEach((key, value) -> {
-            Field field = ReflectionUtils.findField(Store.class, key);
-            if (field != null) {
-                field.setAccessible(true);
-                ReflectionUtils.setField(field, existingStore, value);
-            }
-        });
+        Store existing = getStoreById(id);  // throws if missing
 
-        return storeRepository.save(existingStore);
+        BeanWrapper wrapper = new BeanWrapperImpl(existing);
+        updates.forEach((prop, val) ->
+            wrapper.setPropertyValue(prop, val)
+        );
+
+        return storeRepository.save(existing);
     }
-    
 
-    public void deleteStore(Long id) {
-        storeRepository.deleteById(id);
+    public Store deleteById(Long id) {
+        Store existing = getStoreById(id);  // throws if missing
+        existing.setDeletedAt(LocalDateTime.now());
+        return storeRepository.save(existing);
     }
 }

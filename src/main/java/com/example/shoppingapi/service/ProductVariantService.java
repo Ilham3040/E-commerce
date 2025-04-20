@@ -1,95 +1,90 @@
 package com.example.shoppingapi.service;
 
-import com.example.shoppingapi.model.ProductVariant;
 import com.example.shoppingapi.repository.ProductVariantRepository;
+import com.example.shoppingapi.model.*;
 import com.example.shoppingapi.repository.ProductRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ReflectionUtils;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ProductVariantService {
 
-    @Autowired
-    private ProductVariantRepository productVariantRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductVariantRepository variantRepo;
+    private final ProductRepository        productRepo;
 
     public List<ProductVariant> findAll() {
-        return productVariantRepository.findAll();
+        return variantRepo.findAll();
     }
 
-    public Optional<ProductVariant> findById(Long id) {
-        return productVariantRepository.findById(id);
+    public ProductVariant findById(Long id) {
+        return variantRepo.findById(id)
+            .orElseThrow(() ->
+                new ResourceNotFoundException("ProductVariant not found with ID: " + id));
     }
 
-    public Optional<ProductVariant> findByProductId(Long id) {
-        return productVariantRepository.findProductVariantbyProductId(id);
+    public ProductVariant findByProductId(Long productId) {
+        return variantRepo.findProductVariantbyProductId(productId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException("ProductVariant not found for product ID: " + productId));
     }
 
-    public ProductVariant saveProductVariant(ProductVariant productVariant) {
-        if (productVariant.getProduct() == null || productVariant.getProduct().getProductId() == null) {
-            throw new IllegalArgumentException("Product ID is required to create a product variant.");
-        }
-
-        boolean exists = productRepository.existsById(productVariant.getProduct().getProductId());
-        if (!exists) {
+    public ProductVariant saveProductVariant(ProductVariant variant) {
+        Long pid = Optional.ofNullable(variant.getProduct())
+            .map(p -> p.getProductId())
+            .orElseThrow(() ->
+                new IllegalArgumentException("Product ID is required to create a product variant."));
+        if (!productRepo.existsById(pid)) {
             throw new IllegalArgumentException("Product not found. Cannot create product variant.");
         }
-
-        return productVariantRepository.save(productVariant);
+        return variantRepo.save(variant);
     }
 
-    public ProductVariant updateProductVariant(Long id, ProductVariant productVariant) {
-        Optional<ProductVariant> existingProductVariantOpt = productVariantRepository.findById(id);
-        if (existingProductVariantOpt.isEmpty()) {
-            throw new IllegalArgumentException("ProductVariant not found with ID: " + id);
+    public ProductVariant updateProductVariant(Long id, ProductVariant variant) {
+        if (!id.equals(variant.getVariantId())) {
+            throw new IllegalArgumentException("Variant ID in URL and body must match.");
         }
-        if (productVariant.getProduct() == null || productVariant.getProduct().getProductId() == null) {
-            throw new IllegalArgumentException("Product ID is required to update a product variant.");
-        }
+        findById(id);
 
-        Optional<ProductVariant> product = productVariantRepository.findById(productVariant.getProduct().getProductId());
-        if (product.isEmpty()) {
+        Long pid = Optional.ofNullable(variant.getProduct())
+            .map(p -> p.getProductId())
+            .orElseThrow(() ->
+                new IllegalArgumentException("Product ID is required to update a product variant."));
+        if (!productRepo.existsById(pid)) {
             throw new IllegalArgumentException("Product not found. Cannot update product variant.");
         }
-        ProductVariant updatedProductVariant = productVariant;
-        updatedProductVariant.setVariantId(id);
 
-        return productVariantRepository.save(updatedProductVariant);
+        variant.setVariantId(id);
+        return variantRepo.save(variant);
     }
 
     public ProductVariant partialUpdateProductVariant(Long id, Map<String, Object> updates) {
-        Optional<ProductVariant> existingProductVariantOpt = productVariantRepository.findById(id);
-        if (existingProductVariantOpt.isEmpty()) {
-            throw new IllegalArgumentException("ProductVariant not found with ID: " + id);
-        }
+        ProductVariant existing = findById(id);
+        BeanWrapper wrapper = new BeanWrapperImpl(existing);
 
-        ProductVariant existingProductVariant = existingProductVariantOpt.get();
-        updates.forEach((key, value) -> {
-            Field field = ReflectionUtils.findField(ProductVariant.class, key);
-            if (field != null) {
-                field.setAccessible(true);
-                if ("reviewRating".equals(key) && value instanceof Number) {
-                    BigDecimal reviewRatings = new BigDecimal(value.toString());
-                    ReflectionUtils.setField(field, existingProductVariant, reviewRatings);
-                } else {
-                    ReflectionUtils.setField(field, existingProductVariant, value);
-                }
+        updates.forEach((prop, val) -> {
+            if ("price".equals(prop) && val instanceof Number) {
+                wrapper.setPropertyValue(prop, BigDecimal.valueOf(((Number) val).doubleValue()));
+            } else {
+                wrapper.setPropertyValue(prop, val);
             }
         });
 
-        return productVariantRepository.save(existingProductVariant);
+        return variantRepo.save(existing);
     }
 
     public void deleteById(Long id) {
-        productVariantRepository.deleteById(id);
+        ProductVariant productVariant = variantRepo.findById(id)
+        .orElseThrow(() ->
+            new ResourceNotFoundException("Product Variant not found with ID: " + id));
+        variantRepo.delete(productVariant);
     }
 }

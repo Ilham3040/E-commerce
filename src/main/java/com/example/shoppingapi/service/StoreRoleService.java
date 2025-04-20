@@ -2,72 +2,68 @@ package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.model.StoreRole;
 import com.example.shoppingapi.model.StoreRoleId;
+import com.example.shoppingapi.repository.StoreRepository;
 import com.example.shoppingapi.repository.StoreRoleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.shoppingapi.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ReflectionUtils;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class StoreRoleService {
 
-    @Autowired
-    private StoreRoleRepository storeRoleRepository;
+    private final StoreRoleRepository storeRoleRepository;
+    private final UserRepository      userRepository;
+    private final StoreRepository     storeRepository;
 
     public List<StoreRole> findAll() {
         return storeRoleRepository.findAll();
     }
 
-    public Optional<StoreRole> findById(Long userId, Long storeId) {
-        StoreRoleId id = new StoreRoleId();
-        id.setUserId(userId);
-        id.setStoreId(storeId);
-        return storeRoleRepository.findById(id);
+    public StoreRole findById(StoreRoleId id) {
+        storeRepository.findById(id.getStoreId())
+            .orElseThrow(() ->
+                new ResourceNotFoundException("Store not found with ID: " + id.getStoreId()));
+        userRepository.findById(id.getUserId())
+            .orElseThrow(() ->
+                new ResourceNotFoundException("User not found with ID: " + id.getUserId()));
+        return storeRoleRepository.findById(id)
+            .orElseThrow(() ->
+                new ResourceNotFoundException("StoreRole not found with ID: " + id));
     }
 
     public StoreRole saveStoreRole(StoreRole storeRole) {
+        storeRepository.findById(storeRole.getStore().getStoreId())
+            .orElseThrow(() ->
+                new ResourceNotFoundException("Store not found with ID: " + storeRole.getStore().getStoreId()));
+        userRepository.findById(storeRole.getUser().getUserId())
+            .orElseThrow(() ->
+                new ResourceNotFoundException("User not found with ID: " + storeRole.getUser().getUserId()));
         return storeRoleRepository.save(storeRole);
     }
 
-    public StoreRole updateStoreRole(Long userId, Long storeId, StoreRole storeRole) {
-        StoreRoleId id = new StoreRoleId();
-        id.setUserId(userId);
-        id.setStoreId(storeId);
-        Optional<StoreRole> existingOpt = storeRoleRepository.findById(id);
-        if (existingOpt.isEmpty()) {
-            throw new IllegalArgumentException("StoreRole not found with given composite key");
-        }
+    public StoreRole updateStoreRole(StoreRoleId id, StoreRole storeRole) {
+        findById(id);  // parents + existing
         storeRole.setId(id);
         return storeRoleRepository.save(storeRole);
     }
 
-    public StoreRole partialUpdateStoreRole(Long userId, Long storeId, Map<String, Object> updates) {
-        StoreRoleId id = new StoreRoleId();
-        id.setUserId(userId);
-        id.setStoreId(storeId);
-        Optional<StoreRole> existingOpt = storeRoleRepository.findById(id);
-        if (existingOpt.isEmpty()) {
-            throw new IllegalArgumentException("StoreRole not found with given composite key");
-        }
-        StoreRole storeRole = existingOpt.get();
-        updates.forEach((key, value) -> {
-            Field field = ReflectionUtils.findField(StoreRole.class, key);
-            if (field != null) {
-                field.setAccessible(true);
-                ReflectionUtils.setField(field, storeRole, value);
-            }
-        });
-        return storeRoleRepository.save(storeRole);
+    public StoreRole partialUpdateStoreRole(StoreRoleId id, Map<String, Object> updates) {
+        findById(id);
+        StoreRole existing = storeRoleRepository.findById(id).get();
+        BeanWrapper wrapper = new BeanWrapperImpl(existing);
+        updates.forEach(wrapper::setPropertyValue);
+        return storeRoleRepository.save(existing);
     }
 
-    public void deleteById(Long userId, Long storeId) {
-        StoreRoleId id = new StoreRoleId();
-        id.setUserId(userId);
-        id.setStoreId(storeId);
+    public void deleteById(StoreRoleId id) {
+        findById(id);
         storeRoleRepository.deleteById(id);
     }
 }

@@ -4,98 +4,92 @@ import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.Store;
 import com.example.shoppingapi.repository.ProductRepository;
 import com.example.shoppingapi.repository.StoreRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.ReflectionUtils;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ProductService {
 
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private StoreRepository storeRepository;
+    private final ProductRepository productRepository;
+    private final StoreRepository storeRepository;
 
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
 
-    public Optional<Product> getProductById(Long id) {
-        return productRepository.findById(id);
+    public Product getProductById(Long id) {
+        return productRepository.findById(id)
+            .orElseThrow(() ->
+                new ResourceNotFoundException("Product not found with ID: " + id));
     }
 
     public Product saveProduct(Product product) {
-        if (product.getStore() == null || product.getStore().getStoreId() == null) {
-            throw new IllegalArgumentException("Store ID is required to create a product.");
-        }
+        Long storeId = Optional.ofNullable(product.getStore())
+            .map(Store::getStoreId)
+            .orElseThrow(() ->
+                new IllegalArgumentException("Store ID is required to create a product."));
 
-        Optional<Store> store = storeRepository.findById(product.getStore().getStoreId());
-        if (store.isEmpty()) {
-            throw new IllegalArgumentException("Store not found. Cannot create product.");
-        }
+        storeRepository.findById(storeId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException("Store not found with ID: " + storeId));
 
         return productRepository.save(product);
     }
 
-    public Product updateProduct(Long id,Product product) {
-        Optional<Product> existingProductOpt = productRepository.findById(id);
-        if (existingProductOpt.isEmpty()) {
-            throw new IllegalArgumentException("Product not found with ID: " + id);
+    public Product updateProduct(Long id, Product product) {
+        if (!id.equals(product.getProductId())) {
+            throw new IllegalArgumentException("Product ID in URL and body must match.");
         }
 
-        if (product.getStore() == null || product.getStore().getStoreId() == null) {
-            throw new IllegalArgumentException("Store ID is required to create a product.");
-        }
+        getProductById(id);
 
-        Optional<Store> store = storeRepository.findById(product.getStore().getStoreId());
-        if (store.isEmpty()) {
-            throw new IllegalArgumentException("Store not found. Cannot create product.");
-        }
+        Long storeId = Optional.ofNullable(product.getStore())
+            .map(Store::getStoreId)
+            .orElseThrow(() ->
+                new IllegalArgumentException("Store ID is required to update a product."));
 
-        Product updatedProduct = product;
-        updatedProduct.setProductId(id);
+        storeRepository.findById(storeId)
+            .orElseThrow(() ->
+                new ResourceNotFoundException("Store not found with ID: " + storeId));
 
-        return productRepository.save(updatedProduct);
+        product.setProductId(id);
+        return productRepository.save(product);
     }
 
     public Product partialUpdateProduct(Long id, Map<String, Object> updates) {
-        Optional<Product> existingProductOpt = productRepository.findById(id);
-        if (existingProductOpt.isEmpty()) {
-            throw new IllegalArgumentException("Product not found with ID: " + id);
-        }
-        
-        Product existingProduct = existingProductOpt.get();
-        updates.forEach((key, value) -> {
-            Field field = ReflectionUtils.findField(Product.class, key);
-            if (field != null) {
-                field.setAccessible(true);
-                if ("price".equals(key) && value instanceof Number) {
-                    
-                    BigDecimal priceValue = new BigDecimal(value.toString());
-                    ReflectionUtils.setField(field, existingProduct, priceValue);
-                } else {
-                    ReflectionUtils.setField(field, existingProduct, value);
-                }
+        Product existing = getProductById(id);
+
+        BeanWrapper wrapper = new BeanWrapperImpl(existing);
+        updates.forEach((prop, val) -> {
+            if ("price".equals(prop) && val instanceof Number) {
+                wrapper.setPropertyValue(prop, BigDecimal.valueOf(((Number) val).longValue()));
+            } else {
+                wrapper.setPropertyValue(prop, val);
             }
         });
 
-        return productRepository.save(existingProduct);
+        return productRepository.save(existing);
     }
-
 
     public List<Product> getProductsByStoreId(Long storeId) {
         return productRepository.findByStoreStoreId(storeId);
     }
 
-
-    public void deleteProduct(Long id) {
-        productRepository.deleteById(id);
+    public void deleteById(Long id) {
+        Product product = productRepository.findById(id)
+        .orElseThrow(() ->
+            new ResourceNotFoundException("Product not found with ID: " + id));
+        productRepository.delete(product);
     }
 }

@@ -1,104 +1,105 @@
 package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.model.ProductReview;
+import com.example.shoppingapi.model.Product;
+import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.repository.ProductReviewRepository;
-import com.example.shoppingapi.repository.UserRepository;
 import com.example.shoppingapi.repository.ProductRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.shoppingapi.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ReflectionUtils;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ProductReviewService {
 
-    @Autowired
-    private ProductReviewRepository productReviewRepository;
-
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    private final ProductReviewRepository reviewRepo;
+    private final ProductRepository       productRepo;
+    private final UserRepository          userRepo;
 
     public List<ProductReview> findAll() {
-        return productReviewRepository.findAll();
+        return reviewRepo.findAll();
     }
 
-    public Optional<ProductReview> findById(Long id) {
-        return productReviewRepository.findById(id);
+    public ProductReview findById(Long id) {
+        return reviewRepo.findById(id)
+            .orElseThrow(() ->
+                new ResourceNotFoundException("ProductReview not found with ID: " + id));
     }
 
-
-    public ProductReview saveProductReview(ProductReview productReview) {
-        if (productReview.getProduct() == null || productReview.getProduct().getProductId() == null) {
-            throw new IllegalArgumentException("Product ID is required to create a product review.");
-        }
-    
-        boolean productexists = productRepository.existsById(productReview.getProduct().getProductId());
-        if (!productexists) {
+    public ProductReview saveProductReview(ProductReview review) {
+        Long productId = Optional.ofNullable(review.getProduct())
+            .map(Product::getProductId)
+            .orElseThrow(() ->
+                new IllegalArgumentException("Product ID is required to create a product review."));
+        if (!productRepo.existsById(productId)) {
             throw new IllegalArgumentException("Product not found. Cannot create product review.");
         }
 
-        boolean userexists = userRepository.existsById(productReview.getUser().getUserId());
-        if (!userexists) {
-            throw new IllegalArgumentException("User not found. Cannot create product review.");
-        }
-    
-        return productReviewRepository.save(productReview);
+        Long userId = Optional.ofNullable(review.getUser())
+            .map(User::getUserId)
+            .orElseThrow(() ->
+                new IllegalArgumentException("User ID is required to create a product review."));
+        userRepo.findById(userId)
+            .orElseThrow(() ->
+                new IllegalArgumentException("User not found. Cannot create product review."));
+
+        return reviewRepo.save(review);
     }
 
-    public ProductReview updateProductReview(Long id, ProductReview productReview) {
-        Optional<ProductReview> existingProductReviewOpt = productReviewRepository.findById(id);
-        if (existingProductReviewOpt.isEmpty()) {
-            throw new IllegalArgumentException("ProductReview not found with ID: " + id);
+    public ProductReview updateProductReview(Long id, ProductReview review) {
+        if (!id.equals(review.getReviewId())) {
+            throw new IllegalArgumentException("Review ID in URL and body must match.");
         }
-        if (productReview.getProduct() == null || productReview.getProduct().getProductId() == null) {
-            throw new IllegalArgumentException("User ID is required to create a product review.");
+        findById(id);  // ensure exists
+
+        Long userId = Optional.ofNullable(review.getUser())
+            .map(User::getUserId)
+            .orElseThrow(() ->
+                new IllegalArgumentException("User ID is required to update a product review."));
+        userRepo.findById(userId)
+            .orElseThrow(() ->
+                new IllegalArgumentException("User not found. Cannot update product review."));
+
+        Long productId = Optional.ofNullable(review.getProduct())
+            .map(Product::getProductId)
+            .orElseThrow(() ->
+                new IllegalArgumentException("Product ID is required to update a product review."));
+        if (!productRepo.existsById(productId)) {
+            throw new IllegalArgumentException("Product not found. Cannot update product review.");
         }
 
-        Optional<ProductReview> product = productReviewRepository.findById(productReview.getProduct().getProductId());
-        if (product.isEmpty()) {
-            throw new IllegalArgumentException("User not found. Cannot create product review.");
-        }
-        ProductReview updatedProductReview = productReview;
-        updatedProductReview.setReviewId(id);
-
-        return productReviewRepository.save(updatedProductReview);
+        review.setReviewId(id);
+        return reviewRepo.save(review);
     }
 
-    
     public ProductReview partialUpdateProductReview(Long id, Map<String, Object> updates) {
-        Optional<ProductReview> existingProductReviewOpt = productReviewRepository.findById(id);
-        if (existingProductReviewOpt.isEmpty()) {
-            throw new IllegalArgumentException("ProductReview not found with ID: " + id);
-        }
-        
-        ProductReview existingProductReview = existingProductReviewOpt.get();
-        updates.forEach((key, value) -> {
-            Field field = ReflectionUtils.findField(ProductReview.class, key);
-            if (field != null) {
-                field.setAccessible(true);
-                    if ("reviewRating".equals(key) && value instanceof Number) {
-                    BigDecimal reviewRatings = new BigDecimal(value.toString());
-                    ReflectionUtils.setField(field, existingProductReview, reviewRatings);
-                } else {
-                    ReflectionUtils.setField(field, existingProductReview, value);
-                }
+        ProductReview existing = findById(id);
 
+        BeanWrapper wrapper = new BeanWrapperImpl(existing);
+        updates.forEach((prop, val) -> {
+            if ("starRating".equals(prop) && val instanceof Number) {
+                wrapper.setPropertyValue(prop, new BigDecimal(val.toString()));
+            } else {
+                wrapper.setPropertyValue(prop, val);
             }
         });
 
-        return productReviewRepository.save(existingProductReview);
+        return reviewRepo.save(existing);
     }
 
     public void deleteById(Long id) {
-        productReviewRepository.deleteById(id);
+        ProductReview productReview = reviewRepo.findById(id)
+        .orElseThrow(() ->
+            new ResourceNotFoundException("Product Review not found with ID: " + id));
+        reviewRepo.delete(productReview);
     }
 }

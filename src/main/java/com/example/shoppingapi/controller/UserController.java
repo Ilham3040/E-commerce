@@ -1,84 +1,84 @@
+// src/main/java/com/example/shoppingapi/controller/UserController.java
 package com.example.shoppingapi.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import com.example.shoppingapi.service.UserService;
-import com.example.shoppingapi.dto.UserDTO;
+import com.example.shoppingapi.dto.request.UserRequestDTO;
+import com.example.shoppingapi.dto.response.ApiResponse;
+import com.example.shoppingapi.dto.response.UserDTO;
 import com.example.shoppingapi.model.User;
-import com.example.shoppingapi.dto.ApiResponse;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
-import org.springframework.util.ReflectionUtils;
+import com.example.shoppingapi.service.UserService;
 
+import lombok.RequiredArgsConstructor;
 
-import java.util.Optional;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Map;
-import java.lang.reflect.Field;
+import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/api/users")
+@RequiredArgsConstructor
 public class UserController {
-
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     @GetMapping
-    public List<User> getAllProductDetails() {
-        return userService.getAllUsers();
+    public ApiResponse<List<UserDTO>> getAllUsers() {
+        List<UserDTO> users = userService.getAllUsers()
+            .stream()
+            .map(u -> new UserDTO(u.getUserId()))
+            .collect(Collectors.toList());
+        return new ApiResponse<>("Fetched all users", users);
     }
 
     @GetMapping("/{id}")
-    public Optional<User> getUserById(@PathVariable Long id) {
-        return userService.getUserById(id);
+    public ApiResponse<UserDTO> getUserById(@PathVariable Long id) {
+        User u = userService.getUserById(id);
+        return new ApiResponse<>("Fetched user", new UserDTO(u.getUserId()));
     }
-
+    
 
     @PostMapping
-    public ResponseEntity<ApiResponse<UserDTO>> createUser(@RequestBody User user) {
-        User savedUser = userService.createUser(user);
-        UserDTO userDTO = new UserDTO(savedUser.getUserId());
-        ApiResponse<UserDTO> response = new ApiResponse<>("User successfully added", userDTO);
-        return ResponseEntity.ok(response);
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<UserDTO> createUser(@Validated @RequestBody UserRequestDTO dto) {
+        User toCreate = User.builder()
+            .username(dto.getUsername())
+            .email(dto.getEmail())
+            .phoneNumber(dto.getPhoneNumber())
+            .build();
+        User created = userService.createUser(toCreate);
+        return new ApiResponse<>("User created", new UserDTO(created.getUserId()));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserDTO>> updateUser(@PathVariable Long id, @RequestBody User user) {
-    
-    if (user.getEmail() == null || user.getPhoneNumber() == null) {
-        ApiResponse<UserDTO> response = new ApiResponse<>("Email and Phone Number are required", null);
-        return ResponseEntity.badRequest().body(response);
+    public ApiResponse<UserDTO> updateUser(
+        @PathVariable Long id,
+        @Validated @RequestBody UserRequestDTO dto
+    ) {
+        User toUpdate = User.builder()
+            .userId(id)
+            .username(dto.getUsername())
+            .email(dto.getEmail())
+            .phoneNumber(dto.getPhoneNumber())
+            .build();
+        User updated = userService.updateUser(id, toUpdate);
+        return new ApiResponse<>("User updated", new UserDTO(updated.getUserId()));
     }
-        
-        user.setUserId(id);
-        User updatedUser = userService.updateUser(user);
-        UserDTO userDTO = new UserDTO(updatedUser.getUserId());
-        ApiResponse<UserDTO> response = new ApiResponse<>("User successfully updated", userDTO);
-        return ResponseEntity.ok(response);
-    }
-
 
     @PatchMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserDTO>> partialUpdateUser(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
-    
-    User existingUser = userService.getUserById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-    updates.forEach((key, value) -> {
-        Field field = ReflectionUtils.findField(User.class, key);
-        if (field != null) {
-            field.setAccessible(true);
-            ReflectionUtils.setField(field, existingUser, value);
-        }
-    });
-
-        User updatedUser = userService.updateUser(existingUser);
-        UserDTO userDTO = new UserDTO(updatedUser.getUserId());
-        ApiResponse<UserDTO> response = new ApiResponse<>("User successfully updated", userDTO);
-        return ResponseEntity.ok(response);
+    public ApiResponse<UserDTO> partialUpdateUser(
+        @PathVariable Long id,
+        @RequestBody Map<String,Object> updates
+    ) {
+        User updated = userService.partialUpdateUser(id, updates);
+        return new ApiResponse<>("User partially updated", new UserDTO(updated.getUserId()));
     }
 
-    @GetMapping("/username/{username}")
-    public User getUserByUsername(@PathVariable String username) {
-        return userService.getUserByUsername(username);
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteById(id);
+        return new ApiResponse<>("User deleted", null);
     }
 }

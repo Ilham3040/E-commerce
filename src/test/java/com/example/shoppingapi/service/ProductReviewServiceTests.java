@@ -1,85 +1,143 @@
-// package com.example.shoppingapi.service;
+package com.example.shoppingapi.service;
+
+import com.example.shoppingapi.model.ProductReview;
+import com.example.shoppingapi.modelhelper.ModelHelper;
+import com.example.shoppingapi.modelhelper.ModelHelperFactory;
+import com.example.shoppingapi.repository.ProductReviewRepository;
+import com.example.shoppingapi.repository.ProductRepository;
+import com.example.shoppingapi.repository.UserRepository;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
 
-// import java.math.BigDecimal;
-// import java.util.Arrays;
-// import java.util.List;
-// import java.util.Optional;
-// import java.util.Map;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-// import static org.junit.jupiter.api.Assertions.assertEquals;
-// import static org.junit.jupiter.api.Assertions.assertFalse;
-// import static org.junit.jupiter.api.Assertions.assertNotNull;
-// import org.junit.jupiter.api.Test;
-// import org.junit.jupiter.api.extension.ExtendWith;
+@ExtendWith(MockitoExtension.class)
+class ProductReviewServiceTest {
 
-// import static org.mockito.ArgumentMatchers.any;
-// import org.mockito.InjectMocks;
-// import org.mockito.Mock;
-// import static org.mockito.Mockito.times;
-// import static org.mockito.Mockito.verify;
-// import static org.mockito.Mockito.when;
-// import org.mockito.junit.jupiter.MockitoExtension;
-// import org.springframework.boot.test.context.SpringBootTest;
+    @Mock private ProductReviewRepository reviewRepo;
+    @Mock private ProductRepository       productRepo;
+    @Mock private UserRepository          userRepo;
+    @InjectMocks private ProductReviewService service;
 
-// import com.example.shoppingapi.model.Product;
-// import com.example.shoppingapi.model.ProductReview;
-// import com.example.shoppingapi.model.Store;
-// import com.example.shoppingapi.model.User;
-// import com.example.shoppingapi.modelhelper.ModelHelper;
-// import com.example.shoppingapi.modelhelper.ModelHelperFactory;
-// import com.example.shoppingapi.repository.ProductRepository;
-// import com.example.shoppingapi.repository.ProductReviewRepository;
-// import com.example.shoppingapi.repository.UserRepository;
+    private final ModelHelper<ProductReview> helper =
+        ModelHelperFactory.getModelHelper(ProductReview.class);
 
-// @ExtendWith(MockitoExtension.class)
-// @SpringBootTest(classes = ProductReviewServiceTests.class)
-// public class ProductReviewServiceTests {
+    @Test
+    void findAll_returnsAllReviews() {
+        List<ProductReview> list = List.of(helper.createModel(1), helper.createModel(2));
+        when(reviewRepo.findAll()).thenReturn(list);
 
-//     @Mock
-//     private ProductRepository productRepository;
+        assertEquals(list, service.findAll());
+        verify(reviewRepo).findAll();
+    }
 
-//     @Mock
-//     private UserRepository userRepository;
+    @Test
+    void findById_found_returnsReview() {
+        ProductReview pr = helper.createModel(1);
+        when(reviewRepo.findById(1L)).thenReturn(Optional.of(pr));
 
-//     @Mock
-//     private ProductReviewRepository productReviewRepository;
+        assertEquals(pr, service.findById(1L));
+        verify(reviewRepo).findById(1L);
+    }
 
-//     @InjectMocks
-//     private ProductReviewService productReviewService;
+    @Test
+    void findById_notFound_throwsException() {
+        when(reviewRepo.findById(2L)).thenReturn(Optional.empty());
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.findById(2L)
+        );
+        assertEquals("ProductReview not found with ID: 2", ex.getMessage());
+    }
 
-//     private ModelHelper<Product> productHelper = ModelHelperFactory.getModelHelper(Product.class);
-//     private ModelHelper<ProductReview> productReviewHelper = ModelHelperFactory.getModelHelper(ProductReview.class);
-//     private ModelHelper<User> userHelper =  ModelHelperFactory.getModelHelper(User.class);
+    @Test
+    void saveProductReview_success_savesAndReturns() {
+        ProductReview pr = helper.createModel(1);
+        when(productRepo.existsById(pr.getProduct().getProductId())).thenReturn(true);
+        when(userRepo.findById(pr.getUser().getUserId())).thenReturn(Optional.of(pr.getUser()));
+        when(reviewRepo.save(any())).thenReturn(pr);
 
+        assertEquals(pr, service.saveProductReview(pr));
+        verify(reviewRepo).save(pr);
+    }
 
-//     @Test
-//     public void testSavePtoductReview() {
-//         ProductReview productReview = productReviewHelper.createModel(1);
-//         User user = userHelper.createModel(1);
-//         productReview.setUser(user);
-//         Product product = productHelper.createModel(1);
-//         productReview.setProduct(product);
+    @Test
+    void saveProductReview_missingProduct_throwsException() {
+        ProductReview pr = helper.createModel(1);
+        pr.setProduct(null);
 
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.saveProductReview(pr)
+        );
+        assertEquals("Product ID is required to create a product review.", ex.getMessage());
+        verify(reviewRepo, never()).save(any());
+    }
 
-//         when(productReviewRepository.save(any(ProductReview.class))).thenReturn(productReview);
-//         when(userRepository.existsById(user.getUserId())).thenReturn(true);
-//         when(productRepository.existsById(product.getProductId())).thenReturn(true);
+    @Test
+    void saveProductReview_productNotFound_throwsException() {
+        ProductReview pr = helper.createModel(1);
+        when(productRepo.existsById(pr.getProduct().getProductId())).thenReturn(false);
 
-//         ProductReview savProductReview = productReviewService.saveProductReview(productReview);
-        
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.saveProductReview(pr)
+        );
+        assertEquals("Product not found. Cannot create product review.", ex.getMessage());
+    }
 
-//         assertNotNull(savProductReview);
-//         assertEquals(productReview.getReviewId(), savProductReview.getReviewId());
-//         assertEquals(productReview.getLikes(), savProductReview.getLikes());
-//         assertEquals(productReview.getStarRating(), savProductReview.getStarRating());
-//         assertEquals(productReview.getDescription(),savProductReview.getDescription());
+    @Test
+    void updateProductReview_success_savesUpdated() {
+        ProductReview orig = helper.createModel(1);
+        when(reviewRepo.findById(1L)).thenReturn(Optional.of(orig));
+        when(userRepo.findById(orig.getUser().getUserId())).thenReturn(Optional.of(orig.getUser()));
+        when(productRepo.existsById(orig.getProduct().getProductId())).thenReturn(true);
+        when(reviewRepo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-//         verify(productReviewRepository,times(1)).save(productReview);
-//         verify(productRepository,times(1)).existsById(product.getProductId());
-//         verify(userRepository,times(1)).existsById(user.getUserId());
+        ProductReview upd = orig.toBuilder().description("Nice!").build();
+        ProductReview res = service.updateProductReview(1L, upd);
 
-//     }
-    
-// }
+        assertEquals("Nice!", res.getDescription());
+        verify(reviewRepo).save(upd);
+    }
+
+    @Test
+    void partialUpdateProductReview_appliesUpdates() {
+        ProductReview pr = helper.createModel(1);
+        when(reviewRepo.findById(1L)).thenReturn(Optional.of(pr));
+        when(reviewRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        Map<String,Object> changes = Map.of("description","Updated","starRating",4);
+        ProductReview res = service.partialUpdateProductReview(1L, changes);
+
+        assertEquals("Updated", res.getDescription());
+        assertEquals(4, res.getStarRating());
+    }
+
+    @Test
+    void deleteById_existing_invokesSoftDelete() {
+
+        ProductReview original = helper.createModel(1);
+
+        when(reviewRepo.findById(1L))
+            .thenReturn(Optional.of(original));
+        doNothing().when(reviewRepo).delete(original);
+
+        service.deleteById(1L);
+
+        verify(reviewRepo).findById(1L);
+        verify(reviewRepo).delete(original);
+    }
+}

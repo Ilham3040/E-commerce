@@ -1,15 +1,22 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.hibernate.annotations.SoftDelete;
+import org.hibernate.annotations.SoftDeleteType;
+import org.hibernate.type.YesNoConverter;
+
 @Entity
 @Table(name = "store_details")
 @Data
+@Builder(toBuilder = true)
+@SoftDelete(columnName = "is_deleted", strategy = SoftDeleteType.DELETED, converter = YesNoConverter.class)
 public class StoreDetail {
 
     @Id
@@ -37,6 +44,7 @@ public class StoreDetail {
     @Column(name = "attacment_urls")
     private List<String> attachmentUrls;
 
+    @Builder.Default
     @Column(name = "follower_count", nullable = false, columnDefinition = "INT DEFAULT 0")
     private Integer followerCount = 0;
 
@@ -46,8 +54,13 @@ public class StoreDetail {
     @Column(name = "updated_at", columnDefinition = "TIMESTAMPTZ DEFAULT NOW()")
     private LocalDateTime updatedAt;
 
-    @Column(name = "deleted_at", columnDefinition = "TIMESTAMPTZ")
+    @Column(name = "deleted_at",columnDefinition = "TIMESTAMPTZ")
     private LocalDateTime deletedAt;
+
+    @Column(name = "is_deleted", nullable = false,insertable = false, updatable = false)
+    @Convert(converter = YesNoConverter.class)
+    @Builder.Default
+    private boolean isDeleted = false;
 
     @PrePersist
     public void prePersist() {
@@ -66,6 +79,7 @@ public class StoreDetail {
 
     @PreRemove
     public void preRemove() {
-        this.deletedAt = LocalDateTime.now();
+        deletedAt = LocalDateTime.now();
     }
+
 }
