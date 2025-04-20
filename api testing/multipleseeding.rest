@@ -28,9 +28,7 @@ Accept: application/json
 {
     "storeName": "Ilham's Tech Store",
     "storeDescription": "Best gadgets and tech accessories",
-    "user": {
-        "userId": 1
-    }
+    "userId": 1
 }
 
 ### Create Store 2 (Owned by User ID 2)

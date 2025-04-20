@@ -1,4 +1,3 @@
-// src/main/java/com/example/shoppingapi/controller/StoreController.java
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.dto.request.StoreRequestDTO;
