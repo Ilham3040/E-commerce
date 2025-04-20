@@ -1,19 +1,21 @@
-DROP TABLE IF EXISTS orders,products,stores, users CASCADE;
-
-DROP TABLE IF EXISTS shipment,
-                    shipment_vendor,
-                    user_favorite,
-                    user_cart,
-                    store_role,
-                    store_categories_item,
-                    store_categories,
-                    store_details,
-                    product_variants,
-                    product_reviews,
-                    product_detail,
-                    product_detail_attachment_urls,
-                    product_review_attachment_urls,
-                    store_detail_attachment_urls
+DROP TABLE IF EXISTS orders, 
+                  product_detail, 
+                  product_detail_attachment_urls, 
+                  product_review_attachment_urls, 
+                  product_reviews, 
+                  product_variants, 
+                  products, 
+                  shipment, 
+                  shipment_vendor, 
+                  store_categories, 
+                  store_categories_item, 
+                  store_detail_attachment_urls, 
+                  store_details, 
+                  store_role, 
+                  stores, 
+                  user_cart, 
+                  user_favorite, 
+                  users 
 CASCADE;
 
 CREATE TABLE users (
@@ -23,7 +25,8 @@ CREATE TABLE users (
     phoneNumber VARCHAR(16),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 CREATE TABLE stores (
@@ -32,7 +35,8 @@ CREATE TABLE stores (
     user_id INT NOT NULL REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 CREATE TABLE products (
@@ -42,7 +46,8 @@ CREATE TABLE products (
     store_id INT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 CREATE TABLE orders (
@@ -63,7 +68,8 @@ CREATE TABLE product_detail (
     review_rating DECIMAL(3,2),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 
@@ -76,7 +82,8 @@ CREATE TABLE product_reviews (
     description TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 
@@ -89,7 +96,8 @@ CREATE TABLE product_variants (
     total_sold INT DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 
@@ -104,7 +112,8 @@ CREATE TABLE store_details (
     follower_count INT DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 
@@ -114,7 +123,8 @@ CREATE TABLE store_categories (
     category_name VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 
@@ -124,7 +134,8 @@ CREATE TABLE store_categories_item (
     PRIMARY KEY (category_id, product_id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 
@@ -132,7 +143,7 @@ CREATE TABLE store_role (
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     store_id INT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
     role VARCHAR(50) CHECK (role IN ('owner', 'admin', 'null')) DEFAULT 'null',
-    PRIMARY KEY (user_id, store_id)
+    PRIMARY KEY (user_id, store_id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     deleted_at TIMESTAMPTZ
@@ -142,7 +153,7 @@ CREATE TABLE store_role (
 CREATE TABLE user_cart (
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     product_id INT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-    PRIMARY KEY (category_id, product_id),
+    PRIMARY KEY (user_id, product_id),
     quantity INT DEFAULT 1
 );
 
@@ -162,7 +173,8 @@ CREATE TABLE shipment_vendor (
     official_website_url TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 
