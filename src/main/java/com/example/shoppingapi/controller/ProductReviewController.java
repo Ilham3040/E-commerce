@@ -25,7 +25,6 @@ public class ProductReviewController {
     private final ProductReviewService productReviewService;
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public ApiResponse<List<ProductReviewDTO>> getAllProductReview(){
         List<ProductReviewDTO> datas = productReviewService.findAll()
             .stream()
@@ -33,18 +32,16 @@ public class ProductReviewController {
                                                 review.getUser().getUserId(),
                                                 review.getProduct().getProductId()))
             .collect(Collectors.toList());
-            return new ApiResponse<>("Successfully fetch all data",datas);
+            return new ApiResponse<>("Successfully fetch all data",datas,HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public ApiResponse<ProductReview> getProductById(@PathVariable Long id){
         ProductReview review = productReviewService.findById(id);
-        return new ApiResponse<>("Successfully fetch data", review);
+        return new ApiResponse<>("Successfully fetch data", review,HttpStatus.OK);
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<ProductReviewDTO> createProductReview(@Validated @RequestBody ProductReviewRequestDTO dto){
         ProductReview wannabe = ProductReview.builder()
             .user(User.builder().userId(dto.getUserId()).build())
@@ -54,11 +51,10 @@ public class ProductReviewController {
 
         ProductReview created = productReviewService.saveProductReview(wannabe);
         return new ApiResponse<>("Succesfully created product review",
-            new ProductReviewDTO(created.getReviewId(), created.getUser().getUserId(), created.getProduct().getProductId()));
+            new ProductReviewDTO(created.getReviewId(), created.getUser().getUserId(), created.getProduct().getProductId()),HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public ApiResponse<ProductReviewDTO> updateProductReview(@PathVariable Long id,@Validated @RequestBody ProductReviewRequestDTO dto) {
         ProductReview wannabe = ProductReview.builder()
             .reviewId(id)
@@ -69,21 +65,19 @@ public class ProductReviewController {
 
             ProductReview updated = productReviewService.updateProductReview(id,wannabe);
             return new ApiResponse<>("Succesfully updated product review",
-                new ProductReviewDTO(updated.getReviewId(), updated.getUser().getUserId(), updated.getProduct().getProductId()));
+                new ProductReviewDTO(updated.getReviewId(), updated.getUser().getUserId(), updated.getProduct().getProductId()),HttpStatus.OK);
     }
 
     @PatchMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public ApiResponse<ProductReviewDTO> updatePartiallyProductReview(@PathVariable Long id, @RequestBody Map<String,Object> updates){
         ProductReview updated = productReviewService.partialUpdateProductReview(id,updates);
             return new ApiResponse<>("Succesfully updated product review",
-                new ProductReviewDTO(updated.getReviewId(), updated.getUser().getUserId(), updated.getProduct().getProductId()));
+                new ProductReviewDTO(updated.getReviewId(), updated.getUser().getUserId(), updated.getProduct().getProductId()),HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     public ApiResponse<Void> deleteProductReview(@PathVariable Long id){
         productReviewService.deleteById(id);
-        return new ApiResponse<>("Successfully deleted product review", null);
+        return new ApiResponse<>("Successfully deleted product review", null,HttpStatus.NO_CONTENT);
     }
 }

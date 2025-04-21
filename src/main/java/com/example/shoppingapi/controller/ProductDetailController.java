@@ -23,24 +23,21 @@ public class ProductDetailController {
     private final ProductDetailService productDetailService;
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public ApiResponse<List<ProductDetailDTO>> getAllProductDetail(){
         List<ProductDetailDTO> datas = productDetailService.findAll()
             .stream()
             .map(detail -> new ProductDetailDTO(detail.getProductDetailId(), detail.getProduct().getProductId()))
             .collect(Collectors.toList());
-        return new ApiResponse<>("Successfully fetched all ProductDetail", datas);
+        return new ApiResponse<>("Successfully fetched all ProductDetail", datas,HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public ApiResponse<ProductDetail> getDetailById(@PathVariable Long id){
         ProductDetail data = productDetailService.findById(id);
-        return new ApiResponse<>("Successfully fetch data", data);
+        return new ApiResponse<>("Successfully fetch data", data,HttpStatus.OK);
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<ProductDetailDTO> createProductDetail(@Validated @RequestBody ProductDetailRequestDTO dto){
         ProductDetail wannabe = ProductDetail.builder()
             .product(Product.builder().productId(dto.getProductId()).build())
@@ -49,11 +46,10 @@ public class ProductDetailController {
         
         ProductDetail created = productDetailService.saveProductDetail(wannabe);
         return new ApiResponse<>("Successfully creating store detail",
-            new ProductDetailDTO(created.getProductDetailId(), created.getProduct().getProductId()));
+            new ProductDetailDTO(created.getProductDetailId(), created.getProduct().getProductId()),HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK) 
     public ApiResponse<ProductDetailDTO> updateEntireProductDetail(@PathVariable Long id, @Validated @RequestBody ProductDetailRequestDTO dto)
     {
         ProductDetail wannabe = ProductDetail.builder()
@@ -64,23 +60,21 @@ public class ProductDetailController {
 
         ProductDetail updated = productDetailService.updateProductDetail(id, wannabe);
         return new ApiResponse<>("Successfully creating store detail",
-            new ProductDetailDTO(updated.getProductDetailId(), updated.getProduct().getProductId()));
+            new ProductDetailDTO(updated.getProductDetailId(), updated.getProduct().getProductId()),HttpStatus.OK);
     }
 
     @PatchMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public ApiResponse<ProductDetailDTO> updatePartiallyDetail(@PathVariable Long id, @RequestBody Map<String,Object> updates)
     {
         ProductDetail updated = productDetailService.partialUpdateProductDetail(id, updates);
         return new ApiResponse<>("Successfully creating store detail",
-            new ProductDetailDTO(updated.getProductDetailId(), updated.getProduct().getProductId()));
+            new ProductDetailDTO(updated.getProductDetailId(), updated.getProduct().getProductId()),HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     public ApiResponse<ProductDetail> deleteProductDetail(@PathVariable Long id){
         productDetailService.deleteById(id);
-        return new ApiResponse<>("Successfully deleted detail with ID :" + id, null);
+        return new ApiResponse<>("Successfully deleted detail with ID :" + id,null,HttpStatus.NO_CONTENT);
     }
     
 }

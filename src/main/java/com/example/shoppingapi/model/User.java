@@ -1,11 +1,8 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Data;
-
+import lombok.*;
 import java.time.LocalDateTime;
-
 import org.hibernate.annotations.SoftDelete;
 import org.hibernate.annotations.SoftDeleteType;
 import org.hibernate.type.YesNoConverter;
@@ -13,7 +10,9 @@ import org.hibernate.type.YesNoConverter;
 @Entity
 @Table(name = "users")
 @Data
-@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true) 
 @SoftDelete(columnName = "is_deleted", strategy = SoftDeleteType.DELETED, converter = YesNoConverter.class)
 public class User {
 
@@ -37,10 +36,10 @@ public class User {
     @Column(name = "updated_at", columnDefinition = "TIMESTAMPTZ DEFAULT NOW()")
     private LocalDateTime updatedAt;
 
-    @Column(name = "deleted_at",columnDefinition = "TIMESTAMPTZ")
+    @Column(name = "deleted_at", columnDefinition = "TIMESTAMPTZ")
     private LocalDateTime deletedAt;
 
-    @Column(name = "is_deleted", nullable = false,insertable = false, updatable = false)
+    @Column(name = "is_deleted", nullable = false, insertable = false, updatable = false)
     @Convert(converter = YesNoConverter.class)
     @Builder.Default
     private boolean isDeleted = false;
@@ -65,4 +64,3 @@ public class User {
         deletedAt = LocalDateTime.now();
     }
 }
-

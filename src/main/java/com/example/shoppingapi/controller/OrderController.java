@@ -24,20 +24,18 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public ApiResponse<List<OrderDTO>> getAllOrders(){
         List<OrderDTO> datas = orderService.getAllOrders()
             .stream()
             .map(order -> new OrderDTO(order.getOrderId(),order.getUser().getUserId(),order.getProduct().getProductId()))
             .collect(Collectors.toList());
-        return new ApiResponse<>("Fetched all order datas", datas);
+        return new ApiResponse<>("Fetched all order datas", datas,HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public ApiResponse<Order> getOrderById(@PathVariable Long id){
         Order data = orderService.getOrderById(id);
-        return new ApiResponse<>("Fetched order data", data);
+        return new ApiResponse<>("Fetched order data", data,HttpStatus.OK);
     }
 
     @PostMapping
@@ -52,12 +50,11 @@ public class OrderController {
         return new ApiResponse<>("Sucessfully creating order",
             new OrderDTO(created.getOrderId(),
                         created.getUser().getUserId(),
-                        created.getProduct().getProductId()));
+                        created.getProduct().getProductId()),HttpStatus.CREATED);
         
     }
 
     @PutMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public ApiResponse<OrderDTO> updateOrder(
         @PathVariable Long id,
         @Validated @RequestBody OrderRequestDTO dto
@@ -73,11 +70,10 @@ public class OrderController {
         return new ApiResponse<>("Sucessfully update ",
             new OrderDTO(updated.getOrderId(),
                         updated.getUser().getUserId(),
-                        updated.getProduct().getProductId()));
+                        updated.getProduct().getProductId()),HttpStatus.OK);
     }
 
     @PatchMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public ApiResponse<OrderDTO> patchOrder(
         @PathVariable Long id,
         @RequestBody Map<String,Object> updates
@@ -86,7 +82,7 @@ public class OrderController {
         return new ApiResponse<>("Sucessfully update ",
             new OrderDTO(updated.getOrderId(),
                         updated.getUser().getUserId(),
-                        updated.getProduct().getProductId()));
+                        updated.getProduct().getProductId()),HttpStatus.OK);
     }
     
 }

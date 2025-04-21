@@ -5,13 +5,14 @@ import java.time.LocalDateTime;
 
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 
 @Entity
 @Data
 @Table(name = "store_role")
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder(toBuilder = true)
 public class StoreRole {
 
