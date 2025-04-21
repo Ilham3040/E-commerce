@@ -1,6 +1,7 @@
 package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.model.Order;
+import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.repository.OrderRepository;
 import com.example.shoppingapi.repository.UserRepository;
@@ -39,7 +40,7 @@ public class OrderService {
             .orElseThrow(() ->
                 new IllegalArgumentException("User ID is required to create an order."));
         Optional.ofNullable(order.getProduct())
-            .map(p -> p.getProductId())
+            .map(Product::getProductId)
             .orElseThrow(() ->
                 new IllegalArgumentException("Product ID is required to create an order."));
 
@@ -87,7 +88,4 @@ public class OrderService {
         return orderRepository.findByProductProductId(productId);
     }
 
-    // public void deleteOrder(Long id) {
-    //     orderRepository.deleteById(id);
-    // }
 }

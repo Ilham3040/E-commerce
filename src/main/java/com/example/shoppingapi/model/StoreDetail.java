@@ -1,8 +1,7 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,6 +14,8 @@ import org.hibernate.type.YesNoConverter;
 @Entity
 @Table(name = "store_details")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder(toBuilder = true)
 @SoftDelete(columnName = "is_deleted", strategy = SoftDeleteType.DELETED, converter = YesNoConverter.class)
 public class StoreDetail {

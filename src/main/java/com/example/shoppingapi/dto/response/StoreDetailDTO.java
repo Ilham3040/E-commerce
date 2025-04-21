@@ -4,11 +4,15 @@ public class StoreDetailDTO {
     private Long storeDetailId;
     private Long storeId;
 
+    // Default constructor
+    public StoreDetailDTO() {
+    }
     public StoreDetailDTO(Long storeDetailId, Long storeId) {
         this.storeDetailId = storeDetailId;
         this.storeId = storeId;
     }
 
+    // Getter for storeDetailId
     public Long getStoreDetailId() {
         return storeDetailId;
     }

@@ -1,4 +1,3 @@
-// src/main/java/com/example/shoppingapi/controller/ProductController.java
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.dto.request.ProductRequestDTO;
@@ -31,20 +30,16 @@ public class ProductController {
             .stream()
             .map(p -> new ProductDTO(p.getProductId(), p.getStore().getStoreId()))
             .collect(Collectors.toList());
-        return new ApiResponse<>("Fetched all products", dtos);
+        return new ApiResponse<>("Fetched all products", dtos,HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public ApiResponse<ProductDTO> getProductById(@PathVariable Long id) {
         Product product = productService.getProductById(id);
-        return new ApiResponse<>(
-            "Fetched product",
-            new ProductDTO(product.getProductId(), product.getStore().getStoreId())
-        );
+        return new ApiResponse<>("Fetched product", new ProductDTO(product.getProductId(), product.getStore().getStoreId()),HttpStatus.OK);
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<ProductDTO> createProduct(@Validated @RequestBody ProductRequestDTO dto) {
         Product toCreate = Product.builder()
             .productName(dto.getProductName())
@@ -52,7 +47,7 @@ public class ProductController {
             .store(Store.builder().storeId(dto.getStoreId()).build())
             .build();
         Product created = productService.saveProduct(toCreate);
-        return new ApiResponse<>("Product created", new ProductDTO(created.getProductId(), created.getStore().getStoreId()));
+        return new ApiResponse<>("Product created", new ProductDTO(created.getProductId(), created.getStore().getStoreId()),HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -67,7 +62,7 @@ public class ProductController {
             .store(Store.builder().storeId(dto.getStoreId()).build())
             .build();
         Product updated = productService.updateProduct(id, toUpdate);
-        return new ApiResponse<>("Product updated", new ProductDTO(updated.getProductId(), updated.getStore().getStoreId()));
+        return new ApiResponse<>("Product updated", new ProductDTO(updated.getProductId(), updated.getStore().getStoreId()),HttpStatus.OK);
     }
 
     @PatchMapping("/{id}")
@@ -76,12 +71,12 @@ public class ProductController {
         @RequestBody Map<String,Object> updates
     ) {
         Product updated = productService.partialUpdateProduct(id, updates);
-        return new ApiResponse<>("Product partially updated", new ProductDTO(updated.getProductId(), updated.getStore().getStoreId()));
+        return new ApiResponse<>("Product partially updated", new ProductDTO(updated.getProductId(), updated.getStore().getStoreId()),HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteById(id);
-        return new ApiResponse<>("Product deleted", null);
+        return new ApiResponse<>("Product deleted", null,HttpStatus.NO_CONTENT);
     }
 }

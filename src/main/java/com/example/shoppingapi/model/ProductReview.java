@@ -1,8 +1,6 @@
 package com.example.shoppingapi.model;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,11 +11,14 @@ import org.hibernate.type.YesNoConverter;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import lombok.*;
 
 
 @Entity
 @Table(name = "product_reviews")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder(toBuilder = true)
 @SoftDelete(columnName = "is_deleted", strategy = SoftDeleteType.DELETED, converter = YesNoConverter.class)
 public class ProductReview {
