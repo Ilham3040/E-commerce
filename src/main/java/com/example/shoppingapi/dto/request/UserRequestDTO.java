@@ -5,10 +5,8 @@ import lombok.Data;
 
 @Data
 public class UserRequestDTO {
-
-    
     @NotBlank(message = "Username is required.")
-    @Size(max = 50, message = "Username must not exceed 50 characters")
+    @Size(max = 30, message = "Username must not exceed 30 characters")
     private String username;
 
     @NotBlank(message = "Email is required.")

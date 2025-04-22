@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
-public class StoreRoleRequest {
+public class StoreRoleRequestDTO {
     @NotNull(message = "User ID is required")
     private Long userId;
 

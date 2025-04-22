@@ -1,5 +1,6 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.request.UserRequestDTO;
 import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.repository.UserRepository;
 
@@ -25,10 +26,6 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public User createUser(User user) {
-        return userRepository.save(user);
-    }
-
     public User getUserById(Long id) {
         return userRepository.findById(id)
             .orElseThrow(() ->
@@ -41,18 +38,23 @@ public class UserService {
                 new ResourceNotFoundException("User not found with username: " + username));
     }
 
-    public User updateUser(Long id, User user) {
-        if (!id.equals(user.getUserId())) {
-            throw new IllegalArgumentException("User ID in URL and body must match.");
-        }
-        return userRepository.findById(id)
-            .map(existing -> {
-                user.setUserId(id);
-                return userRepository.save(user);
-            })
-            .orElseThrow(() ->
-                new ResourceNotFoundException("User not found with ID: " + id));
+    public User createUser(UserRequestDTO userRequestDTO) {
+        User user = User.builder()
+                .username(userRequestDTO.getUsername())
+                .email(userRequestDTO.getEmail())
+                .phoneNumber(userRequestDTO.getPhoneNumber())
+                .build();
+        return userRepository.save(user);
     }
+
+    public User updateUser(Long id, UserRequestDTO userRequestDTO) {
+        User existingUser = getUserById(id);
+        existingUser.setUsername(userRequestDTO.getUsername());
+        existingUser.setEmail(userRequestDTO.getEmail());
+        existingUser.setPhoneNumber(userRequestDTO.getPhoneNumber());
+        return userRepository.save(existingUser);
+    }
+
 
     public User partialUpdateUser(Long id, Map<String, Object> updates) {
         User existing = getUserById(id);
@@ -67,7 +69,8 @@ public class UserService {
 
     public User deleteById(Long id) {
         User user = getUserById(id);
-        user.setDeletedAt(LocalDateTime.now());
-        return userRepository.save(user);
+        userRepository.delete(user);
+        return user;
     }
+
 }

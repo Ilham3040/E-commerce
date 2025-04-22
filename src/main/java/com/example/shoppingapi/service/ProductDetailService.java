@@ -1,5 +1,6 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.ProductDetail;
 import com.example.shoppingapi.repository.ProductDetailRepository;
 import com.example.shoppingapi.repository.ProductRepository;
@@ -41,7 +42,7 @@ public class ProductDetailService {
 
     public ProductDetail saveProductDetail(ProductDetail detail) {
         Long productId = Optional.ofNullable(detail.getProduct())
-            .map(p -> p.getProductId())
+            .map(Product::getProductId)
             .orElseThrow(() ->
                 new IllegalArgumentException("Product ID is required to create a product detail."));
 
@@ -55,7 +56,7 @@ public class ProductDetailService {
         if (!id.equals(detail.getProductDetailId())) {
             throw new IllegalArgumentException("ProductDetail ID in URL and body must match.");
         }
-        findById(id);  // throws if missing
+        findById(id);
         detail.setProductDetailId(id);
         return productDetailRepository.save(detail);
     }

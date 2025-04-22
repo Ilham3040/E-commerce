@@ -43,13 +43,7 @@ public class UserController {
             return new ApiResponse<>(errorMessage, null, HttpStatus.BAD_REQUEST);
         }
 
-        User wannabe = User.builder()
-                .username(dto.getUsername())
-                .email(dto.getEmail())
-                .phoneNumber(dto.getPhoneNumber())
-                .build();
-
-        User createdUser = userService.createUser(wannabe);
+        User createdUser = userService.createUser(dto);
         return new ApiResponse<>("Successfully created user", createdUser, HttpStatus.CREATED);
     }
 
@@ -64,14 +58,7 @@ public class UserController {
             return new ApiResponse<>(errorMessage, null, HttpStatus.BAD_REQUEST);
         }
 
-        User wannabe = User.builder()
-                .userId(id)
-                .username(dto.getUsername())
-                .email(dto.getEmail())
-                .phoneNumber(dto.getPhoneNumber())
-                .build();
-
-        User updated = userService.updateUser(id, wannabe);
+        User updated = userService.updateUser(id, dto);
         return new ApiResponse<>("User updated", new UserDTO(updated.getUserId()), HttpStatus.OK);
     }
 

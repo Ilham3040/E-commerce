@@ -1,5 +1,6 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.request.StoreRequestDTO;
 import com.example.shoppingapi.model.Store;
 import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.repository.StoreRepository;
@@ -30,56 +31,48 @@ public class StoreService {
 
     public Store getStoreById(Long id) {
         return storeRepository.findById(id)
-            .orElseThrow(() -> 
-                new ResourceNotFoundException("Store not found with ID: " + id));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Store not found with ID: " + id));
     }
 
-    public Store saveStore(Store store) {
-        Long userId = Optional.ofNullable(store.getUser())
-                              .map(User::getUserId)
-                              .orElseThrow(() ->
-                                  new IllegalArgumentException("User ID is required to create a store."));
-
+    public Store saveStore(StoreRequestDTO storeRequestDTO) {
+        Long userId = storeRequestDTO.getUserId();
         userRepository.findById(userId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException("User not found with ID: " + userId));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found with ID: " + userId));
+
+        Store store = Store.builder()
+                .storeName(storeRequestDTO.getStoreName())
+                .user(User.builder().userId(storeRequestDTO.getUserId()).build())
+                .build();
 
         return storeRepository.save(store);
     }
 
-    public Store updateStore(Long id, Store store) {
-        if (!id.equals(store.getStoreId())) {
-            throw new IllegalArgumentException("Store ID in URL and body must match.");
-        }
-
-        getStoreById(id);  // throws if missing
-
-        Long userId = Optional.ofNullable(store.getUser())
-                              .map(User::getUserId)
-                              .orElseThrow(() ->
-                                  new IllegalArgumentException("User ID is required to update a store."));
-
+    public Store updateStore(Long id, StoreRequestDTO storeRequestDTO) {
+        getStoreById(id);
+        Long userId = storeRequestDTO.getUserId();
         userRepository.findById(userId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException("User not found with ID: " + userId));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found with ID: " + userId));
 
-        store.setStoreId(id);
-        return storeRepository.save(store);
+        Store storeToUpdate = new Store();
+        storeToUpdate.setStoreName(storeRequestDTO.getStoreName());
+
+        return storeRepository.save(storeToUpdate);
     }
 
     public Store partialUpdateStore(Long id, Map<String, Object> updates) {
-        Store existing = getStoreById(id);  // throws if missing
+        Store existing = getStoreById(id);
 
         BeanWrapper wrapper = new BeanWrapperImpl(existing);
-        updates.forEach((prop, val) ->
-            wrapper.setPropertyValue(prop, val)
-        );
+        updates.forEach(wrapper::setPropertyValue);
 
         return storeRepository.save(existing);
     }
 
     public Store deleteById(Long id) {
-        Store existing = getStoreById(id);  // throws if missing
+        Store existing = getStoreById(id);
         existing.setDeletedAt(LocalDateTime.now());
         return storeRepository.save(existing);
     }

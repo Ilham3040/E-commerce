@@ -1,9 +1,12 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.request.OrderRequestDTO;
+import com.example.shoppingapi.dto.response.OrderDTO;
 import com.example.shoppingapi.model.Order;
 import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.repository.OrderRepository;
+import com.example.shoppingapi.repository.ProductRepository;
 import com.example.shoppingapi.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
 
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
@@ -34,58 +38,75 @@ public class OrderService {
                 new ResourceNotFoundException("Order not found with ID: " + id));
     }
 
-    public Order saveOrder(Order order) {
-        Long userId = Optional.ofNullable(order.getUser())
-            .map(User::getUserId)
-            .orElseThrow(() ->
-                new IllegalArgumentException("User ID is required to create an order."));
-        Optional.ofNullable(order.getProduct())
-            .map(Product::getProductId)
-            .orElseThrow(() ->
-                new IllegalArgumentException("Product ID is required to create an order."));
+    public Order saveOrder(OrderRequestDTO orderRequestDTO) {
 
-        userRepository.findById(userId)
+        userRepository.findById(orderRequestDTO.getUserId())
             .orElseThrow(() ->
                 new ResourceNotFoundException("User not found. Cannot create order."));
 
+        productRepository.findById(orderRequestDTO.getProductId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Product not found. Cannot create order."));
+
+        Order order = Order.builder()
+                .user(User.builder().userId(orderRequestDTO.getUserId()).build())
+                .product(Product.builder().productId(orderRequestDTO.getProductId()).build())
+                .build();
+
         return orderRepository.save(order);
     }
 
-    public Order updateOrder(Long id, Order order) {
-        getOrderById(id);  // throws if missing
+    public Order updateOrder(Long id, OrderRequestDTO orderRequestDTO) {
+        orderRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Order not found. Cannot create order."));
 
-        Optional.ofNullable(order.getUser())
-            .map(User::getUserId)
-            .orElseThrow(() ->
-                new IllegalArgumentException("User ID is required to update an order."));
-        Optional.ofNullable(order.getProduct())
-            .map(p -> p.getProductId())
-            .orElseThrow(() ->
-                new IllegalArgumentException("Product ID is required to update an order."));
+        userRepository.findById(orderRequestDTO.getUserId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found. Cannot create order."));
 
-        userRepository.findById(order.getUser().getUserId())
-            .orElseThrow(() ->
-                new ResourceNotFoundException("User not found. Cannot update order."));
+        productRepository.findById(orderRequestDTO.getProductId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Product not found. Cannot create order."));
 
-        order.setOrderId(id);
+        Order order = Order.builder()
+                .user(User.builder().userId(orderRequestDTO.getUserId()).build())
+                .product(Product.builder().productId(orderRequestDTO.getProductId()).build())
+                .build();
+
         return orderRepository.save(order);
+
     }
 
     public Order partialUpdateOrder(Long id, Map<String, Object> updates) {
-        Order existing = getOrderById(id);
+        Order existingOrder = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found. Cannot update order."));
 
-        BeanWrapper wrapper = new BeanWrapperImpl(existing);
-        updates.forEach(wrapper::setPropertyValue);
+        BeanWrapper wrapper = new BeanWrapperImpl(existingOrder);
+        updates.forEach((key, value) -> {
+            if (wrapper.isWritableProperty(key)) {
+                wrapper.setPropertyValue(key, value);
+            }
+        });
 
-        return orderRepository.save(existing);
+        return orderRepository.save(existingOrder);
     }
 
     public List<Order> getOrdersByUserId(Long userId) {
-        return orderRepository.findByUserUserId(userId);
+        List<Order> orders = orderRepository.findByUserUserId(userId);
+        if (orders.isEmpty()) {
+            throw new ResourceNotFoundException("No orders found for user ID: " + userId);
+        }
+        return orders;
     }
 
     public List<Order> getOrdersByProductId(Long productId) {
-        return orderRepository.findByProductProductId(productId);
+        List<Order> orders = orderRepository.findByProductProductId(productId);
+        if (orders.isEmpty()) {
+            throw new ResourceNotFoundException("No orders found for product ID: " + productId);
+        }
+        return orders;
     }
+
 
 }

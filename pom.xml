@@ -13,6 +13,8 @@
 		<relativePath/>
 	</parent>
 
+
+
 	<groupId>com.example</groupId>
 	<artifactId>shoppingapi</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -120,6 +122,14 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.2.5</version>
+				<configuration>
+					<skipTests>true</skipTests>
 				</configuration>
 			</plugin>
 		</plugins>

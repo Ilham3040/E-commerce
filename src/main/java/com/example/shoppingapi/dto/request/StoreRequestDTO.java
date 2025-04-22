@@ -1,8 +1,6 @@
-// src/main/java/com/example/shoppingapi/dto/request/StoreRequestDTO.java
 package com.example.shoppingapi.dto.request;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 @Data

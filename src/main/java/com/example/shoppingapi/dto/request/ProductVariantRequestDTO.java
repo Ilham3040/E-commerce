@@ -12,4 +12,6 @@ public class ProductVariantRequestDTO {
 
     @NotNull(message = "Store ID is required")
     private Long storeId;
+
+    private Integer stockQuantity;
 }

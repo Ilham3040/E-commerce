@@ -10,5 +10,4 @@ public class ProductDetailRequestDTO {
 
     @NotNull(message = "Product description is required")
     private String description;
-
 }

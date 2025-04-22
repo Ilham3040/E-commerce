@@ -32,7 +32,7 @@ public class ShipmentVendorService {
     }
 
     public ShipmentVendor updateShipmentVendor(Long id, ShipmentVendor vendor) {
-        findById(id);  // throws if missing
+        findById(id);
         vendor.setVendorId(id);
         return vendorRepo.save(vendor);
     }
