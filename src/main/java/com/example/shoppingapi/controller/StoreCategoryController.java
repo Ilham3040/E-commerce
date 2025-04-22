@@ -1,6 +1,6 @@
 //package com.example.shoppingapi.controller;
 //
-//import com.example.shoppingapi.dto.request.StoreCategoryRequestDTO;
+//import com.example.shoppingapi.dto.request.StoreCategoryCreateDTO;
 //import com.example.shoppingapi.dto.response.StoreCategoryDTO;
 //import com.example.shoppingapi.model.*;
 //import com.example.shoppingapi.dto.response.ApiResponse;
@@ -37,7 +37,7 @@
 //    }
 //
 //    @PostMapping
-//    public ApiResponse<StoreCategoryDTO> createStoreCategory(@Validated @RequestBody StoreCategoryRequestDTO dto){
+//    public ApiResponse<StoreCategoryDTO> createStoreCategory(@Validated @RequestBody StoreCategoryCreateDTO dto){
 //        StoreCategory wannabe = StoreCategory.builder()
 //                .store(Store.builder().storeId(dto.getStoreId()).build())
 //                .build();
@@ -48,7 +48,7 @@
 //    }
 //
 //    @PutMapping("/{id}")
-//    public ApiResponse<StoreCategoryDTO> updateEntireStoreCategory(@PathVariable Long id, @Validated @RequestBody StoreCategoryRequestDTO dto)
+//    public ApiResponse<StoreCategoryDTO> updateEntireStoreCategory(@PathVariable Long id, @Validated @RequestBody StoreCategoryCreateDTO dto)
 //    {
 //        StoreCategory wannabe = StoreCategory.builder()
 //                .categoryId(id)

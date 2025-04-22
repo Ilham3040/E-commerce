@@ -1,6 +1,6 @@
 //package com.example.shoppingapi.controller;
 //
-//import com.example.shoppingapi.dto.request.StoreDetailRequestDTO;
+//import com.example.shoppingapi.dto.request.StoreDetailCreateDTO;
 //import com.example.shoppingapi.dto.response.StoreDetailDTO;
 //import com.example.shoppingapi.model.*;
 //import com.example.shoppingapi.service.StoreDetailService;
@@ -38,7 +38,7 @@
 //    }
 //
 //    @PostMapping
-//    public ApiResponse<StoreDetailDTO> createStoreDetail(@Validated @RequestBody StoreDetailRequestDTO dto){
+//    public ApiResponse<StoreDetailDTO> createStoreDetail(@Validated @RequestBody StoreDetailCreateDTO dto){
 //        StoreDetail wannabe = StoreDetail.builder()
 //            .store(Store.builder().storeId(dto.getStoreId()).build())
 //            .address(dto.getAddress())
@@ -51,7 +51,7 @@
 //    }
 //
 //    @PutMapping("/{id}")
-//    public ApiResponse<StoreDetailDTO> updateEntireStoreDetail(@PathVariable Long id, @Validated @RequestBody StoreDetailRequestDTO dto)
+//    public ApiResponse<StoreDetailDTO> updateEntireStoreDetail(@PathVariable Long id, @Validated @RequestBody StoreDetailCreateDTO dto)
 //    {
 //        StoreDetail wannabe = StoreDetail.builder()
 //            .storeDetailId(id)

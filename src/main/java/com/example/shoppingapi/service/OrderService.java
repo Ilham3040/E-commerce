@@ -1,7 +1,6 @@
 package com.example.shoppingapi.service;
 
-import com.example.shoppingapi.dto.request.OrderRequestDTO;
-import com.example.shoppingapi.dto.response.OrderDTO;
+import com.example.shoppingapi.dto.create.OrderCreateDTO;
 import com.example.shoppingapi.model.Order;
 import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.User;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,40 +36,40 @@ public class OrderService {
                 new ResourceNotFoundException("Order not found with ID: " + id));
     }
 
-    public Order saveOrder(OrderRequestDTO orderRequestDTO) {
+    public Order saveOrder(OrderCreateDTO orderCreateDTO) {
 
-        userRepository.findById(orderRequestDTO.getUserId())
+        userRepository.findById(orderCreateDTO.getUserId())
             .orElseThrow(() ->
                 new ResourceNotFoundException("User not found. Cannot create order."));
 
-        productRepository.findById(orderRequestDTO.getProductId())
+        productRepository.findById(orderCreateDTO.getProductId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Product not found. Cannot create order."));
 
         Order order = Order.builder()
-                .user(User.builder().userId(orderRequestDTO.getUserId()).build())
-                .product(Product.builder().productId(orderRequestDTO.getProductId()).build())
+                .user(User.builder().userId(orderCreateDTO.getUserId()).build())
+                .product(Product.builder().productId(orderCreateDTO.getProductId()).build())
                 .build();
 
         return orderRepository.save(order);
     }
 
-    public Order updateOrder(Long id, OrderRequestDTO orderRequestDTO) {
+    public Order updateOrder(Long id, OrderCreateDTO orderCreateDTO) {
         orderRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Order not found. Cannot create order."));
 
-        userRepository.findById(orderRequestDTO.getUserId())
+        userRepository.findById(orderCreateDTO.getUserId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException("User not found. Cannot create order."));
 
-        productRepository.findById(orderRequestDTO.getProductId())
+        productRepository.findById(orderCreateDTO.getProductId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Product not found. Cannot create order."));
 
         Order order = Order.builder()
-                .user(User.builder().userId(orderRequestDTO.getUserId()).build())
-                .product(Product.builder().productId(orderRequestDTO.getProductId()).build())
+                .user(User.builder().userId(orderCreateDTO.getUserId()).build())
+                .product(Product.builder().productId(orderCreateDTO.getProductId()).build())
                 .build();
 
         return orderRepository.save(order);

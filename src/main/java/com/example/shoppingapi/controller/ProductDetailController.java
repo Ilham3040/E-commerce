@@ -1,6 +1,6 @@
 //package com.example.shoppingapi.controller;
 //
-//import com.example.shoppingapi.dto.request.ProductDetailRequestDTO;
+//import com.example.shoppingapi.dto.request.ProductDetailCreateDTO;
 //import com.example.shoppingapi.dto.response.ProductDetailDTO;
 //import com.example.shoppingapi.model.*;
 //import com.example.shoppingapi.service.ProductDetailService;
@@ -38,7 +38,7 @@
 //    }
 //
 //    @PostMapping
-//    public ApiResponse<ProductDetailDTO> createProductDetail(@Validated @RequestBody ProductDetailRequestDTO dto){
+//    public ApiResponse<ProductDetailDTO> createProductDetail(@Validated @RequestBody ProductDetailCreateDTO dto){
 //        ProductDetail wannabe = ProductDetail.builder()
 //            .product(Product.builder().productId(dto.getProductId()).build())
 //            .description(dto.getDescription())
@@ -50,7 +50,7 @@
 //    }
 //
 //    @PutMapping("/{id}")
-//    public ApiResponse<ProductDetailDTO> updateEntireProductDetail(@PathVariable Long id, @Validated @RequestBody ProductDetailRequestDTO dto)
+//    public ApiResponse<ProductDetailDTO> updateEntireProductDetail(@PathVariable Long id, @Validated @RequestBody ProductDetailCreateDTO dto)
 //    {
 //        ProductDetail wannabe = ProductDetail.builder()
 //            .productDetailId(id)

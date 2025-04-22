@@ -1,6 +1,6 @@
 //package com.example.shoppingapi.controller;
 //
-//import com.example.shoppingapi.dto.request.OrderRequestDTO;
+//import com.example.shoppingapi.dto.request.OrderCreateDTO;
 //import com.example.shoppingapi.dto.response.OrderDTO;
 //import com.example.shoppingapi.model.*;
 //import com.example.shoppingapi.dto.response.ApiResponse;
@@ -40,7 +40,7 @@
 //
 //    @PostMapping
 //    @ResponseStatus(HttpStatus.CREATED)
-//    public ApiResponse<OrderDTO> createOrder(@Validated @RequestBody OrderRequestDTO dto){
+//    public ApiResponse<OrderDTO> createOrder(@Validated @RequestBody OrderCreateDTO dto){
 //        Order wannabe = Order.builder()
 //            .user(User.builder().userId(dto.getUserId()).build())
 //            .product(Product.builder().productId(dto.getProductId()).build())
@@ -57,7 +57,7 @@
 //    @PutMapping("/{id}")
 //    public ApiResponse<OrderDTO> updateOrder(
 //        @PathVariable Long id,
-//        @Validated @RequestBody OrderRequestDTO dto
+//        @Validated @RequestBody OrderCreateDTO dto
 //        )
 //    {
 //        Order wannabe = Order.builder()

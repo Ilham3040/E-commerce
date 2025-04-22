@@ -1,6 +1,6 @@
 package com.example.shoppingapi.service;
 
-import com.example.shoppingapi.dto.request.UserRequestDTO;
+import com.example.shoppingapi.dto.create.UserCreateDTO;
 import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.repository.UserRepository;
 
@@ -11,7 +11,6 @@ import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,20 +37,20 @@ public class UserService {
                 new ResourceNotFoundException("User not found with username: " + username));
     }
 
-    public User createUser(UserRequestDTO userRequestDTO) {
+    public User createUser(UserCreateDTO userCreateDTO) {
         User user = User.builder()
-                .username(userRequestDTO.getUsername())
-                .email(userRequestDTO.getEmail())
-                .phoneNumber(userRequestDTO.getPhoneNumber())
+                .username(userCreateDTO.getUsername())
+                .email(userCreateDTO.getEmail())
+                .phoneNumber(userCreateDTO.getPhoneNumber())
                 .build();
         return userRepository.save(user);
     }
 
-    public User updateUser(Long id, UserRequestDTO userRequestDTO) {
+    public User updateUser(Long id, UserCreateDTO userCreateDTO) {
         User existingUser = getUserById(id);
-        existingUser.setUsername(userRequestDTO.getUsername());
-        existingUser.setEmail(userRequestDTO.getEmail());
-        existingUser.setPhoneNumber(userRequestDTO.getPhoneNumber());
+        existingUser.setUsername(userCreateDTO.getUsername());
+        existingUser.setEmail(userCreateDTO.getEmail());
+        existingUser.setPhoneNumber(userCreateDTO.getPhoneNumber());
         return userRepository.save(existingUser);
     }
 

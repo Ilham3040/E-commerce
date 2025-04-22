@@ -1,4 +1,3 @@
-
 CREATE TABLE product_detail (
     id SERIAL PRIMARY KEY,
     product_id INT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
@@ -8,7 +7,8 @@ CREATE TABLE product_detail (
     review_rating DECIMAL(3,2),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 
@@ -21,7 +21,8 @@ CREATE TABLE product_reviews (
     description TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 
@@ -29,12 +30,13 @@ CREATE TABLE product_variants (
     id SERIAL PRIMARY KEY,
     product_id INT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     variant_name VARCHAR(255),
-    product_reviews INT,
+    price DECIMAL(10, 2) NOT NULL,
     stock_quantity INT DEFAULT 0,
     total_sold INT DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 
@@ -42,14 +44,15 @@ CREATE TABLE store_details (
     id SERIAL PRIMARY KEY,
     store_id INT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
     address TEXT,
-    review DECIMAL(3,2),
+    total_review INT DEFAULT 0,
     total_products INT,
     description TEXT,
     attachment_urls TEXT[],
     follower_count INT DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 
@@ -59,7 +62,8 @@ CREATE TABLE store_categories (
     category_name VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 
@@ -69,7 +73,8 @@ CREATE TABLE store_categories_item (
     PRIMARY KEY (category_id, product_id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 
@@ -77,7 +82,7 @@ CREATE TABLE store_role (
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     store_id INT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
     role VARCHAR(50) CHECK (role IN ('owner', 'admin', 'null')) DEFAULT 'null',
-    PRIMARY KEY (user_id, store_id)
+    PRIMARY KEY (user_id, store_id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     deleted_at TIMESTAMPTZ
@@ -87,7 +92,7 @@ CREATE TABLE store_role (
 CREATE TABLE user_cart (
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     product_id INT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-    PRIMARY KEY (category_id, product_id),
+    PRIMARY KEY (user_id, product_id),
     quantity INT DEFAULT 1
 );
 
@@ -107,12 +112,16 @@ CREATE TABLE shipment_vendor (
     official_website_url TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 
 CREATE TABLE shipment (
     vendor_id INT NOT NULL REFERENCES shipment_vendor(id) ON DELETE CASCADE,
     order_id INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    shipment_status INT CHECK (shipment_status >= 1 AND shipment_status <= 16),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     PRIMARY KEY (vendor_id, order_id)
 );

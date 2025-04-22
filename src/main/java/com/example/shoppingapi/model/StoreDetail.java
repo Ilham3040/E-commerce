@@ -32,11 +32,13 @@ public class StoreDetail {
     @Column(name = "address", columnDefinition = "TEXT")
     private String address;
 
-    @Column(name = "review", precision = 3, scale = 2)
-    private BigDecimal review;
+    @Builder.Default
+    @Column(name = "total_review")
+    private Integer totaReview = 0;
 
+    @Builder.Default
     @Column(name = "total_products")
-    private Integer totalProducts;
+    private Integer totalProducts = 0;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
@@ -46,7 +48,7 @@ public class StoreDetail {
     private List<String> attachmentUrls;
 
     @Builder.Default
-    @Column(name = "follower_count", nullable = false, columnDefinition = "INT DEFAULT 0")
+    @Column(name = "follower_count", nullable = false)
     private Integer followerCount = 0;
 
     @Column(name = "created_at", columnDefinition = "TIMESTAMPTZ DEFAULT NOW()")

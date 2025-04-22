@@ -1,6 +1,6 @@
 //package com.example.shoppingapi.controller;
 //
-//import com.example.shoppingapi.dto.request.StoreRequestDTO;
+//import com.example.shoppingapi.dto.request.StoreCreateDTO;
 //import com.example.shoppingapi.dto.response.ApiResponse;
 //import com.example.shoppingapi.dto.response.StoreDTO;
 //import com.example.shoppingapi.model.Store;
@@ -40,7 +40,7 @@
 //    }
 //
 //    @PostMapping
-//    public ApiResponse<StoreDTO> createStore(@Validated @RequestBody StoreRequestDTO dto) {
+//    public ApiResponse<StoreDTO> createStore(@Validated @RequestBody StoreCreateDTO dto) {
 //        Store toCreate = Store.builder()
 //            .storeName(dto.getStoreName())
 //            .user(User.builder().userId(dto.getUserId()).build())
@@ -52,7 +52,7 @@
 //    @PutMapping("/{id}")
 //    public ApiResponse<StoreDTO> updateStore(
 //        @PathVariable Long id,
-//        @Validated @RequestBody StoreRequestDTO dto
+//        @Validated @RequestBody StoreCreateDTO dto
 //    ) {
 //        Store toUpdate = Store.builder()
 //            .storeId(id)

@@ -1,6 +1,6 @@
 package com.example.shoppingapi.controller;
 
-import com.example.shoppingapi.dto.request.UserRequestDTO;
+import com.example.shoppingapi.dto.create.UserCreateDTO;
 import com.example.shoppingapi.dto.response.ApiResponse;
 import com.example.shoppingapi.dto.response.UserDTO;
 import com.example.shoppingapi.model.User;
@@ -37,7 +37,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ApiResponse<?> createUser(@Validated @RequestBody UserRequestDTO dto, BindingResult bindingResult) {
+    public ApiResponse<?> createUser(@Validated @RequestBody UserCreateDTO dto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getFieldError().getDefaultMessage();
             return new ApiResponse<>(errorMessage, null, HttpStatus.BAD_REQUEST);
@@ -50,7 +50,7 @@ public class UserController {
     @PutMapping("/{id}")
     public ApiResponse<UserDTO> updateUser(
             @PathVariable Long id,
-            @Validated @RequestBody UserRequestDTO dto,
+            @Validated @RequestBody UserCreateDTO dto,
             BindingResult bindingResult
     ) {
         if (bindingResult.hasErrors()) {
