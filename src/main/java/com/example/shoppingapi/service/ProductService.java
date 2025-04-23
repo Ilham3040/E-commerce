@@ -1,5 +1,7 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.patch.ProductPatchDTO;
+import com.example.shoppingapi.dto.put.ProductPutDTO;
 import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.Store;
 import com.example.shoppingapi.repository.ProductRepository;
@@ -11,7 +13,9 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -47,49 +51,41 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    public Product updateProduct(Long id, Product product) {
-        if (!id.equals(product.getProductId())) {
-            throw new IllegalArgumentException("Product ID in URL and body must match.");
-        }
-
-        getProductById(id);
-
-        Long storeId = Optional.ofNullable(product.getStore())
-            .map(Store::getStoreId)
-            .orElseThrow(() ->
-                new IllegalArgumentException("Store ID is required to update a product."));
-
-        storeRepository.findById(storeId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException("Store not found with ID: " + storeId));
-
-        product.setProductId(id);
-        return productRepository.save(product);
-    }
-
-    public Product partialUpdateProduct(Long id, Map<String, Object> updates) {
-        Product existing = getProductById(id);
-
-        BeanWrapper wrapper = new BeanWrapperImpl(existing);
-        updates.forEach((prop, val) -> {
-            if ("price".equals(prop) && val instanceof Number) {
-                wrapper.setPropertyValue(prop, BigDecimal.valueOf(((Number) val).longValue()));
-            } else {
-                wrapper.setPropertyValue(prop, val);
+    public Product updateProduct(Long id, ProductPutDTO productPutDTO) {
+        Product existingProduct = getProductById(id);
+        ReflectionUtils.doWithFields(ProductPutDTO.class, field -> {
+            field.setAccessible(true);
+            Object value = field.get(productPutDTO);
+            if (value != null) {
+                Field productField = ReflectionUtils.findField(Product.class, field.getName());
+                if (productField != null) {
+                    productField.setAccessible(true);
+                    productField.set(existingProduct, value);
+                }
             }
         });
-
-        return productRepository.save(existing);
+        return productRepository.save(existingProduct);
     }
 
-    public List<Product> getProductsByStoreId(Long storeId) {
-        return productRepository.findByStoreStoreId(storeId);
+    public Product partialUpdateProduct(Long id, ProductPatchDTO productPatchDTO) {
+        Product existingProduct = getProductById(id);
+        ReflectionUtils.doWithFields(ProductPatchDTO.class, field -> {
+            field.setAccessible(true);
+            Object value = field.get(productPatchDTO);
+            if (value != null) {
+                Field productField = ReflectionUtils.findField(Product.class, field.getName());
+                if (productField != null) {
+                    productField.setAccessible(true);
+                    productField.set(existingProduct, value);
+                }
+            }
+        });
+        return productRepository.save(existingProduct);
     }
 
-    public void deleteById(Long id) {
-        Product product = productRepository.findById(id)
-        .orElseThrow(() ->
-            new ResourceNotFoundException("Product not found with ID: " + id));
+    public void deleteProductById(Long id) {
+        Product product = getProductById(id);
         productRepository.delete(product);
     }
+
 }

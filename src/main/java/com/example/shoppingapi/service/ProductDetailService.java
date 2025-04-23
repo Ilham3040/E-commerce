@@ -1,5 +1,7 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.patch.ProductDetailPatchDTO;
+import com.example.shoppingapi.dto.put.ProductDetailPutDTO;
 import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.ProductDetail;
 import com.example.shoppingapi.repository.ProductDetailRepository;
@@ -11,7 +13,9 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +38,7 @@ public class ProductDetailService {
                 new ResourceNotFoundException("ProductDetail not found with ID: " + id));
     }
 
-    public ProductDetail findByProductId(Long productId) {
+    public ProductDetail getProductDetailById(Long productId) {
         return productDetailRepository.findProductDetailbyProductId(productId)
             .orElseThrow(() ->
                 new ResourceNotFoundException("ProductDetail not found for product ID: " + productId));
@@ -52,33 +56,42 @@ public class ProductDetailService {
         return productDetailRepository.save(detail);
     }
 
-    public ProductDetail updateProductDetail(Long id, ProductDetail detail) {
-        if (!id.equals(detail.getProductDetailId())) {
-            throw new IllegalArgumentException("ProductDetail ID in URL and body must match.");
-        }
-        findById(id);
-        detail.setProductDetailId(id);
-        return productDetailRepository.save(detail);
-    }
-
-    public ProductDetail partialUpdateProductDetail(Long id, Map<String, Object> updates) {
-        ProductDetail existing = findById(id);
-
-        BeanWrapper wrapper = new BeanWrapperImpl(existing);
-        updates.forEach((prop, val) -> {
-            if ("reviewRating".equals(prop) && val instanceof Number) {
-                wrapper.setPropertyValue(prop, new BigDecimal(val.toString()));
-            } else {
-                wrapper.setPropertyValue(prop, val);
+    // Update method for ProductDetailService
+    public ProductDetail updateProductDetail(Long id, ProductDetailPutDTO productDetailPutDTO) {
+        ProductDetail existingProductDetail = getProductDetailById(id);
+        ReflectionUtils.doWithFields(ProductDetailPutDTO.class, field -> {
+            field.setAccessible(true);
+            Object value = field.get(productDetailPutDTO);
+            if (value != null) {
+                Field productDetailField = ReflectionUtils.findField(ProductDetail.class, field.getName());
+                if (productDetailField != null) {
+                    productDetailField.setAccessible(true);
+                    productDetailField.set(existingProductDetail, value);
+                }
             }
         });
-
-        return productDetailRepository.save(existing);
+        return productDetailRepository.save(existingProductDetail);
     }
 
-    public void deleteById(Long id) {
-        ProductDetail existing = productDetailRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Product Detail not found"));
-        productDetailRepository.delete(existing);
+    public ProductDetail partialUpdateProductDetail(Long id, ProductDetailPatchDTO productDetailPatchDTO) {
+        ProductDetail existingProductDetail = getProductDetailById(id);
+        ReflectionUtils.doWithFields(ProductDetailPatchDTO.class, field -> {
+            field.setAccessible(true);
+            Object value = field.get(productDetailPatchDTO);
+            if (value != null) {
+                Field productDetailField = ReflectionUtils.findField(ProductDetail.class, field.getName());
+                if (productDetailField != null) {
+                    productDetailField.setAccessible(true);
+                    productDetailField.set(existingProductDetail, value);
+                }
+            }
+        });
+        return productDetailRepository.save(existingProductDetail);
+    }
+
+    // Delete method for ProductDetailService
+    public void deleteProductDetailById(Long id) {
+        ProductDetail productDetail = getProductDetailById(id);
+        productDetailRepository.delete(productDetail);
     }
 }

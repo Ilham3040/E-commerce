@@ -1,6 +1,8 @@
 package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.dto.create.OrderCreateDTO;
+import com.example.shoppingapi.dto.patch.OrderPatchDTO;
+import com.example.shoppingapi.dto.put.OrderPutDTO;
 import com.example.shoppingapi.model.Order;
 import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.User;
@@ -14,7 +16,9 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
@@ -54,57 +58,39 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    public Order updateOrder(Long id, OrderCreateDTO orderCreateDTO) {
-        orderRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Order not found. Cannot create order."));
-
-        userRepository.findById(orderCreateDTO.getUserId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("User not found. Cannot create order."));
-
-        productRepository.findById(orderCreateDTO.getProductId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Product not found. Cannot create order."));
-
-        Order order = Order.builder()
-                .user(User.builder().userId(orderCreateDTO.getUserId()).build())
-                .product(Product.builder().productId(orderCreateDTO.getProductId()).build())
-                .build();
-
-        return orderRepository.save(order);
-
-    }
-
-    public Order partialUpdateOrder(Long id, Map<String, Object> updates) {
-        Order existingOrder = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found. Cannot update order."));
-
-        BeanWrapper wrapper = new BeanWrapperImpl(existingOrder);
-        updates.forEach((key, value) -> {
-            if (wrapper.isWritableProperty(key)) {
-                wrapper.setPropertyValue(key, value);
+    // Update method for OrderService
+    public Order updateOrder(Long id, OrderPutDTO orderPutDTO) {
+        Order existingOrder = getOrderById(id);
+        ReflectionUtils.doWithFields(OrderPutDTO.class, field -> {
+            field.setAccessible(true);
+            Object value = field.get(orderPutDTO);
+            if (value != null) {
+                Field orderField = ReflectionUtils.findField(Order.class, field.getName());
+                if (orderField != null) {
+                    orderField.setAccessible(true);
+                    orderField.set(existingOrder, value);
+                }
             }
         });
-
         return orderRepository.save(existingOrder);
     }
 
-    public List<Order> getOrdersByUserId(Long userId) {
-        List<Order> orders = orderRepository.findByUserUserId(userId);
-        if (orders.isEmpty()) {
-            throw new ResourceNotFoundException("No orders found for user ID: " + userId);
-        }
-        return orders;
+    public Order partiallyUpdateOrder(Long id, OrderPatchDTO orderPatchDTO) {
+        Order existingOrder = getOrderById(id);
+        ReflectionUtils.doWithFields(OrderPatchDTO.class, field -> {
+            field.setAccessible(true);
+            Object value = field.get(orderPatchDTO);
+            if (value != null) {
+                Field orderField = ReflectionUtils.findField(Order.class, field.getName());
+                if (orderField != null) {
+                    orderField.setAccessible(true);
+                    orderField.set(existingOrder, value);
+                }
+            }
+        });
+        return orderRepository.save(existingOrder);
     }
 
-    public List<Order> getOrdersByProductId(Long productId) {
-        List<Order> orders = orderRepository.findByProductProductId(productId);
-        if (orders.isEmpty()) {
-            throw new ResourceNotFoundException("No orders found for product ID: " + productId);
-        }
-        return orders;
-    }
 
 
 }

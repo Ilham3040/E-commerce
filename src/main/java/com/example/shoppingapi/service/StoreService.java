@@ -1,6 +1,8 @@
 package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.dto.create.StoreCreateDTO;
+import com.example.shoppingapi.dto.patch.StorePatchDTO;
+import com.example.shoppingapi.dto.put.StorePutDTO;
 import com.example.shoppingapi.model.Store;
 import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.repository.StoreRepository;
@@ -12,7 +14,9 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -48,31 +52,44 @@ public class StoreService {
         return storeRepository.save(store);
     }
 
-    public Store updateStore(Long id, StoreCreateDTO storeCreateDTO) {
-        getStoreById(id);
-        Long userId = storeCreateDTO.getUserId();
-        userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("User not found with ID: " + userId));
-
-        Store storeToUpdate = new Store();
-        storeToUpdate.setStoreName(storeCreateDTO.getStoreName());
-
-        return storeRepository.save(storeToUpdate);
+    // Update method for StoreService
+    public Store updateStore(Long id, StorePutDTO storePutDTO) {
+        Store existingStore = getStoreById(id);
+        ReflectionUtils.doWithFields(StorePutDTO.class, field -> {
+            field.setAccessible(true);
+            Object value = field.get(storePutDTO);
+            if (value != null) {
+                Field storeField = ReflectionUtils.findField(Store.class, field.getName());
+                if (storeField != null) {
+                    storeField.setAccessible(true);
+                    storeField.set(existingStore, value);
+                }
+            }
+        });
+        return storeRepository.save(existingStore);
     }
 
-    public Store partialUpdateStore(Long id, Map<String, Object> updates) {
-        Store existing = getStoreById(id);
-
-        BeanWrapper wrapper = new BeanWrapperImpl(existing);
-        updates.forEach(wrapper::setPropertyValue);
-
-        return storeRepository.save(existing);
+    // Partial update method for StoreService
+    public Store partialUpdateStore(Long id, StorePatchDTO storePatchDTO) {
+        Store existingStore = getStoreById(id);
+        ReflectionUtils.doWithFields(StorePatchDTO.class, field -> {
+            field.setAccessible(true);
+            Object value = field.get(storePatchDTO);
+            if (value != null) {
+                Field storeField = ReflectionUtils.findField(Store.class, field.getName());
+                if (storeField != null) {
+                    storeField.setAccessible(true);
+                    storeField.set(existingStore, value);
+                }
+            }
+        });
+        return storeRepository.save(existingStore);
     }
 
-    public Store deleteById(Long id) {
-        Store existing = getStoreById(id);
-        existing.setDeletedAt(LocalDateTime.now());
-        return storeRepository.save(existing);
+    // Delete method for StoreService
+    public void deleteStoreById(Long id) {
+        Store store = getStoreById(id);
+        storeRepository.delete(store);
     }
+
 }

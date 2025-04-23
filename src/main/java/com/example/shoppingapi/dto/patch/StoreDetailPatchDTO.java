@@ -1,9 +1,9 @@
-package com.example.shoppingapi.dto.update;
+package com.example.shoppingapi.dto.patch;
 
 import lombok.Data;
 
 @Data
-public class StoreDetailUpdateDTO {
+public class StoreDetailPatchDTO {
     private String address;
     private String description;
 }

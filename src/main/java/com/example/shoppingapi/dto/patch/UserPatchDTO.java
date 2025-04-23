@@ -1,10 +1,10 @@
-package com.example.shoppingapi.dto.update;
+package com.example.shoppingapi.dto.patch;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
 @Data
-public class UserUpdateDTO {
+public class UserPatchDTO {
     @Size(max = 30, message = "Username must not exceed 30 characters")
     private String username;
 

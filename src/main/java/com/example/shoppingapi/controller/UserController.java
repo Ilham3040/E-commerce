@@ -1,10 +1,13 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.dto.create.UserCreateDTO;
+import com.example.shoppingapi.dto.put.UserPutDTO;
 import com.example.shoppingapi.dto.response.ApiResponse;
 import com.example.shoppingapi.dto.response.UserDTO;
+import com.example.shoppingapi.dto.patch.UserPatchDTO;
 import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
@@ -12,7 +15,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -33,7 +35,7 @@ public class UserController {
     @GetMapping("/{id}")
     public ApiResponse<User> getUserById(@PathVariable Long id) {
         User user = userService.getUserById(id);
-        return new ApiResponse<>("Fetched user", user , HttpStatus.OK);
+        return new ApiResponse<>("Fetched user", user, HttpStatus.OK);
     }
 
     @PostMapping
@@ -50,7 +52,7 @@ public class UserController {
     @PutMapping("/{id}")
     public ApiResponse<UserDTO> updateUser(
             @PathVariable Long id,
-            @Validated @RequestBody UserCreateDTO dto,
+            @Valid @RequestBody UserPutDTO dto,
             BindingResult bindingResult
     ) {
         if (bindingResult.hasErrors()) {
@@ -65,11 +67,12 @@ public class UserController {
     @PatchMapping("/{id}")
     public ApiResponse<UserDTO> partialUpdateUser(
             @PathVariable Long id,
-            @RequestBody Map<String, Object> updates
+            @RequestBody UserPatchDTO userPatchDTO
     ) {
-        User updated = userService.partialUpdateUser(id, updates);
-        return new ApiResponse<>("User partially updated", new UserDTO(updated.getUserId()), HttpStatus.OK);
+        User updatedUser = userService.partialUpdateUser(id, userPatchDTO);
+        return new ApiResponse<>("User partially updated", new UserDTO(updatedUser.getUserId()), HttpStatus.OK);
     }
+
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteUser(@PathVariable Long id) {

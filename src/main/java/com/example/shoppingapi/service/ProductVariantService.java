@@ -1,5 +1,7 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.patch.ProductVariantPatchDTO;
+import com.example.shoppingapi.dto.put.ProductVariantPutDTO;
 import com.example.shoppingapi.repository.ProductVariantRepository;
 import com.example.shoppingapi.model.*;
 import com.example.shoppingapi.repository.ProductRepository;
@@ -8,7 +10,9 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +29,7 @@ public class ProductVariantService {
         return variantRepo.findAll();
     }
 
-    public ProductVariant findById(Long id) {
+    public ProductVariant getProductVariantById(Long id) {
         return variantRepo.findById(id)
             .orElseThrow(() ->
                 new ResourceNotFoundException("ProductVariant not found with ID: " + id));
@@ -39,7 +43,7 @@ public class ProductVariantService {
 
     public ProductVariant saveProductVariant(ProductVariant variant) {
         Long pid = Optional.ofNullable(variant.getProduct())
-            .map(p -> p.getProductId())
+            .map(Product::getProductId)
             .orElseThrow(() ->
                 new IllegalArgumentException("Product ID is required to create a product variant."));
         if (!productRepo.existsById(pid)) {
@@ -48,43 +52,40 @@ public class ProductVariantService {
         return variantRepo.save(variant);
     }
 
-    public ProductVariant updateProductVariant(Long id, ProductVariant variant) {
-        if (!id.equals(variant.getVariantId())) {
-            throw new IllegalArgumentException("Variant ID in URL and body must match.");
-        }
-        findById(id);
-
-        Long pid = Optional.ofNullable(variant.getProduct())
-            .map(p -> p.getProductId())
-            .orElseThrow(() ->
-                new IllegalArgumentException("Product ID is required to update a product variant."));
-        if (!productRepo.existsById(pid)) {
-            throw new IllegalArgumentException("Product not found. Cannot update product variant.");
-        }
-
-        variant.setVariantId(id);
-        return variantRepo.save(variant);
-    }
-
-    public ProductVariant partialUpdateProductVariant(Long id, Map<String, Object> updates) {
-        ProductVariant existing = findById(id);
-        BeanWrapper wrapper = new BeanWrapperImpl(existing);
-
-        updates.forEach((prop, val) -> {
-            if ("price".equals(prop) && val instanceof Number) {
-                wrapper.setPropertyValue(prop, BigDecimal.valueOf(((Number) val).doubleValue()));
-            } else {
-                wrapper.setPropertyValue(prop, val);
+    public ProductVariant updateProductVariant(Long id, ProductVariantPutDTO productVariantPutDTO) {
+        ProductVariant existingProductVariant = getProductVariantById(id);
+        ReflectionUtils.doWithFields(ProductVariantPutDTO.class, field -> {
+            field.setAccessible(true);
+            Object value = field.get(productVariantPutDTO);
+            if (value != null) {
+                Field productVariantField = ReflectionUtils.findField(ProductVariant.class, field.getName());
+                if (productVariantField != null) {
+                    productVariantField.setAccessible(true);
+                    productVariantField.set(existingProductVariant, value);
+                }
             }
         });
-
-        return variantRepo.save(existing);
+        return variantRepo.save(existingProductVariant);
     }
 
-    public void deleteById(Long id) {
-        ProductVariant productVariant = variantRepo.findById(id)
-        .orElseThrow(() ->
-            new ResourceNotFoundException("Product Variant not found with ID: " + id));
+    public ProductVariant partiallyUpdateProductVariant(Long id, ProductVariantPatchDTO productVariantPatchDTO) {
+        ProductVariant existingProductVariant = getProductVariantById(id);
+        ReflectionUtils.doWithFields(ProductVariantPatchDTO.class, field -> {
+            field.setAccessible(true);
+            Object value = field.get(productVariantPatchDTO);
+            if (value != null) {
+                Field productVariantField = ReflectionUtils.findField(ProductVariant.class, field.getName());
+                if (productVariantField != null) {
+                    productVariantField.setAccessible(true);
+                    productVariantField.set(existingProductVariant, value);
+                }
+            }
+        });
+        return variantRepo.save(existingProductVariant);
+    }
+
+    public void deleteProductVariantById(Long id) {
+        ProductVariant productVariant = getProductVariantById(id);
         variantRepo.delete(productVariant);
     }
 }
