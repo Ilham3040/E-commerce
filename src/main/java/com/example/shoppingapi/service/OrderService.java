@@ -58,7 +58,6 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    // Update method for OrderService
     public Order updateOrder(Long id, OrderPutDTO orderPutDTO) {
         Order existingOrder = getOrderById(id);
         ReflectionUtils.doWithFields(OrderPutDTO.class, field -> {
@@ -91,6 +90,12 @@ public class OrderService {
         return orderRepository.save(existingOrder);
     }
 
+    public List<Order> getOrdersByUserId(Long userId) {
+        return orderRepository.findByUserUserId(userId);
+    }
 
+    public List<Order> getOrdersByProductId(Long productId) {
+        return orderRepository.findByProductProductId(productId);
+    }
 
 }

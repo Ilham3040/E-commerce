@@ -32,7 +32,7 @@ public class ModelHelperFactory {
         registry.put(UserCart.class, UserCartModelHelper::new);
         registry.put(UserFavorite.class, UserFavoriteModelHelper::new);
         registry.put(Store.class, StoreModelHelper::new);
-//        registry.put(StoreDetail.class, StoreDetailModelHelper::new);
+        registry.put(StoreDetail.class, StoreDetailModelHelper::new);
         registry.put(StoreCategory.class, StoreCategoryModelHelper::new);
         registry.put(StoreCategoryItem.class, StoreCategoryItemModelHelper::new);
         registry.put(StoreRole.class, StoreRoleModelHelper::new);

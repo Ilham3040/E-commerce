@@ -1,5 +1,6 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.ProductDetailCreateDTO;
 import com.example.shoppingapi.dto.patch.ProductDetailPatchDTO;
 import com.example.shoppingapi.dto.put.ProductDetailPutDTO;
 import com.example.shoppingapi.model.Product;
@@ -38,27 +39,28 @@ public class ProductDetailService {
                 new ResourceNotFoundException("ProductDetail not found with ID: " + id));
     }
 
-    public ProductDetail getProductDetailById(Long productId) {
+    public ProductDetail getProductDetailByProductId(Long productId) {
         return productDetailRepository.findProductDetailbyProductId(productId)
             .orElseThrow(() ->
                 new ResourceNotFoundException("ProductDetail not found for product ID: " + productId));
     }
 
-    public ProductDetail saveProductDetail(ProductDetail detail) {
-        Long productId = Optional.ofNullable(detail.getProduct())
-            .map(Product::getProductId)
-            .orElseThrow(() ->
-                new IllegalArgumentException("Product ID is required to create a product detail."));
+    public ProductDetail saveProductDetail(ProductDetailCreateDTO productDetailCreateDTO) {
+        productRepository.findById(productDetailCreateDTO.getProductId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Product not found. Cannot create product detail."));
 
-        if (!productRepository.existsById(productId)) {
-            throw new IllegalArgumentException("Product not found. Cannot create product detail.");
-        }
+        ProductDetail detail = ProductDetail.builder()
+                .product(Product.builder().productId(productDetailCreateDTO.getProductId()).build())
+                .description(productDetailCreateDTO.getDescription())
+                .build();
+
         return productDetailRepository.save(detail);
     }
 
     // Update method for ProductDetailService
     public ProductDetail updateProductDetail(Long id, ProductDetailPutDTO productDetailPutDTO) {
-        ProductDetail existingProductDetail = getProductDetailById(id);
+        ProductDetail existingProductDetail = getProductDetailByProductId(id);
         ReflectionUtils.doWithFields(ProductDetailPutDTO.class, field -> {
             field.setAccessible(true);
             Object value = field.get(productDetailPutDTO);
@@ -74,7 +76,7 @@ public class ProductDetailService {
     }
 
     public ProductDetail partialUpdateProductDetail(Long id, ProductDetailPatchDTO productDetailPatchDTO) {
-        ProductDetail existingProductDetail = getProductDetailById(id);
+        ProductDetail existingProductDetail = getProductDetailByProductId(id);
         ReflectionUtils.doWithFields(ProductDetailPatchDTO.class, field -> {
             field.setAccessible(true);
             Object value = field.get(productDetailPatchDTO);
@@ -90,8 +92,8 @@ public class ProductDetailService {
     }
 
     // Delete method for ProductDetailService
-    public void deleteProductDetailById(Long id) {
-        ProductDetail productDetail = getProductDetailById(id);
+    public void deleteByProductId(Long id) {
+        ProductDetail productDetail = getProductDetailByProductId(id);
         productDetailRepository.delete(productDetail);
     }
 }
