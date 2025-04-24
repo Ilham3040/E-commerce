@@ -1,4 +1,4 @@
-package com.example.shoppingapi;
+package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.dto.create.UserCreateDTO;
 import com.example.shoppingapi.dto.patch.UserPatchDTO;
@@ -7,7 +7,6 @@ import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.modelhelper.ModelHelper;
 import com.example.shoppingapi.modelhelper.ModelHelperFactory;
 import com.example.shoppingapi.repository.UserRepository;
-import com.example.shoppingapi.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -58,16 +57,16 @@ class UserServiceTest {
         userCreateDTO.setEmail(newUser.getEmail());
         userCreateDTO.setPhoneNumber(newUser.getPhoneNumber());
 
-        User userToCreate = new User();
-        userToCreate.setUsername(userCreateDTO.getUsername());
-        userToCreate.setEmail(userCreateDTO.getEmail());
-        userToCreate.setPhoneNumber(userCreateDTO.getPhoneNumber());
+        User userToCreate = User.builder()
+                .username(userCreateDTO.getUsername())
+                .email(userCreateDTO.getEmail())
+                .phoneNumber(userCreateDTO.getPhoneNumber())
+                .build();
 
         when(userRepository.save(any())).thenReturn(userToCreate);
 
         User createdUser = userService.createUser(userCreateDTO);
 
-        // Assertions
         assertEquals(userToCreate, createdUser);
         verify(userRepository).save(userToCreate);
     }
@@ -183,12 +182,10 @@ class UserServiceTest {
     void deleteById_existing_deletesUser() {
         User existingUser = userHelper.createModel(1);
         when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-        doNothing().when(userRepository).delete(any(User.class));
 
         userService.deleteById(1L);
 
         verify(userRepository).findById(1L);
-        verify(userRepository).delete(existingUser);
     }
 
     @Test

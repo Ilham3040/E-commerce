@@ -1,9 +1,11 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.ProductCreateDTO;
 import com.example.shoppingapi.dto.patch.ProductPatchDTO;
 import com.example.shoppingapi.dto.put.ProductPutDTO;
 import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.Store;
+import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.repository.ProductRepository;
 import com.example.shoppingapi.repository.StoreRepository;
 
@@ -38,17 +40,18 @@ public class ProductService {
                 new ResourceNotFoundException("Product not found with ID: " + id));
     }
 
-    public Product saveProduct(Product product) {
-        Long storeId = Optional.ofNullable(product.getStore())
-            .map(Store::getStoreId)
-            .orElseThrow(() ->
-                new IllegalArgumentException("Store ID is required to create a product."));
+    public Product saveProduct(ProductCreateDTO dto) {
+        storeRepository.findById(dto.getStoreId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Store not found with ID: " + dto.getStoreId()));
 
-        storeRepository.findById(storeId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException("Store not found with ID: " + storeId));
+        Product saved = Product.builder()
+                .productName(dto.getProductName())
+                .price(dto.getPrice())
+                .store(Store.builder().storeId(dto.getStoreId()).build())
+                .build();
 
-        return productRepository.save(product);
+        return productRepository.save(saved);
     }
 
     public Product updateProduct(Long id, ProductPutDTO productPutDTO) {
@@ -83,7 +86,7 @@ public class ProductService {
         return productRepository.save(existingProduct);
     }
 
-    public void deleteProductById(Long id) {
+    public void deleteById(Long id) {
         Product product = getProductById(id);
         productRepository.delete(product);
     }

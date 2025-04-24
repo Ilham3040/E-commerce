@@ -1,0 +1,213 @@
+package com.example.shoppingapi.service;
+
+import com.example.shoppingapi.dto.create.StoreCreateDTO;
+import com.example.shoppingapi.dto.patch.StorePatchDTO;
+import com.example.shoppingapi.dto.put.StorePutDTO;
+import com.example.shoppingapi.model.Store;
+import com.example.shoppingapi.model.User;
+import com.example.shoppingapi.modelhelper.ModelHelper;
+import com.example.shoppingapi.modelhelper.ModelHelperFactory;
+import com.example.shoppingapi.repository.StoreRepository;
+import com.example.shoppingapi.repository.UserRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class StoreServiceTest {
+
+    @Mock
+    private StoreRepository storeRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @InjectMocks
+    private StoreService storeService;
+
+    private final ModelHelper<Store> storeHelper =
+        ModelHelperFactory.getModelHelper(Store.class);
+
+    @Test
+    void getAllStores_returnsAllStores() {
+        List<Store> expected = List.of(
+            storeHelper.createModel(1),
+            storeHelper.createModel(2)
+        );
+        when(storeRepository.findAll()).thenReturn(expected);
+
+        List<Store> actual = storeService.getAllStores();
+        assertEquals(expected, actual);
+        verify(storeRepository).findAll();
+    }
+
+    @Test
+    void getStoreById_found_returnsStore() {
+        Store expected = storeHelper.createModel(1);
+        when(storeRepository.findById(1L)).thenReturn(Optional.of(expected));
+
+        Store actual = storeService.getStoreById(1L);
+        assertEquals(expected, actual);
+        verify(storeRepository).findById(1L);
+    }
+
+    @Test
+    void getStoreById_notFound_throwsException() {
+        when(storeRepository.findById(2L)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> storeService.getStoreById(2L)
+        );
+        assertEquals("Store not found with ID: 2", ex.getMessage());
+        verify(storeRepository).findById(2L);
+    }
+
+
+    @Test
+    void saveStore_userNotFound_throwsException() {
+        Store store = storeHelper.createModel(1);
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        StoreCreateDTO storeCreateDTO = new StoreCreateDTO();
+        storeCreateDTO.setStoreName(store.getStoreName());
+        storeCreateDTO.setUserId(store.getUser().getUserId());
+
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> storeService.saveStore(storeCreateDTO)
+        );
+        assertEquals("User not found with ID: 1", ex.getMessage());
+        verify(userRepository).findById(1L);
+        verify(storeRepository, never()).save(any());
+    }
+
+    @Test
+    void saveStore_success_savesAndReturnsStore() {
+        Store store = storeHelper.createModel(1);
+
+        StoreCreateDTO storeCreateDTO = new StoreCreateDTO();
+        storeCreateDTO.setStoreName(store.getStoreName());
+        storeCreateDTO.setUserId(store.getUser().getUserId());
+
+        Store savedUser = Store.builder().storeName(storeCreateDTO.getStoreName()).user(User.builder().userId(storeCreateDTO.getUserId()).build()).build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(store.getUser()));
+        when(storeRepository.save(any())).thenReturn(store);
+
+        Store result = storeService.saveStore(storeCreateDTO);
+        assertEquals(store, result);
+        verify(userRepository).findById(1L);
+        verify(storeRepository).save(savedUser);
+    }
+
+    @Test
+    void updateStore_notFound_throwsException() {
+        Store store = storeHelper.createModel(1);
+        StorePutDTO storePutDTO = new StorePutDTO();
+        storePutDTO.setStoreName(store.getStoreName());
+
+        when(storeRepository.findById(1L)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> storeService.updateStore(1L, storePutDTO)
+        );
+        assertEquals("Store not found with ID: 1", ex.getMessage());
+        verify(storeRepository).findById(1L);
+    }
+
+
+    @Test
+    void updateStore_success_savesUpdatedStore() {
+        Store original = storeHelper.createModel(1);
+        Store updated  = original.toBuilder()
+                                 .storeName("New Name")
+                                 .build();
+
+        StorePutDTO storePutDTO = new StorePutDTO();
+        storePutDTO.setStoreName(updated.getStoreName());
+
+        when(storeRepository.findById(1L))
+            .thenReturn(Optional.of(original));
+        when(storeRepository.save(any()))
+            .thenReturn(updated);
+
+        Store result = storeService.updateStore(1L, storePutDTO);
+        assertEquals("New Name", result.getStoreName());
+        verify(storeRepository).findById(1L);
+        verify(storeRepository).save(updated);
+    }
+
+    @Test
+    void partialUpdateStore_found_appliesUpdates() {
+        Store existing = storeHelper.createModel(1);
+        Store updated  = existing.toBuilder()
+                .storeName("New Name")
+                .build();
+
+        StorePatchDTO storePatchDTO = new StorePatchDTO();
+        storePatchDTO.setStoreName(updated.getStoreName());
+
+        when(storeRepository.findById(1L))
+            .thenReturn(Optional.of(existing));
+        when(storeRepository.save(any()))
+            .thenAnswer(inv -> inv.getArgument(0));
+
+
+        Store result = storeService.partialUpdateStore(1L, storePatchDTO);
+        assertEquals("New Name", result.getStoreName());
+        verify(storeRepository).findById(1L);
+        verify(storeRepository).save(existing);
+    }
+
+    @Test
+    void partialUpdateStore_notFound_throwsException() {
+        Store existing = storeHelper.createModel(1);
+        Store updated  = existing.toBuilder()
+                .storeName("New Name")
+                .build();
+
+        StorePatchDTO storePatchDTO = new StorePatchDTO();
+        storePatchDTO.setStoreName(updated.getStoreName());
+        when(storeRepository.findById(2L)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> storeService.partialUpdateStore(2L, storePatchDTO)
+        );
+        assertEquals("Store not found with ID: 2", ex.getMessage());
+        verify(storeRepository).findById(2L);
+    }
+
+    @Test
+    void deleteById_existing_setsDeletedAt() {
+        Store existing = storeHelper.createModel(1);
+        when(storeRepository.findById(1L)).thenReturn(Optional.of(existing));
+        storeService.deleteById(1L);
+        verify(storeRepository).findById(1L);
+    }
+
+    @Test
+    void deleteById_notFound_throwsException() {
+        when(storeRepository.findById(3L)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> storeService.deleteById(3L)
+        );
+        assertEquals("Store not found with ID: 3", ex.getMessage());
+        verify(storeRepository).findById(3L);
+    }
+}

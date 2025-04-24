@@ -52,7 +52,6 @@ public class StoreService {
         return storeRepository.save(store);
     }
 
-    // Update method for StoreService
     public Store updateStore(Long id, StorePutDTO storePutDTO) {
         Store existingStore = getStoreById(id);
         ReflectionUtils.doWithFields(StorePutDTO.class, field -> {
@@ -69,7 +68,6 @@ public class StoreService {
         return storeRepository.save(existingStore);
     }
 
-    // Partial update method for StoreService
     public Store partialUpdateStore(Long id, StorePatchDTO storePatchDTO) {
         Store existingStore = getStoreById(id);
         ReflectionUtils.doWithFields(StorePatchDTO.class, field -> {
@@ -86,8 +84,7 @@ public class StoreService {
         return storeRepository.save(existingStore);
     }
 
-    // Delete method for StoreService
-    public void deleteStoreById(Long id) {
+    public void deleteById(Long id) {
         Store store = getStoreById(id);
         storeRepository.delete(store);
     }
