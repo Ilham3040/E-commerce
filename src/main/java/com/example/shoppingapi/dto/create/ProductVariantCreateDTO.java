@@ -13,10 +13,13 @@ public class ProductVariantCreateDTO {
     @Size(max = 25, message = "Variant name must not exceed 25 characters")
     private String variantName;
 
-    @NotNull(message = "Store ID is required")
-    private Long storeId;
+    @NotNull(message = "Product ID is required")
+    private Long productId;
 
     @NotNull(message = "Price is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Price must be positive")
     private BigDecimal price;
+
+    @NotNull(message = "Stock Quantity is required")
+    private Integer stockQuantity;
 }

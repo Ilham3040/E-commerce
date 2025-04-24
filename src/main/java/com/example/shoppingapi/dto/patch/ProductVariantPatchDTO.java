@@ -1,6 +1,7 @@
 package com.example.shoppingapi.dto.patch;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -13,4 +14,6 @@ public class ProductVariantPatchDTO {
 
     @DecimalMin(value = "0.0", inclusive = false, message = "Price must be positive")
     private BigDecimal price;
+
+    private Integer stockQuantity;
 }

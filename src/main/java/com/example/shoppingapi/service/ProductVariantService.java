@@ -1,5 +1,6 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.ProductVariantCreateDTO;
 import com.example.shoppingapi.dto.patch.ProductVariantPatchDTO;
 import com.example.shoppingapi.dto.put.ProductVariantPutDTO;
 import com.example.shoppingapi.repository.ProductVariantRepository;
@@ -41,15 +42,18 @@ public class ProductVariantService {
                 new ResourceNotFoundException("ProductVariant not found for product ID: " + productId));
     }
 
-    public ProductVariant saveProductVariant(ProductVariant variant) {
-        Long pid = Optional.ofNullable(variant.getProduct())
-            .map(Product::getProductId)
-            .orElseThrow(() ->
-                new IllegalArgumentException("Product ID is required to create a product variant."));
-        if (!productRepo.existsById(pid)) {
-            throw new IllegalArgumentException("Product not found. Cannot create product variant.");
-        }
-        return variantRepo.save(variant);
+    public ProductVariant saveProductVariant(ProductVariantCreateDTO productVariantCreateDTO) {
+        productRepo.findById(productVariantCreateDTO.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException("Product with ID : " + productVariantCreateDTO.getProductId() + " not  found cannot create Product Variant"));
+
+        ProductVariant productVariant = ProductVariant.builder()
+                .product(Product.builder().productId(productVariantCreateDTO.getProductId()).build())
+                .variantName(productVariantCreateDTO.getVariantName())
+                .price(productVariantCreateDTO.getPrice())
+                .stockQuantity(productVariantCreateDTO.getStockQuantity())
+                .build();
+
+        return variantRepo.save(productVariant);
     }
 
     public ProductVariant updateProductVariant(Long id, ProductVariantPutDTO productVariantPutDTO) {
@@ -84,7 +88,7 @@ public class ProductVariantService {
         return variantRepo.save(existingProductVariant);
     }
 
-    public void deleteProductVariantById(Long id) {
+    public void deleteById(Long id) {
         ProductVariant productVariant = getProductVariantById(id);
         variantRepo.delete(productVariant);
     }

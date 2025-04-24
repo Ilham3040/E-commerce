@@ -16,4 +16,6 @@ public class ProductReviewCreateDTO {
     @Max(value = 5, message = "Star rating must be at most {value}")
     @Digits(integer = 1, fraction = 0, message = "Star rating must be an integer")
     private Integer starRating;
+
+    private String description;
 }

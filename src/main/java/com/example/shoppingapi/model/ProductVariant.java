@@ -33,9 +33,6 @@ public class ProductVariant {
     @Column(name = "price", precision = 10, scale = 2, nullable = false)
     private BigDecimal price;
 
-    @Column(name = "product_reviews")
-    private Integer productReviews;
-
     @Builder.Default
     @Column(name = "stock_quantity", nullable = false, columnDefinition = "INT DEFAULT 0")
     private Integer stockQuantity = 0;

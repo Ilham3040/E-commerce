@@ -1,5 +1,6 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.ProductReviewCreateDTO;
 import com.example.shoppingapi.dto.patch.ProductReviewPatchDTO;
 import com.example.shoppingapi.dto.put.ProductReviewPutDTO;
 import com.example.shoppingapi.model.ProductReview;
@@ -39,27 +40,22 @@ public class ProductReviewService {
                         new ResourceNotFoundException("ProductReview not found with ID: " + id));
     }
 
-    public ProductReview saveProductReview(ProductReview review) {
-        Long productId = Optional.ofNullable(review.getProduct())
-                .map(Product::getProductId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("Product ID is required to create a product review."));
-        if (!productRepo.existsById(productId)) {
-            throw new IllegalArgumentException("Product not found. Cannot create product review.");
-        }
+    public ProductReview saveProductReview(ProductReviewCreateDTO productReviewCreateDTO) {
+        userRepo.findById(productReviewCreateDTO.getUserId()).orElseThrow(()->
+                new ResourceNotFoundException("User not found with ID: " + productReviewCreateDTO.getUserId() + " cannot create product review"));
+        productRepo.findById(productReviewCreateDTO.getProductId()).orElseThrow(()->
+                new ResourceNotFoundException("Product not found with ID: " + productReviewCreateDTO.getProductId() + " cannot create product review"));
 
-        Long userId = Optional.ofNullable(review.getUser())
-                .map(User::getUserId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("User ID is required to create a product review."));
-        userRepo.findById(userId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("User not found. Cannot create product review."));
+        ProductReview review = ProductReview.builder()
+                .user(User.builder().userId(productReviewCreateDTO.getUserId()).build())
+                .product(Product.builder().productId(productReviewCreateDTO.getProductId()).build())
+                .starRating(productReviewCreateDTO.getStarRating())
+                .description(productReviewCreateDTO.getDescription())
+                .build();
 
         return reviewRepo.save(review);
     }
 
-    // Update method for ProductReviewService
     public ProductReview updateProductReview(Long id, ProductReviewPutDTO productReviewPutDTO) {
         ProductReview existingProductReview = getProductReviewById(id);
         ReflectionUtils.doWithFields(ProductReviewPutDTO.class, field -> {
@@ -76,8 +72,7 @@ public class ProductReviewService {
         return reviewRepo.save(existingProductReview);
     }
 
-    // Partial update method for ProductReviewService
-    public ProductReview updateProductReview(Long id, ProductReviewPatchDTO productReviewPatchDTO) {
+    public ProductReview partiallyUpdateProductReview(Long id, ProductReviewPatchDTO productReviewPatchDTO) {
         ProductReview existingProductReview = getProductReviewById(id);
         ReflectionUtils.doWithFields(ProductReviewPatchDTO.class, field -> {
             field.setAccessible(true);
@@ -93,7 +88,7 @@ public class ProductReviewService {
         return reviewRepo.save(existingProductReview);
     }
 
-    public void deleteProductReviewById(Long id) {
+    public void deleteById(Long id) {
         ProductReview productReview = getProductReviewById(id);
         reviewRepo.delete(productReview);
     }

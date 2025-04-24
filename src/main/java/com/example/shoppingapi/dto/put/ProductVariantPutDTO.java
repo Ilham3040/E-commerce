@@ -17,4 +17,7 @@ public class ProductVariantPutDTO {
     @NotNull(message = "Price is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Price must be positive")
     private BigDecimal price;
+
+    @NotNull(message = "Stock Quantity is required")
+    private Integer stockQuantity;
 }
