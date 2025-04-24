@@ -1,9 +1,13 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.StoreRoleCreateDTO;
 import com.example.shoppingapi.dto.patch.StoreRolePatchDTO;
 import com.example.shoppingapi.dto.put.StoreRolePutDTO;
+import com.example.shoppingapi.global.exception.OwnerRoleDeletionException;
+import com.example.shoppingapi.model.Store;
 import com.example.shoppingapi.model.StoreRole;
 import com.example.shoppingapi.model.StoreRoleId;
+import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.repository.StoreRepository;
 import com.example.shoppingapi.repository.StoreRoleRepository;
 import com.example.shoppingapi.repository.UserRepository;
@@ -17,6 +21,7 @@ import org.springframework.util.ReflectionUtils;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,68 +31,39 @@ public class StoreRoleService {
     private final UserRepository      userRepository;
     private final StoreRepository     storeRepository;
 
-    public List<StoreRole> findAll() {
-        return storeRoleRepository.findAll();
+    public List<StoreRole> getAllStoreRoleByStoreId(Long id) {
+        storeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Store not found with ID: " + id));
+        return storeRoleRepository.findByIdStoreId(id);
     }
 
-    public StoreRole getStoreRoleById(StoreRoleId id) {
-        storeRepository.findById(id.getStoreId())
-            .orElseThrow(() ->
-                new ResourceNotFoundException("Store not found with ID: " + id.getStoreId()));
-        userRepository.findById(id.getUserId())
-            .orElseThrow(() ->
-                new ResourceNotFoundException("User not found with ID: " + id.getUserId()));
-        return storeRoleRepository.findById(id)
-            .orElseThrow(() ->
-                new ResourceNotFoundException("StoreRole not found with ID: " + id));
+    public List<StoreRole> getAllStoreRoleByUserId(Long id) {
+        userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+        return storeRoleRepository.findByIdStoreId(id);
     }
 
-    public StoreRole saveStoreRole(StoreRole storeRole) {
-        storeRepository.findById(storeRole.getStore().getStoreId())
+    public StoreRole promoteToAdminStoreRole(StoreRoleCreateDTO storeRoleCreateDTO) {
+        storeRepository.findById(storeRoleCreateDTO.getStoreId())
             .orElseThrow(() ->
-                new ResourceNotFoundException("Store not found with ID: " + storeRole.getStore().getStoreId()));
-        userRepository.findById(storeRole.getUser().getUserId())
+                new ResourceNotFoundException("Store not found with ID: " + storeRoleCreateDTO.getStoreId()));
+        userRepository.findById(storeRoleCreateDTO.getUserId())
             .orElseThrow(() ->
-                new ResourceNotFoundException("User not found with ID: " + storeRole.getUser().getUserId()));
-        return storeRoleRepository.save(storeRole);
+                new ResourceNotFoundException("User not found with ID: " + storeRoleCreateDTO.getUserId()));
+
+        StoreRole newStoreRole = StoreRole.builder()
+                .user(User.builder().userId(storeRoleCreateDTO.getUserId()).build())
+                .store(Store.builder().storeId(storeRoleCreateDTO.getStoreId()).build())
+                .role("admin")
+                .build();
+        return storeRoleRepository.save(newStoreRole);
     }
 
-    // Update method for StoreRoleService
-    public StoreRole updateStoreRole(StoreRoleId id, StoreRolePutDTO storeRolePutDTO) {
-        StoreRole existingStoreRole = getStoreRoleById(id);
-        ReflectionUtils.doWithFields(StoreRolePutDTO.class, field -> {
-            field.setAccessible(true);
-            Object value = field.get(storeRolePutDTO);
-            if (value != null) {
-                Field storeRoleField = ReflectionUtils.findField(StoreRole.class, field.getName());
-                if (storeRoleField != null) {
-                    storeRoleField.setAccessible(true);
-                    storeRoleField.set(existingStoreRole, value);
-                }
-            }
-        });
-        return storeRoleRepository.save(existingStoreRole);
-    }
-
-    public StoreRole partiallyUpdateStoreRole(StoreRoleId id, StoreRolePatchDTO storeRolePatchDTO) {
-        StoreRole existingStoreRole = getStoreRoleById(id);
-        ReflectionUtils.doWithFields(StoreRolePatchDTO.class, field -> {
-            field.setAccessible(true);
-            Object value = field.get(storeRolePatchDTO);
-            if (value != null) {
-                Field storeRoleField = ReflectionUtils.findField(StoreRole.class, field.getName());
-                if (storeRoleField != null) {
-                    storeRoleField.setAccessible(true);
-                    storeRoleField.set(existingStoreRole, value);
-                }
-            }
-        });
-        return storeRoleRepository.save(existingStoreRole);
-    }
-
-    // Delete method for StoreRoleService
     public void deleteStoreRoleById(StoreRoleId id) {
-        StoreRole storeRole = getStoreRoleById(id);
-        storeRoleRepository.delete(storeRole);
+        StoreRole role = storeRoleRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Store Role of User with ID: " + String.valueOf(id.getUserId()) + " of Store with ID: " + String.valueOf(id.getStoreId()))
+        );
+        if (role.getRole() == "admin"){
+            throw new OwnerRoleDeletionException("Deleting owner is not allowed");
+        }
+        storeRoleRepository.delete(role);
     }
 }

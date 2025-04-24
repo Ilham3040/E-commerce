@@ -14,6 +14,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class StoreRoleId implements Serializable {
-    private Long userId;
     private Long storeId;
+    private Long userId;
 }

@@ -11,8 +11,4 @@ public class StoreRoleCreateDTO {
 
     @NotNull(message = "Store ID is required")
     private Long storeId;
-
-    @NotNull(message = "User role in the store is required")
-    @Pattern(regexp = "^(admin|null)$", message = "Status must be 'admin' or 'null'")
-    private String role;
 }

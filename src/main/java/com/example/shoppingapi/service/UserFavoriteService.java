@@ -1,5 +1,6 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.UserFavorite;
 import com.example.shoppingapi.model.UserFavoriteId;
 import com.example.shoppingapi.repository.UserFavoriteRepository;
@@ -15,23 +16,23 @@ public class UserFavoriteService {
 
     private final UserFavoriteRepository userFavoriteRepository;
 
-    public List<UserFavorite> findAll() {
-        return userFavoriteRepository.findAll();
+    // Method to return products for a given user ID
+    public List<Product> getAllByUserId(Long id) {
+        return userFavoriteRepository.findProductsByUserId(id);
     }
 
-    public UserFavorite findById(Long userId, Long productId) {
-        UserFavoriteId id = new UserFavoriteId(userId, productId);
+    public UserFavorite findById(UserFavoriteId id) {
         return userFavoriteRepository.findById(id)
-            .orElseThrow(() ->
-                new ResourceNotFoundException("UserFavorite not found with ID: " + id));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("UserFavorite not found with ID: " + id));
     }
 
-    public UserFavorite saveUserFavorite(UserFavorite favorite) {
-        return userFavoriteRepository.save(favorite);
+    public UserFavorite addingUserFavorite(UserFavorite userFavorite) {
+        return userFavoriteRepository.save(userFavorite);
     }
 
     public void deleteById(UserFavoriteId id) {
-        findById(id.getUserId(), id.getProductId());
+        findById(id);
         userFavoriteRepository.deleteById(id);
     }
 }
