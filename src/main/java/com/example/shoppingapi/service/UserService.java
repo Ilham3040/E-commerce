@@ -90,10 +90,9 @@ public class UserService {
     }
 
 
-    public User deleteById(Long id) {
+    public void deleteById(Long id) {
         User user = getUserById(id);
         userRepository.delete(user);
-        return user;
     }
 
 }
