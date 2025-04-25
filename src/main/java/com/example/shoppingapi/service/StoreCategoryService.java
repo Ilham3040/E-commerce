@@ -1,5 +1,7 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.StoreCategoryCreateDTO;
+import com.example.shoppingapi.dto.create.StoreCategoryItemCreateDTO;
 import com.example.shoppingapi.dto.patch.StoreCategoryPatchDTO;
 import com.example.shoppingapi.dto.put.StoreCategoryPutDTO;
 import com.example.shoppingapi.model.*;
@@ -34,15 +36,15 @@ public class StoreCategoryService {
                 new ResourceNotFoundException("StoreCategory not found with ID: " + id));
     }
 
-    public StoreCategory saveStoreCategory(StoreCategory category) {
-        Long storeId = Optional.ofNullable(category.getStore())
-            .map(Store::getStoreId)
-            .orElseThrow(() ->
-                new IllegalArgumentException("Store ID is required to create a store category."));
-        storeRepository.findById(storeId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException("Store not found with ID: " + storeId));
-        return storeCategoryRepository.save(category);
+    public StoreCategory saveStoreCategory(StoreCategoryCreateDTO storeCategoryCreateDTO) {
+        storeRepository.findById(storeCategoryCreateDTO.getStoreId()).orElseThrow(()-> new ResourceNotFoundException("Store not found cannot create Store Detail"));
+
+        StoreCategory storeCategory = StoreCategory.builder()
+                .categoryName(storeCategoryCreateDTO.getCategoryName())
+                .store(Store.builder().storeId(storeCategoryCreateDTO.getStoreId()).build())
+                .build();
+
+        return storeCategoryRepository.save(storeCategory);
     }
 
     public StoreCategory updateStoreCategory(Long id, StoreCategoryPutDTO storeCategoryPutDTO) {

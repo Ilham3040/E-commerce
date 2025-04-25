@@ -1,9 +1,12 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.ShipmentCreateDTO;
 import com.example.shoppingapi.dto.patch.ShipmentPatchDTO;
 import com.example.shoppingapi.dto.put.ShipmentPutDTO;
+import com.example.shoppingapi.model.Order;
 import com.example.shoppingapi.model.Shipment;
 import com.example.shoppingapi.model.ShipmentId;
+import com.example.shoppingapi.model.ShipmentVendor;
 import com.example.shoppingapi.repository.OrderRepository;
 import com.example.shoppingapi.repository.ShipmentRepository;
 import com.example.shoppingapi.repository.ShipmentVendorRepository;
@@ -36,46 +39,23 @@ public class ShipmentService {
                 new ResourceNotFoundException("Shipment not found with ID: " + id));
     }
 
-    public Shipment saveShipment(Shipment shipment) {
-        vendorRepository.findById(shipment.getShipmentVendor().getVendorId())
+    public Shipment saveShipment(ShipmentCreateDTO shipmentCreateDTO) {
+        vendorRepository.findById(shipmentCreateDTO.getVendorId())
             .orElseThrow(() -> new ResourceNotFoundException("Vendor not found"));
-        orderRepository.findById(shipment.getOrder().getOrderId())
+        orderRepository.findById(shipmentCreateDTO.getOrderId())
             .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        Shipment shipment = Shipment.builder()
+                .shipmentVendor(ShipmentVendor.builder().vendorId(shipmentCreateDTO.getVendorId()).build())
+                .order(Order.builder().orderId(shipmentCreateDTO.getOrderId()).build())
+                .build();
 
         return shipmentRepository.save(shipment);
     }
 
-    // Update method for ShipmentService
     public Shipment updateShipment(ShipmentId id, ShipmentPutDTO shipmentPutDTO) {
         Shipment existingShipment = getShipmentById(id);
-        ReflectionUtils.doWithFields(ShipmentPutDTO.class, field -> {
-            field.setAccessible(true);
-            Object value = field.get(shipmentPutDTO);
-            if (value != null) {
-                Field shipmentField = ReflectionUtils.findField(Shipment.class, field.getName());
-                if (shipmentField != null) {
-                    shipmentField.setAccessible(true);
-                    shipmentField.set(existingShipment, value);
-                }
-            }
-        });
-        return shipmentRepository.save(existingShipment);
-    }
-
-    // Partial update method for ShipmentService
-    public Shipment partiallyUpdateShipment(ShipmentId id, ShipmentPatchDTO shipmentPatchDTO) {
-        Shipment existingShipment = getShipmentById(id);
-        ReflectionUtils.doWithFields(ShipmentPatchDTO.class, field -> {
-            field.setAccessible(true);
-            Object value = field.get(shipmentPatchDTO);
-            if (value != null) {
-                Field shipmentField = ReflectionUtils.findField(Shipment.class, field.getName());
-                if (shipmentField != null) {
-                    shipmentField.setAccessible(true);
-                    shipmentField.set(existingShipment, value);
-                }
-            }
-        });
+        existingShipment.setShipmentStatus(shipmentPutDTO.getShipmentStatus());
         return shipmentRepository.save(existingShipment);
     }
 
