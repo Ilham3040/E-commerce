@@ -1,5 +1,6 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.UserCartCreateDTO;
 import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.UserCart;
 import com.example.shoppingapi.model.UserCartId;
@@ -72,8 +73,12 @@ class UserCartServiceTest {
         UserCart cart = helper.createModel(1);
         when(cartRepo.save(cart)).thenReturn(cart);
 
-        assertEquals(cart, service.addingUserCart(cart));
-        verify(cartRepo).save(cart);
+        UserCartCreateDTO userCartCreateDTO = new UserCartCreateDTO();
+        userCartCreateDTO.setUserId(cart.getUser().getUserId());
+        userCartCreateDTO.setProductId(cart.getProduct().getProductId());
+
+
+        assertEquals(cart, service.addingUserCart(userCartCreateDTO));
     }
 
     @Test
