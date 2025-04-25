@@ -1,7 +1,6 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.dto.create.UserFavoriteCreateDTO;
-import com.example.shoppingapi.dto.request.UserFavoriteCreateDTO;
 import com.example.shoppingapi.dto.response.ApiResponse;
 import com.example.shoppingapi.dto.response.ProductDTO;
 import com.example.shoppingapi.dto.response.UserFavoriteDTO;
@@ -36,7 +35,7 @@ public class UserFavoriteController {
     @PostMapping
     public ApiResponse<UserFavoriteDTO> addToUserFavorites(@RequestBody UserFavoriteCreateDTO userFavoriteCreateDTO) {
         UserFavorite addedFavorite = userFavoriteService.addingUserFavorite(userFavoriteCreateDTO);
-        return new ApiResponse<>("Successfully added product to user favorites", new UserFavoriteDTO(addedFavorite.getFavoriteId(), addedFavorite.getProduct().getProductId()), HttpStatus.CREATED);
+        return new ApiResponse<>("Successfully added product to user favorites", new UserFavoriteDTO(addedFavorite.getUser().getUserId(), addedFavorite.getProduct().getProductId()), HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{favoriteId}")
