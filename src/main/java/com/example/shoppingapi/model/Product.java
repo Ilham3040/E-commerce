@@ -28,6 +28,10 @@ public class Product {
     @Column(name = "product_name", nullable = false)
     private String productName;
 
+    @Builder.Default
+    @Column(name = "total_reviews")
+    private Integer total_reviews = 0;
+
     @Column(name = "price", precision = 10, scale = 2, nullable = false)
     private BigDecimal price;
 

@@ -39,11 +39,13 @@ CREATE TABLE stores (
     is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
+
 CREATE TABLE products (
     id SERIAL PRIMARY KEY,
     product_name VARCHAR(255) NOT NULL,
-    price DECIMAL(10, 2) NOT NULL,
+    price DECIMAL(10, 2) DEFAULT 0,
     store_id INT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+    product_reviews INT DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
@@ -91,7 +93,7 @@ CREATE TABLE product_variants (
     id SERIAL PRIMARY KEY,
     product_id INT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     variant_name VARCHAR(255),
-    product_reviews INT,
+    price DECIMAL(10, 2) NOT NULL,
     stock_quantity INT DEFAULT 0,
     total_sold INT DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -105,7 +107,7 @@ CREATE TABLE store_details (
     id SERIAL PRIMARY KEY,
     store_id INT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
     address TEXT,
-    review DECIMAL(3,2),
+    total_review INT DEFAULT 0,
     total_products INT,
     description TEXT,
     attachment_urls TEXT[],
@@ -181,6 +183,9 @@ CREATE TABLE shipment_vendor (
 CREATE TABLE shipment (
     vendor_id INT NOT NULL REFERENCES shipment_vendor(id) ON DELETE CASCADE,
     order_id INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    shipment_status INT CHECK (shipment_status >= 1 AND shipment_status <= 16),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     PRIMARY KEY (vendor_id, order_id)
 );
 

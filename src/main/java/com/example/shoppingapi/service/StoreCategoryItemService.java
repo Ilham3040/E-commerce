@@ -1,5 +1,6 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.StoreCategoryItemCreateDTO;
 import com.example.shoppingapi.model.*;
 import com.example.shoppingapi.repository.ProductRepository;
 import com.example.shoppingapi.repository.StoreCategoryItemRepository;
@@ -21,50 +22,40 @@ public class StoreCategoryItemService {
     private final StoreCategoryRepository     storeCategoryRepository;
     private final ProductRepository           productRepository;
 
-    public List<StoreCategoryItem> findAll() {
+    public List<StoreCategoryItem> getAllItems() {
         return storeCategoryItemRepository.findAll();
     }
 
-    public StoreCategoryItem findById(StoreCategoryItemId id) {
+    public StoreCategoryItem getStoreCategoryItemByID(StoreCategoryItemId id) {
         return storeCategoryItemRepository.findById(id)
             .orElseThrow(() ->
-                new ResourceNotFoundException("StoreCategoryItem not found with ID: " + id));
+                new ResourceNotFoundException("Category Item not found with ID: " + id));
     }
 
-    public StoreCategoryItem saveStoreCategoryItem(StoreCategoryItem item) {
-        storeCategoryRepository.findById(item.getStoreCategory().getCategoryId())
+    public StoreCategoryItem saveStoreCategoryItem(StoreCategoryItemCreateDTO storeCategoryItemCreateDTO) {
+        storeCategoryRepository.findById(storeCategoryItemCreateDTO.getCategoryId())
             .orElseThrow(() ->
-                new ResourceNotFoundException("Category not found with ID: " + item.getStoreCategory().getCategoryId()));
-        productRepository.findById(item.getProduct().getProductId())
+                new ResourceNotFoundException("Category not found with ID: " + storeCategoryItemCreateDTO.getCategoryId()));
+        productRepository.findById(storeCategoryItemCreateDTO.getProductId())
             .orElseThrow(() ->
-                new ResourceNotFoundException("Product not found with ID: " + item.getProduct().getProductId()));
-        return storeCategoryItemRepository.save(item);
+                new ResourceNotFoundException("Product not found with ID: " + storeCategoryItemCreateDTO.getProductId()));
+
+        StoreCategoryItem newItemCategory = StoreCategoryItem.builder()
+                .storeCategory(StoreCategory.builder().categoryId(storeCategoryItemCreateDTO.getCategoryId()).build())
+                .product(Product.builder().productId(storeCategoryItemCreateDTO.getProductId()).build())
+                .build();
+
+        return storeCategoryItemRepository.save(newItemCategory);
+
     }
 
-    public StoreCategoryItem updateStoreCategoryItem(StoreCategoryItemId id,
-                                                    StoreCategoryItem item) {
-        findById(id);  // 404 if missing
-        storeCategoryRepository.findById(item.getStoreCategory().getCategoryId())
-            .orElseThrow(() ->
-                new ResourceNotFoundException("Category not found with ID: " + item.getStoreCategory().getCategoryId()));
-        productRepository.findById(item.getProduct().getProductId())
-            .orElseThrow(() ->
-                new ResourceNotFoundException("Product not found with ID: " + item.getProduct().getProductId()));
-        item.setId(id);
-        return storeCategoryItemRepository.save(item);
+    public void deleteItemFromCategory(StoreCategoryItemId id) {
+        StoreCategoryItem selectedItemCategory = getStoreCategoryItemByID(id);
+
+        storeCategoryItemRepository.delete(selectedItemCategory);
     }
 
-    public StoreCategoryItem partialUpdateStoreCategoryItem(StoreCategoryItemId id,
-                                                            Map<String, Object> updates) {
-        StoreCategoryItem existing = findById(id);
-        BeanWrapper wrapper = new BeanWrapperImpl(existing);
-        updates.forEach(wrapper::setPropertyValue);
-        return storeCategoryItemRepository.save(existing);
-    }
-    public void deleteById(StoreCategoryItemId id) {
-        StoreCategoryItem storeCategoryItem = storeCategoryItemRepository.findById(id)
-        .orElseThrow(() ->
-            new ResourceNotFoundException("Item not found with ID: " + id.getProductId() + "in category with ID" + id.getCategoryId()));
-        storeCategoryItemRepository.delete(storeCategoryItem);
-    }
+
+
+
 }

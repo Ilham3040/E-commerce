@@ -1,5 +1,8 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.StoreCreateDTO;
+import com.example.shoppingapi.dto.patch.StorePatchDTO;
+import com.example.shoppingapi.dto.put.StorePutDTO;
 import com.example.shoppingapi.model.Store;
 import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.repository.StoreRepository;
@@ -11,11 +14,12 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,57 +34,59 @@ public class StoreService {
 
     public Store getStoreById(Long id) {
         return storeRepository.findById(id)
-            .orElseThrow(() -> 
-                new ResourceNotFoundException("Store not found with ID: " + id));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Store not found with ID: " + id));
     }
 
-    public Store saveStore(Store store) {
-        Long userId = Optional.ofNullable(store.getUser())
-                              .map(User::getUserId)
-                              .orElseThrow(() ->
-                                  new IllegalArgumentException("User ID is required to create a store."));
-
+    public Store saveStore(StoreCreateDTO storeCreateDTO) {
+        Long userId = storeCreateDTO.getUserId();
         userRepository.findById(userId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException("User not found with ID: " + userId));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found with ID: " + userId));
+
+        Store store = Store.builder()
+                .storeName(storeCreateDTO.getStoreName())
+                .user(User.builder().userId(storeCreateDTO.getUserId()).build())
+                .build();
 
         return storeRepository.save(store);
     }
 
-    public Store updateStore(Long id, Store store) {
-        if (!id.equals(store.getStoreId())) {
-            throw new IllegalArgumentException("Store ID in URL and body must match.");
-        }
-
-        getStoreById(id);  // throws if missing
-
-        Long userId = Optional.ofNullable(store.getUser())
-                              .map(User::getUserId)
-                              .orElseThrow(() ->
-                                  new IllegalArgumentException("User ID is required to update a store."));
-
-        userRepository.findById(userId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException("User not found with ID: " + userId));
-
-        store.setStoreId(id);
-        return storeRepository.save(store);
+    public Store updateStore(Long id, StorePutDTO storePutDTO) {
+        Store existingStore = getStoreById(id);
+        ReflectionUtils.doWithFields(StorePutDTO.class, field -> {
+            field.setAccessible(true);
+            Object value = field.get(storePutDTO);
+            if (value != null) {
+                Field storeField = ReflectionUtils.findField(Store.class, field.getName());
+                if (storeField != null) {
+                    storeField.setAccessible(true);
+                    storeField.set(existingStore, value);
+                }
+            }
+        });
+        return storeRepository.save(existingStore);
     }
 
-    public Store partialUpdateStore(Long id, Map<String, Object> updates) {
-        Store existing = getStoreById(id);  // throws if missing
-
-        BeanWrapper wrapper = new BeanWrapperImpl(existing);
-        updates.forEach((prop, val) ->
-            wrapper.setPropertyValue(prop, val)
-        );
-
-        return storeRepository.save(existing);
+    public Store partialUpdateStore(Long id, StorePatchDTO storePatchDTO) {
+        Store existingStore = getStoreById(id);
+        ReflectionUtils.doWithFields(StorePatchDTO.class, field -> {
+            field.setAccessible(true);
+            Object value = field.get(storePatchDTO);
+            if (value != null) {
+                Field storeField = ReflectionUtils.findField(Store.class, field.getName());
+                if (storeField != null) {
+                    storeField.setAccessible(true);
+                    storeField.set(existingStore, value);
+                }
+            }
+        });
+        return storeRepository.save(existingStore);
     }
 
-    public Store deleteById(Long id) {
-        Store existing = getStoreById(id);  // throws if missing
-        existing.setDeletedAt(LocalDateTime.now());
-        return storeRepository.save(existing);
+    public void deleteById(Long id) {
+        Store store = getStoreById(id);
+        storeRepository.delete(store);
     }
+
 }

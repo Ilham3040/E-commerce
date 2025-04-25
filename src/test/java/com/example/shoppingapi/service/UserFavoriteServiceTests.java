@@ -1,5 +1,6 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.UserFavorite;
 import com.example.shoppingapi.model.UserFavoriteId;
 import com.example.shoppingapi.modelhelper.ModelHelper;
@@ -26,15 +27,23 @@ class UserFavoriteServiceTest {
     @InjectMocks private UserFavoriteService service;
 
     private final ModelHelper<UserFavorite> helper =
-        ModelHelperFactory.getModelHelper(UserFavorite.class);
+            ModelHelperFactory.getModelHelper(UserFavorite.class);
 
     @Test
-    void findAll_returnsAllFavorites() {
-        List<UserFavorite> list = Arrays.asList(helper.createModel(1), helper.createModel(2));
-        when(favRepo.findAll()).thenReturn(list);
+    void getAllByUserId_found_returnsProducts() {
+        Long userId = 1L;
 
-        assertEquals(list, service.findAll());
-        verify(favRepo).findAll();
+        Product product1 = Product.builder().productId(1L).productName("Product1").build();
+        Product product2 = Product.builder().productId(2L).productName("Product2").build();
+
+        // Mocking the response from the repository
+        List<Product> products = Arrays.asList(product1, product2);
+        when(favRepo.findProductsByUserId(userId)).thenReturn(products);
+
+        List<Product> result = service.getAllByUserId(userId);
+
+        assertEquals(products, result);
+        verify(favRepo).findProductsByUserId(userId);
     }
 
     @Test
@@ -43,7 +52,7 @@ class UserFavoriteServiceTest {
         UserFavoriteId id = fav.getId();
         when(favRepo.findById(id)).thenReturn(Optional.of(fav));
 
-        assertEquals(fav, service.findById(id.getUserId(), id.getProductId()));
+        assertEquals(fav, service.findById(id));
         verify(favRepo).findById(id);
     }
 
@@ -53,8 +62,8 @@ class UserFavoriteServiceTest {
         when(favRepo.findById(id)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(
-            ResourceNotFoundException.class,
-            () -> service.findById(id.getUserId(), id.getProductId())
+                ResourceNotFoundException.class,
+                () -> service.findById(id)
         );
         assertEquals("UserFavorite not found with ID: " + id, ex.getMessage());
     }
@@ -64,7 +73,7 @@ class UserFavoriteServiceTest {
         UserFavorite fav = helper.createModel(1);
         when(favRepo.save(fav)).thenReturn(fav);
 
-        assertEquals(fav, service.saveUserFavorite(fav));
+        assertEquals(fav, service.addingUserFavorite(fav));
         verify(favRepo).save(fav);
     }
 
@@ -85,8 +94,8 @@ class UserFavoriteServiceTest {
         when(favRepo.findById(id)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(
-            ResourceNotFoundException.class,
-            () -> service.deleteById(id)
+                ResourceNotFoundException.class,
+                () -> service.deleteById(id)
         );
         assertEquals("UserFavorite not found with ID: " + id, ex.getMessage());
         verify(favRepo, never()).deleteById(any());

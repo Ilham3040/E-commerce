@@ -1,8 +1,9 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.ShipmentVendorCreateDTO;
+import com.example.shoppingapi.dto.patch.ShipmentVendorPatchDTO;
+import com.example.shoppingapi.dto.put.ShipmentVendorPutDTO;
 import com.example.shoppingapi.model.ShipmentVendor;
-import com.example.shoppingapi.modelhelper.ModelHelper;
-import com.example.shoppingapi.modelhelper.ModelHelperFactory;
 import com.example.shoppingapi.repository.ShipmentVendorRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,99 +11,152 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
-
+import org.springframework.util.ReflectionUtils;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class ShipmentVendorServiceTest {
 
-    @Mock private ShipmentVendorRepository vendorRepo;
-    @InjectMocks private ShipmentVendorService service;
-
-    private final ModelHelper<ShipmentVendor> helper =
-        ModelHelperFactory.getModelHelper(ShipmentVendor.class);
+    @Mock
+    private ShipmentVendorRepository vendorRepository;
+    @InjectMocks
+    private ShipmentVendorService vendorService;
 
     @Test
     void findAll_returnsAllVendors() {
-        List<ShipmentVendor> list = List.of(helper.createModel(1), helper.createModel(2));
-        when(vendorRepo.findAll()).thenReturn(list);
+        List<ShipmentVendor> vendors = List.of(new ShipmentVendor(), new ShipmentVendor());
+        when(vendorRepository.findAll()).thenReturn(vendors);
 
-        assertEquals(list, service.findAll());
-        verify(vendorRepo).findAll();
+        List<ShipmentVendor> result = vendorService.findAll();
+
+        assertEquals(vendors, result);
+        verify(vendorRepository).findAll();
     }
 
     @Test
-    void findById_found_returnsVendor() {
-        ShipmentVendor v = helper.createModel(1);
-        when(vendorRepo.findById(1L)).thenReturn(Optional.of(v));
+    void findById_vendorFound_returnsVendor() {
+        Long vendorId = 1L;
+        ShipmentVendor vendor = new ShipmentVendor();
+        vendor.setVendorId(vendorId);
 
-        assertEquals(v, service.findById(1L));
+        when(vendorRepository.findById(vendorId)).thenReturn(Optional.of(vendor));
+
+        ShipmentVendor result = vendorService.findById(vendorId);
+
+        assertSame(vendor, result);
+        verify(vendorRepository).findById(vendorId);
     }
 
     @Test
-    void findById_notFound_throwsException() {
-        when(vendorRepo.findById(2L)).thenReturn(Optional.empty());
+    void findById_vendorNotFound_throwsResourceNotFound() {
+        Long vendorId = 2L;
+        when(vendorRepository.findById(vendorId)).thenReturn(Optional.empty());
+
         ResourceNotFoundException ex = assertThrows(
-            ResourceNotFoundException.class,
-            () -> service.findById(2L)
+                ResourceNotFoundException.class,
+                () -> vendorService.findById(vendorId)
         );
-        assertEquals("ShipmentVendor not found with ID: 2", ex.getMessage());
+
+        assertEquals("Vendor not found with ID: " + vendorId, ex.getMessage());
     }
 
     @Test
-    void saveShipmentVendor_savesAndReturns() {
-        ShipmentVendor v = helper.createModel(1);
-        when(vendorRepo.save(any())).thenReturn(v);
+    void saveShipmentVendor_validData_savesAndReturnsVendor() {
+        ShipmentVendorCreateDTO createDTO = new ShipmentVendorCreateDTO();
+        createDTO.setVendorName("Test Vendor");
+        createDTO.setVendorContact("123456789");
+        createDTO.setVendorEmail("test@vendor.com");
+        createDTO.setOfficialWebsiteUrl("https://vendor.com");
 
-        assertEquals(v, service.saveShipmentVendor(v));
+        ShipmentVendor savedVendor = new ShipmentVendor();
+        savedVendor.setVendorName(createDTO.getVendorName());
+        savedVendor.setVendorContact(createDTO.getVendorContact());
+        savedVendor.setVendorEmail(createDTO.getVendorEmail());
+        savedVendor.setOfficialWebsiteUrl(createDTO.getOfficialWebsiteUrl());
+
+        when(vendorRepository.save(any(ShipmentVendor.class))).thenReturn(savedVendor);
+
+        ShipmentVendor result = vendorService.saveShipmentVendor(createDTO);
+
+        assertNotNull(result);
+        assertEquals(savedVendor.getVendorName(), result.getVendorName());
+        assertEquals(savedVendor.getVendorContact(), result.getVendorContact());
+        assertEquals(savedVendor.getVendorEmail(), result.getVendorEmail());
+        assertEquals(savedVendor.getOfficialWebsiteUrl(), result.getOfficialWebsiteUrl());
+        verify(vendorRepository).save(savedVendor);
     }
 
     @Test
-    void updateShipmentVendor_success_savesUpdated() {
-        ShipmentVendor orig = helper.createModel(1);
-        ShipmentVendor upd  = orig.toBuilder().vendorContact("123").build();
-        when(vendorRepo.findById(1L)).thenReturn(Optional.of(orig));
-        when(vendorRepo.save(any())).thenReturn(upd);
+    void updateShipmentVendor_validData_updatesVendor() {
+        Long vendorId = 1L;
+        ShipmentVendorPutDTO putDTO = new ShipmentVendorPutDTO();
+        putDTO.setVendorName("Updated Vendor");
+        putDTO.setVendorContact("987654321");
+        putDTO.setVendorEmail("updated@vendor.com");
+        putDTO.setOfficialWebsiteUrl("https://updatedvendor.com");
 
-        ShipmentVendor res = service.updateShipmentVendor(1L, upd);
-        assertEquals("123", res.getVendorContact());
-        verify(vendorRepo).save(upd);
+        ShipmentVendor existingVendor = new ShipmentVendor();
+        existingVendor.setVendorId(vendorId);
+
+        when(vendorRepository.findById(vendorId)).thenReturn(Optional.of(existingVendor));
+        when(vendorRepository.save(any(ShipmentVendor.class))).thenReturn(existingVendor);
+
+        ShipmentVendor result = vendorService.updateShipmentVendor(vendorId, putDTO);
+
+        assertEquals("Updated Vendor", result.getVendorName());
+        assertEquals("987654321", result.getVendorContact());
+        assertEquals("updated@vendor.com", result.getVendorEmail());
+        assertEquals("https://updatedvendor.com", result.getOfficialWebsiteUrl());
+        verify(vendorRepository).save(existingVendor);
     }
 
     @Test
-    void partialUpdateShipmentVendor_appliesUpdates() {
-        ShipmentVendor v = helper.createModel(1);
-        when(vendorRepo.findById(1L)).thenReturn(Optional.of(v));
-        when(vendorRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+    void partialUpdateShipmentVendor_validData_partiallyUpdatesVendor() {
+        Long vendorId = 1L;
+        ShipmentVendorPatchDTO patchDTO = new ShipmentVendorPatchDTO();
+        patchDTO.setVendorName("Patched Vendor");
 
-        Map<String,Object> changes = Map.of(
-            "vendorEmail","x@y.com",
-            "vendorContact","000"
+        ShipmentVendor existingVendor = new ShipmentVendor();
+        existingVendor.setVendorId(vendorId);
+
+        when(vendorRepository.findById(vendorId)).thenReturn(Optional.of(existingVendor));
+        when(vendorRepository.save(existingVendor)).thenReturn(existingVendor);
+
+        ShipmentVendor result = vendorService.partialUpdateShipmentVendor(vendorId, patchDTO);
+
+        assertEquals("Patched Vendor", result.getVendorName());
+        verify(vendorRepository).save(existingVendor);
+    }
+
+    @Test
+    void deleteShipmentVendor_vendorExists_deletesVendor() {
+        Long vendorId = 1L;
+        ShipmentVendor vendor = new ShipmentVendor();
+        vendor.setVendorId(vendorId);
+
+        when(vendorRepository.findById(vendorId)).thenReturn(Optional.of(vendor));
+        doNothing().when(vendorRepository).delete(vendor);
+
+        vendorService.deleteById(vendorId);
+
+        verify(vendorRepository).delete(vendor);
+    }
+
+    @Test
+    void deleteShipmentVendor_vendorNotFound_throwsResourceNotFound() {
+        Long vendorId = 2L;
+        when(vendorRepository.findById(vendorId)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> vendorService.deleteById(vendorId)
         );
-        ShipmentVendor res = service.partialUpdateShipmentVendor(1L, changes);
-        assertEquals("x@y.com", res.getVendorEmail());
-        assertEquals("000",    res.getVendorContact());
-    }
 
-    @Test
-    void deleteById_existing_invokesSoftDelete() {
-
-        ShipmentVendor original = helper.createModel(1);
-
-        when(vendorRepo.findById(1L))
-            .thenReturn(Optional.of(original));
-        doNothing().when(vendorRepo).delete(original);
-
-        service.deleteById(1L);
-
-        verify(vendorRepo).findById(1L);
-        verify(vendorRepo).delete(original);
+        assertEquals("Vendor not found with ID: " + vendorId, ex.getMessage());
     }
 }

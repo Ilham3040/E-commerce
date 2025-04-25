@@ -1,0 +1,21 @@
+package com.example.shoppingapi.dto.put;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+@Data
+public class UserPutDTO {
+    @NotBlank(message = "Username is required.")
+    @Size(max = 30, message = "Username must not exceed 30 characters")
+    private String username;
+
+    @NotBlank(message = "Email is required.")
+    @Email(message = "Email should be valid.")
+    private String email;
+
+    @NotBlank(message = "Phone Number is required.")
+    @Size(max = 16, message = "Phone Number must not exceed 16 characters")
+    private String phoneNumber;
+}

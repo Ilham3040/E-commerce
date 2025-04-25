@@ -1,6 +1,11 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.ProductReviewCreateDTO;
+import com.example.shoppingapi.dto.patch.ProductReviewPatchDTO;
+import com.example.shoppingapi.dto.put.ProductReviewPutDTO;
+import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.ProductReview;
+import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.modelhelper.ModelHelper;
 import com.example.shoppingapi.modelhelper.ModelHelperFactory;
 import com.example.shoppingapi.repository.ProductReviewRepository;
@@ -45,10 +50,10 @@ class ProductReviewServiceTest {
 
     @Test
     void findById_found_returnsReview() {
-        ProductReview pr = helper.createModel(1);
-        when(reviewRepo.findById(1L)).thenReturn(Optional.of(pr));
+        ProductReview productReview = helper.createModel(1);
+        when(reviewRepo.findById(1L)).thenReturn(Optional.of(productReview));
 
-        assertEquals(pr, service.findById(1L));
+        assertEquals(productReview, service.getProductReviewById(1L));
         verify(reviewRepo).findById(1L);
     }
 
@@ -57,73 +62,102 @@ class ProductReviewServiceTest {
         when(reviewRepo.findById(2L)).thenReturn(Optional.empty());
         ResourceNotFoundException ex = assertThrows(
             ResourceNotFoundException.class,
-            () -> service.findById(2L)
+            () -> service.getProductReviewById(2L)
         );
         assertEquals("ProductReview not found with ID: 2", ex.getMessage());
     }
 
     @Test
     void saveProductReview_success_savesAndReturns() {
-        ProductReview pr = helper.createModel(1);
-        when(productRepo.existsById(pr.getProduct().getProductId())).thenReturn(true);
-        when(userRepo.findById(pr.getUser().getUserId())).thenReturn(Optional.of(pr.getUser()));
-        when(reviewRepo.save(any())).thenReturn(pr);
+        ProductReview productReview = helper.createModel(1);
+        when(productRepo.findById(productReview.getProduct().getProductId())).thenReturn(Optional.of(productReview.getProduct()));
+        when(userRepo.findById(productReview.getUser().getUserId())).thenReturn(Optional.of(productReview.getUser()));
 
-        assertEquals(pr, service.saveProductReview(pr));
-        verify(reviewRepo).save(pr);
+
+        ProductReviewCreateDTO productReviewCreateDTO = new ProductReviewCreateDTO();
+        productReviewCreateDTO.setUserId(productReview.getUser().getUserId());
+        productReviewCreateDTO.setProductId(productReview.getProduct().getProductId());
+        productReviewCreateDTO.setStarRating(productReview.getStarRating());
+        productReviewCreateDTO.setDescription(productReview.getDescription());
+
+        ProductReview review = ProductReview.builder()
+                .user(User.builder().userId(productReviewCreateDTO.getUserId()).build())
+                .product(Product.builder().productId(productReviewCreateDTO.getProductId()).build())
+                .starRating(productReviewCreateDTO.getStarRating())
+                .description(productReviewCreateDTO.getDescription())
+                .build();
+
+        when(reviewRepo.save(any())).thenReturn(review);
+
+        ProductReview result = service.saveProductReview(productReviewCreateDTO);
+        assertEquals(review.getProduct().getProductId(), result.getProduct().getProductId());
+        assertEquals(review.getUser().getUserId(), result.getUser().getUserId());
+        verify(reviewRepo).save(review);
+        verify(userRepo).findById(productReview.getUser().getUserId());
+        verify(productRepo).findById(productReview.getProduct().getProductId());
+
     }
 
-    @Test
-    void saveProductReview_missingProduct_throwsException() {
-        ProductReview pr = helper.createModel(1);
-        pr.setProduct(null);
-
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> service.saveProductReview(pr)
-        );
-        assertEquals("Product ID is required to create a product review.", ex.getMessage());
-        verify(reviewRepo, never()).save(any());
-    }
 
     @Test
     void saveProductReview_productNotFound_throwsException() {
-        ProductReview pr = helper.createModel(1);
-        when(productRepo.existsById(pr.getProduct().getProductId())).thenReturn(false);
+        ProductReview productReview = helper.createModel(1);
+        when(productRepo.findById(productReview.getProduct().getProductId())).thenReturn(Optional.empty());
+        when(userRepo.findById(productReview.getUser().getUserId())).thenReturn(Optional.of(productReview.getUser()));
 
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> service.saveProductReview(pr)
+        ProductReviewCreateDTO productReviewCreateDTO = new ProductReviewCreateDTO();
+        productReviewCreateDTO.setUserId(productReview.getUser().getUserId());
+        productReviewCreateDTO.setProductId(productReview.getProduct().getProductId());
+        productReviewCreateDTO.setStarRating(productReview.getStarRating());
+        productReviewCreateDTO.setDescription(productReview.getDescription());
+
+        ProductReview review = ProductReview.builder()
+                .user(User.builder().userId(productReviewCreateDTO.getUserId()).build())
+                .product(Product.builder().productId(productReviewCreateDTO.getProductId()).build())
+                .starRating(productReviewCreateDTO.getStarRating())
+                .description(productReviewCreateDTO.getDescription())
+                .build();
+
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.saveProductReview(productReviewCreateDTO)
         );
-        assertEquals("Product not found. Cannot create product review.", ex.getMessage());
+        assertEquals("Product not found with ID: 1 cannot create product review",ex.getMessage());
     }
 
     @Test
     void updateProductReview_success_savesUpdated() {
-        ProductReview orig = helper.createModel(1);
-        when(reviewRepo.findById(1L)).thenReturn(Optional.of(orig));
-        when(userRepo.findById(orig.getUser().getUserId())).thenReturn(Optional.of(orig.getUser()));
-        when(productRepo.existsById(orig.getProduct().getProductId())).thenReturn(true);
+        ProductReview productReview = helper.createModel(1);
+
+        when(reviewRepo.findById(1L)).thenReturn(Optional.of(productReview));
         when(reviewRepo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        ProductReview upd = orig.toBuilder().description("Nice!").build();
-        ProductReview res = service.updateProductReview(1L, upd);
 
-        assertEquals("Nice!", res.getDescription());
-        verify(reviewRepo).save(upd);
+        ProductReviewPutDTO productReviewPutDTO = new ProductReviewPutDTO();
+        productReviewPutDTO.setStarRating(3);
+        productReviewPutDTO.setDescription(productReview.getDescription());
+
+        ProductReview res = service.updateProductReview(1L, productReviewPutDTO);
+
+        assertEquals(productReviewPutDTO.getStarRating(), res.getStarRating());
+        verify(reviewRepo).save(productReview);
     }
 
     @Test
     void partialUpdateProductReview_appliesUpdates() {
-        ProductReview pr = helper.createModel(1);
-        when(reviewRepo.findById(1L)).thenReturn(Optional.of(pr));
+        ProductReview productReview = helper.createModel(1);
+
+        when(reviewRepo.findById(1L)).thenReturn(Optional.of(productReview));
         when(reviewRepo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        Map<String,Object> changes = Map.of("description","Updated","starRating",4);
-        ProductReview res = service.partialUpdateProductReview(1L, changes);
 
-        assertEquals("Updated", res.getDescription());
-        assertEquals(4, res.getStarRating());
+        ProductReviewPatchDTO productReviewPatchDTO = new ProductReviewPatchDTO();
+        productReviewPatchDTO.setStarRating(3);
+
+        ProductReview res = service.partiallyUpdateProductReview(1L, productReviewPatchDTO);
+
+        assertEquals(productReviewPatchDTO.getStarRating(), res.getStarRating());
+        verify(reviewRepo).save(productReview);
     }
 
     @Test

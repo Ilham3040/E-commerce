@@ -1,9 +1,10 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.StoreCategoryItemCreateDTO;
+import com.example.shoppingapi.model.Product;
+import com.example.shoppingapi.model.StoreCategory;
 import com.example.shoppingapi.model.StoreCategoryItem;
 import com.example.shoppingapi.model.StoreCategoryItemId;
-import com.example.shoppingapi.modelhelper.ModelHelper;
-import com.example.shoppingapi.modelhelper.ModelHelperFactory;
 import com.example.shoppingapi.repository.ProductRepository;
 import com.example.shoppingapi.repository.StoreCategoryItemRepository;
 import com.example.shoppingapi.repository.StoreCategoryRepository;
@@ -14,10 +15,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,98 +25,129 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class StoreCategoryItemServiceTest {
 
-    @Mock private StoreCategoryItemRepository itemRepo;
-    @Mock private StoreCategoryRepository     categoryRepo;
-    @Mock private ProductRepository           productRepo;
-    @InjectMocks private StoreCategoryItemService service;
-
-    private final ModelHelper<StoreCategoryItem> helper =
-        ModelHelperFactory.getModelHelper(StoreCategoryItem.class);
-
-    @Test
-    void findAll_returnsAll() {
-        List<StoreCategoryItem> list = Arrays.asList(helper.createModel(1), helper.createModel(2));
-        when(itemRepo.findAll()).thenReturn(list);
-
-        assertEquals(list, service.findAll());
-        verify(itemRepo).findAll();
-    }
+    @Mock
+    private StoreCategoryItemRepository itemRepository;
+    @Mock
+    private StoreCategoryRepository    categoryRepository;
+    @Mock
+    private ProductRepository          productRepository;
+    @InjectMocks
+    private StoreCategoryItemService   service;
 
     @Test
-    void findById_found_returnsItem() {
-        StoreCategoryItem item = helper.createModel(1);
-        StoreCategoryItemId id = item.getId();
-        when(itemRepo.findById(id)).thenReturn(Optional.of(item));
-
-        assertEquals(item, service.findById(id));
-        verify(itemRepo).findById(id);
-    }
-
-    @Test
-    void findById_notFound_throws() {
-        StoreCategoryItemId id = new StoreCategoryItemId(9L,9L);
-        when(itemRepo.findById(id)).thenReturn(Optional.empty());
-        ResourceNotFoundException ex = assertThrows(
-            ResourceNotFoundException.class,
-            () -> service.findById(id)
+    void getAllItems_returnsFullList() {
+        List<StoreCategoryItem> allItems = Arrays.asList(
+                new StoreCategoryItem(), new StoreCategoryItem()
         );
-        assertEquals("StoreCategoryItem not found with ID: " + id, ex.getMessage());
+        when(itemRepository.findAll()).thenReturn(allItems);
+
+        List<StoreCategoryItem> result = service.getAllItems();
+
+        assertEquals(allItems, result);
+        verify(itemRepository).findAll();
     }
 
     @Test
-    void save_valid_savesAndReturns() {
-        StoreCategoryItem item = helper.createModel(1);
-        when(categoryRepo.findById(item.getStoreCategory().getCategoryId()))
-            .thenReturn(Optional.of(item.getStoreCategory()));
-        when(productRepo.findById(item.getProduct().getProductId()))
-            .thenReturn(Optional.of(item.getProduct()));
-        when(itemRepo.save(item)).thenReturn(item);
+    void getStoreCategoryItemByID_itemFound_returnsItem() {
+        StoreCategoryItemId itemId = new StoreCategoryItemId(1L, 2L);
+        StoreCategoryItem existingItem = new StoreCategoryItem();
+        existingItem.setId(itemId);
 
-        assertEquals(item, service.saveStoreCategoryItem(item));
-        verify(itemRepo).save(item);
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
+
+        StoreCategoryItem result = service.getStoreCategoryItemByID(itemId);
+
+        assertSame(existingItem, result);
+        verify(itemRepository).findById(itemId);
     }
 
     @Test
-    void update_valid_savesUpdated() {
-        StoreCategoryItem item = helper.createModel(1);
-        StoreCategoryItemId id = item.getId();
-        when(itemRepo.findById(id)).thenReturn(Optional.of(item));
-        when(categoryRepo.findById(item.getStoreCategory().getCategoryId()))
-            .thenReturn(Optional.of(item.getStoreCategory()));
-        when(productRepo.findById(item.getProduct().getProductId()))
-            .thenReturn(Optional.of(item.getProduct()));
-        when(itemRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+    void getStoreCategoryItemByID_notFound_throwsResourceNotFound() {
+        StoreCategoryItemId missingId = new StoreCategoryItemId(9L, 9L);
+        when(itemRepository.findById(missingId)).thenReturn(Optional.empty());
 
-        StoreCategoryItem updated = item.toBuilder().updatedAt(LocalDateTime.now()).build();
-        assertEquals(updated, service.updateStoreCategoryItem(id, updated));
-        verify(itemRepo).save(updated);
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> service.getStoreCategoryItemByID(missingId)
+        );
+        assertEquals("Category Item not found with ID: " + missingId, ex.getMessage());
     }
 
     @Test
-    void partialUpdate_appliesField() {
-        StoreCategoryItem item = helper.createModel(1);
-        StoreCategoryItemId id = item.getId();
-        when(itemRepo.findById(id)).thenReturn(Optional.of(item));
-        when(itemRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+    void saveStoreCategoryItem_validData_savesAndReturnsNewItem() {
+        // prepare DTO
+        StoreCategoryItemCreateDTO createDTO = new StoreCategoryItemCreateDTO();
+        createDTO.setCategoryId(1L);
+        createDTO.setProductId(2L);
 
-        LocalDateTime now = LocalDateTime.now();
-        var result = service.partialUpdateStoreCategoryItem(id, Map.of("updatedAt", now));
-        assertEquals(now, result.getUpdatedAt());
+        // stub existence checks
+        when(categoryRepository.findById(1L))
+                .thenReturn(Optional.of(StoreCategory.builder().categoryId(1L).build()));
+        when(productRepository.findById(2L))
+                .thenReturn(Optional.of(Product.builder().productId(2L).build()));
+        // echo back what service built
+        when(itemRepository.save(any(StoreCategoryItem.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        StoreCategoryItem created = service.saveStoreCategoryItem(createDTO);
+
+        assertNotNull(created);
+        assertEquals(1L, created.getStoreCategory().getCategoryId());
+        assertEquals(2L, created.getProduct().getProductId());
+        verify(categoryRepository).findById(1L);
+        verify(productRepository).findById(2L);
+        verify(itemRepository).save(created);
     }
 
     @Test
-    void deleteById_existing_invokesSoftDelete() {
+    void saveStoreCategoryItem_categoryNotFound_throwsResourceNotFound() {
+        StoreCategoryItemCreateDTO createDTO = new StoreCategoryItemCreateDTO();
+        createDTO.setCategoryId(1L);
+        createDTO.setProductId(2L);
 
-        StoreCategoryItem original = helper.createModel(1);
-        StoreCategoryItemId id = original.getId();
+        when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
 
-        when(itemRepo.findById(id))
-            .thenReturn(Optional.of(original));
-        doNothing().when(itemRepo).delete(original);
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> service.saveStoreCategoryItem(createDTO)
+        );
+        assertEquals("Category not found with ID: 1", ex.getMessage());
+        verify(categoryRepository).findById(1L);
+        verifyNoInteractions(productRepository, itemRepository);
+    }
 
-        service.deleteById(id);
+    @Test
+    void saveStoreCategoryItem_productNotFound_throwsResourceNotFound() {
+        StoreCategoryItemCreateDTO createDTO = new StoreCategoryItemCreateDTO();
+        createDTO.setCategoryId(1L);
+        createDTO.setProductId(2L);
 
-        verify(itemRepo).findById(id);
-        verify(itemRepo).delete(original);
+        when(categoryRepository.findById(1L))
+                .thenReturn(Optional.of(new StoreCategory()));
+        when(productRepository.findById(2L)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> service.saveStoreCategoryItem(createDTO)
+        );
+        assertEquals("Product not found with ID: 2", ex.getMessage());
+        verify(categoryRepository).findById(1L);
+        verify(productRepository).findById(2L);
+        verifyNoInteractions(itemRepository);
+    }
+
+    @Test
+    void deleteItemFromCategory_existingItem_deletesSuccessfully() {
+        StoreCategoryItemId itemId = new StoreCategoryItemId(3L, 4L);
+        StoreCategoryItem toDelete = new StoreCategoryItem();
+        toDelete.setId(itemId);
+
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(toDelete));
+        doNothing().when(itemRepository).delete(toDelete);
+
+        service.deleteItemFromCategory(itemId);
+
+        verify(itemRepository).findById(itemId);
+        verify(itemRepository).delete(toDelete);
     }
 }

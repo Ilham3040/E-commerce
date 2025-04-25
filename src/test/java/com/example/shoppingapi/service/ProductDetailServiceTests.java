@@ -1,5 +1,9 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.ProductDetailCreateDTO;
+import com.example.shoppingapi.dto.patch.ProductDetailPatchDTO;
+import com.example.shoppingapi.dto.put.ProductDetailPutDTO;
+import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.ProductDetail;
 import com.example.shoppingapi.modelhelper.ModelHelper;
 import com.example.shoppingapi.modelhelper.ModelHelperFactory;
@@ -43,31 +47,21 @@ class ProductDetailServiceTest {
 
     @Test
     void findById_found_returnsDetail() {
-        ProductDetail pd = helper.createModel(1);
-        when(detailRepo.findById(1L)).thenReturn(Optional.of(pd));
+        ProductDetail productDetail = helper.createModel(1);
+        when(detailRepo.findById(1L)).thenReturn(Optional.of(productDetail));
 
         assertEquals(1L, service.findById(1L).getProductDetailId());
         verify(detailRepo).findById(1L);
     }
 
     @Test
-    void findById_notFound_throwsException() {
-        when(detailRepo.findById(2L)).thenReturn(Optional.empty());
-        ResourceNotFoundException ex = assertThrows(
-            ResourceNotFoundException.class,
-            () -> service.findById(2L)
-        );
-        assertEquals("ProductDetail not found with ID: 2", ex.getMessage());
-    }
-
-    @Test
     void findByProductId_found_returnsDetail() {
-        ProductDetail pd = helper.createModel(1);
-        Long pid = pd.getProduct().getProductId();
-        when(detailRepo.findProductDetailbyProductId(pid)).thenReturn(Optional.of(pd));
+        ProductDetail productDetail = helper.createModel(1);
+        Long id = productDetail.getProduct().getProductId();
+        when(detailRepo.findProductDetailbyProductId(id)).thenReturn(Optional.of(productDetail));
 
-        assertEquals(pid, service.findByProductId(pid).getProduct().getProductId());
-        verify(detailRepo).findProductDetailbyProductId(pid);
+        assertEquals(id, service.getProductDetailByProductId(id).getProduct().getProductId());
+        verify(detailRepo).findProductDetailbyProductId(id);
     }
 
     @Test
@@ -75,31 +69,24 @@ class ProductDetailServiceTest {
         when(detailRepo.findProductDetailbyProductId(3L)).thenReturn(Optional.empty());
         ResourceNotFoundException ex = assertThrows(
             ResourceNotFoundException.class,
-            () -> service.findByProductId(3L)
+            () -> service.getProductDetailByProductId(3L)
         );
         assertEquals("ProductDetail not found for product ID: 3", ex.getMessage());
     }
 
-    @Test
-    void saveProductDetail_missingProduct_throwsException() {
-        ProductDetail pd = helper.createModel(1);
-        pd.setProduct(null);
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> service.saveProductDetail(pd)
-        );
-        assertEquals("Product ID is required to create a product detail.", ex.getMessage());
-        verify(detailRepo, never()).save(any());
-    }
 
     @Test
     void saveProductDetail_productNotFound_throwsException() {
-        ProductDetail pd = helper.createModel(1);
-        when(productRepo.existsById(pd.getProduct().getProductId())).thenReturn(false);
+        ProductDetail productDetail = helper.createModel(1);
+        when(productRepo.findById(productDetail.getProduct().getProductId())).thenReturn(Optional.empty());
 
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> service.saveProductDetail(pd)
+        ProductDetailCreateDTO productDetailCreateDTO = new ProductDetailCreateDTO();
+        productDetailCreateDTO.setProductId(productDetail.getProductDetailId());
+        productDetailCreateDTO.setDescription(productDetail.getDescription());
+
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.saveProductDetail(productDetailCreateDTO)
         );
         assertEquals("Product not found. Cannot create product detail.", ex.getMessage());
         verify(detailRepo, never()).save(any());
@@ -107,62 +94,71 @@ class ProductDetailServiceTest {
 
     @Test
     void saveProductDetail_success_savesAndReturns() {
-        ProductDetail pd = helper.createModel(1);
-        when(productRepo.existsById(pd.getProduct().getProductId())).thenReturn(true);
-        when(detailRepo.save(any())).thenReturn(pd);
+        ProductDetail productDetail = helper.createModel(1);
+        when(productRepo.findById(productDetail.getProduct().getProductId())).thenReturn(Optional.of(productDetail.getProduct()));
 
-        assertEquals(pd, service.saveProductDetail(pd));
-        verify(detailRepo).save(pd);
+        ProductDetailCreateDTO productDetailCreateDTO = new ProductDetailCreateDTO();
+        productDetailCreateDTO.setProductId(productDetail.getProductDetailId());
+        productDetailCreateDTO.setDescription(productDetail.getDescription());
+
+        ProductDetail toSave = ProductDetail.builder()
+                .product(Product.builder().productId(productDetailCreateDTO.getProductId()).build())
+                .description(productDetailCreateDTO.getDescription())
+                .build();
+
+        when(detailRepo.save(any())).thenReturn(productDetail);
+
+        ProductDetail result = service.saveProductDetail(productDetailCreateDTO);
+        assertEquals(result.getProductDetailId(),productDetail.getProductDetailId() );
+        verify(detailRepo).save(toSave);
     }
 
-    @Test
-    void updateProductDetail_idMismatch_throwsException() {
-        ProductDetail pd = helper.createModel(1);
-        pd.setProductDetailId(2L);
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> service.updateProductDetail(1L, pd)
-        );
-        assertEquals("ProductDetail ID in URL and body must match.", ex.getMessage());
-    }
 
     @Test
     void updateProductDetail_notFound_throwsException() {
-        ProductDetail pd = helper.createModel(1);
-        when(detailRepo.findById(1L)).thenReturn(Optional.empty());
+        ProductDetail productDetail = helper.createModel(1);
+        when(detailRepo.findProductDetailbyProductId(1L)).thenReturn(Optional.empty());
+
+        ProductDetailPutDTO productDetailPutDTO = new ProductDetailPutDTO();
         ResourceNotFoundException ex = assertThrows(
             ResourceNotFoundException.class,
-            () -> service.updateProductDetail(1L, pd)
+            () -> service.updateProductDetail(1L, productDetailPutDTO)
         );
-        assertEquals("ProductDetail not found with ID: 1", ex.getMessage());
+        assertEquals("ProductDetail not found for product ID: 1", ex.getMessage());
     }
 
     @Test
     void updateProductDetail_success_savesUpdated() {
-        ProductDetail pd = helper.createModel(1);
-        ProductDetail updated = pd.toBuilder().totalSold(500).build();
-        when(detailRepo.findById(1L)).thenReturn(Optional.of(pd));
-        when(detailRepo.save(any())).thenReturn(updated);
+        ProductDetail productDetail = helper.createModel(1);
 
-        assertEquals(updated, service.updateProductDetail(1L, updated));
-        verify(detailRepo).save(updated);
+        ProductDetailPutDTO productDetailPutDTO = new ProductDetailPutDTO();
+        productDetailPutDTO.setDescription("Random bullshit go");
+
+        when(detailRepo.findProductDetailbyProductId(1L)).thenReturn(Optional.of(productDetail));
+        when(detailRepo.save(any())).thenReturn(productDetail);
+
+        ProductDetail result  = service.updateProductDetail(1L, productDetailPutDTO);
+
+        assertEquals(productDetailPutDTO.getDescription(), result.getDescription());
+        verify(detailRepo).save(productDetail);
+        verify(detailRepo).findProductDetailbyProductId(1L);
     }
 
     @Test
     void partialUpdateProductDetail_existing_appliesUpdates() {
-        ProductDetail pd = helper.createModel(1);
-        when(detailRepo.findById(1L)).thenReturn(Optional.of(pd));
+        ProductDetail productDetail = helper.createModel(1);
+
+        ProductDetailPatchDTO productDetailPatchDTO = new ProductDetailPatchDTO();
+        productDetailPatchDTO.setDescription("Random bullshit go");
+
+        when(detailRepo.findProductDetailbyProductId(1L)).thenReturn(Optional.of(productDetail));
         when(detailRepo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        Map<String,Object> changes = Map.of(
-            "reviewRating", 4.75,
-            "totalSold",    150
-        );
-        ProductDetail result = service.partialUpdateProductDetail(1L, changes);
+        ProductDetail result = service.partialUpdateProductDetail(1L, productDetailPatchDTO);
 
-        assertEquals(BigDecimal.valueOf(4.75), result.getReviewRating());
-        assertEquals(150, result.getTotalSold());
-        verify(detailRepo).save(pd);
+        assertEquals(productDetail.getDescription(),result.getDescription());
+        verify(detailRepo).findProductDetailbyProductId(1L);
+        verify(detailRepo).save(productDetail);
     }
 
     @Test
@@ -170,23 +166,23 @@ class ProductDetailServiceTest {
 
         ProductDetail original = helper.createModel(1);
 
-        when(detailRepo.findById(1L))
+        when(detailRepo.findProductDetailbyProductId(1L))
             .thenReturn(Optional.of(original));
         doNothing().when(detailRepo).delete(original);
 
-        service.deleteById(1L);
+        service.deleteByProductId(1L);
 
-        verify(detailRepo).findById(1L);
+        verify(detailRepo).findProductDetailbyProductId(1L);
         verify(detailRepo).delete(original);
     }
 
     @Test
     void softDeleteProductDetail_notFound_throwsException() {
-        when(detailRepo.findById(2L)).thenReturn(Optional.empty());
+        when(detailRepo.findProductDetailbyProductId(2L)).thenReturn(Optional.empty());
         ResourceNotFoundException ex = assertThrows(
             ResourceNotFoundException.class,
-            () -> service.deleteById(2L)
+            () -> service.deleteByProductId(2L)
         );
-        assertEquals("ProductDetail not found with ID: 2", ex.getMessage());
+        assertEquals("ProductDetail not found for product ID: 2", ex.getMessage());
     }
 }

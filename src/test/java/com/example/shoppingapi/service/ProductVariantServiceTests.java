@@ -1,6 +1,13 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.ProductReviewCreateDTO;
+import com.example.shoppingapi.dto.create.ProductVariantCreateDTO;
+import com.example.shoppingapi.dto.patch.ProductVariantPatchDTO;
+import com.example.shoppingapi.dto.put.ProductVariantPutDTO;
+import com.example.shoppingapi.model.Product;
+import com.example.shoppingapi.model.ProductReview;
 import com.example.shoppingapi.model.ProductVariant;
+import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.modelhelper.ModelHelper;
 import com.example.shoppingapi.modelhelper.ModelHelperFactory;
 import com.example.shoppingapi.repository.ProductVariantRepository;
@@ -42,10 +49,10 @@ class ProductVariantServiceTest {
 
     @Test
     void findById_found_returnsVariant() {
-        ProductVariant v = helper.createModel(1);
-        when(variantRepo.findById(1L)).thenReturn(Optional.of(v));
+        ProductVariant productVariant = helper.createModel(1);
+        when(variantRepo.findById(1L)).thenReturn(Optional.of(productVariant));
 
-        assertEquals(v, service.findById(1L));
+        assertEquals(productVariant, service.getProductVariantById(1L));
     }
 
     @Test
@@ -53,71 +60,96 @@ class ProductVariantServiceTest {
         when(variantRepo.findById(2L)).thenReturn(Optional.empty());
         ResourceNotFoundException ex = assertThrows(
             ResourceNotFoundException.class,
-            () -> service.findById(2L)
+            () -> service.getProductVariantById(2L)
         );
         assertEquals("ProductVariant not found with ID: 2", ex.getMessage());
     }
 
     @Test
     void saveProductVariant_success_savesAndReturns() {
-        ProductVariant v = helper.createModel(1);
-        when(productRepo.existsById(v.getProduct().getProductId())).thenReturn(true);
-        when(variantRepo.save(any())).thenReturn(v);
+        ProductVariant productVariant = helper.createModel(1);
+        when(productRepo.findById(productVariant.getProduct().getProductId())).thenReturn(Optional.of(productVariant.getProduct()));
 
-        assertEquals(v, service.saveProductVariant(v));
-        verify(variantRepo).save(v);
-    }
+        ProductVariantCreateDTO productVariantCreateDTO = new ProductVariantCreateDTO();
+        productVariantCreateDTO.setProductId(productVariant.getProduct().getProductId());
+        productVariantCreateDTO.setVariantName(productVariant.getVariantName());
+        productVariantCreateDTO.setPrice(productVariant.getPrice());
+        productVariantCreateDTO.setStockQuantity(productVariantCreateDTO.getStockQuantity());
 
-    @Test
-    void saveProductVariant_missingProduct_throwsException() {
-        ProductVariant v = helper.createModel(1);
-        v.setProduct(null);
+        ProductVariant variant = ProductVariant.builder()
+                .product(Product.builder().productId(productVariantCreateDTO.getProductId()).build())
+                .price(productVariant.getPrice())
+                .variantName(productVariant.getVariantName())
+                .stockQuantity(productVariantCreateDTO.getStockQuantity())
+                .build();
 
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> service.saveProductVariant(v)
-        );
-        assertEquals("Product ID is required to create a product variant.", ex.getMessage());
+        when(variantRepo.save(any())).thenReturn(variant);
+
+        ProductVariant result = service.saveProductVariant(productVariantCreateDTO);
+        assertEquals(variant.getProduct().getProductId(), result.getProduct().getProductId());
+        assertEquals(variant.getVariantName(), result.getVariantName());
+        verify(variantRepo).save(variant);
+        verify(productRepo).findById(productVariant.getProduct().getProductId());
+
     }
 
     @Test
     void saveProductVariant_productNotFound_throwsException() {
-        ProductVariant v = helper.createModel(1);
-        when(productRepo.existsById(v.getProduct().getProductId())).thenReturn(false);
+        ProductVariant productVariant = helper.createModel(1);
 
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> service.saveProductVariant(v)
+        when(productRepo.findById(productVariant.getProduct().getProductId())).thenReturn(Optional.empty());
+
+        ProductVariantCreateDTO productVariantCreateDTO = new ProductVariantCreateDTO();
+        productVariantCreateDTO.setProductId(productVariant.getProduct().getProductId());
+        productVariantCreateDTO.setVariantName(productVariant.getVariantName());
+        productVariantCreateDTO.setPrice(productVariant.getPrice());
+        productVariantCreateDTO.setStockQuantity(productVariantCreateDTO.getStockQuantity());
+
+
+        ResourceNotFoundException ex = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.saveProductVariant(productVariantCreateDTO)
         );
-        assertEquals("Product not found. Cannot create product variant.", ex.getMessage());
+        assertEquals("Product with ID : 1 not  found cannot create Product Variant" , ex.getMessage());
     }
+
 
     @Test
     void updateProductVariant_success_savesUpdated() {
-        ProductVariant orig = helper.createModel(1);
-        when(variantRepo.findById(1L)).thenReturn(Optional.of(orig));
-        when(productRepo.existsById(orig.getProduct().getProductId())).thenReturn(true);
+        ProductVariant productVariant = helper.createModel(1);
+        when(variantRepo.findById(1L)).thenReturn(Optional.of(productVariant));
+
+        ProductVariantPutDTO productVariantPutDTO = new ProductVariantPutDTO();
+        productVariantPutDTO.setVariantName(productVariant.getVariantName());
+        productVariantPutDTO.setPrice(productVariant.getPrice());
+        productVariantPutDTO.setStockQuantity(100);
+
         when(variantRepo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        ProductVariant upd = orig.toBuilder().variantName("New").build();
-        ProductVariant res = service.updateProductVariant(1L, upd);
+        ProductVariant result = service.updateProductVariant(1L,productVariantPutDTO);
+        assertEquals(productVariant.getProduct().getProductId(), result.getProduct().getProductId());
+        assertEquals(productVariant.getVariantName(), result.getVariantName());
+        verify(variantRepo).save(productVariant);
+        verify(variantRepo).findById(1L);
 
-        assertEquals("New", res.getVariantName());
+
     }
 
     @Test
     void partialUpdateProductVariant_appliesUpdates() {
-        ProductVariant v = helper.createModel(1);
-        when(variantRepo.findById(1L)).thenReturn(Optional.of(v));
+        ProductVariant productVariant = helper.createModel(1);
+        when(variantRepo.findById(1L)).thenReturn(Optional.of(productVariant));
         when(variantRepo.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        Map<String,Object> changes = Map.of(
-            "variantName","X", "stockQuantity",50
-        );
-        ProductVariant res = service.partialUpdateProductVariant(1L, changes);
+        ProductVariantPatchDTO productVariantPatchDTO = new ProductVariantPatchDTO();
+        productVariantPatchDTO.setStockQuantity(100);
 
-        assertEquals("X", res.getVariantName());
-        assertEquals(50,   res.getStockQuantity());
+        ProductVariant result = service.partiallyUpdateProductVariant(1L, productVariantPatchDTO);
+
+        assertEquals(productVariant.getProduct().getProductId(), result.getProduct().getProductId());
+        assertEquals(productVariant.getVariantName(), result.getVariantName());
+        verify(variantRepo).save(productVariant);
+        verify(variantRepo).findById(1L);
     }
 
     @Test

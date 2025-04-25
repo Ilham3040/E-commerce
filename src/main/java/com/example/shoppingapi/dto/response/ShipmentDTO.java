@@ -1,37 +1,13 @@
 package com.example.shoppingapi.dto.response;
 
+
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
 public class ShipmentDTO {
-    private Long shipmentId;
     private Long vendorId;
     private Long orderId;
-
-    public ShipmentDTO(Long shipmentId, Long vendorId, Long orderId) {
-        this.shipmentId = shipmentId;
-        this.vendorId = vendorId;
-        this.orderId = orderId;
-    }
-
-    public Long getShipmentId() {
-        return shipmentId;
-    }
-
-    public void setShipmentId(Long shipmentId) {
-        this.shipmentId = shipmentId;
-    }
-
-    public Long getVendorId() {
-        return vendorId;
-    }
-
-    public void setVendorId(Long vendorId) {
-        this.vendorId = vendorId;
-    }
-
-    public Long getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(Long orderId) {
-        this.orderId = orderId;
-    }
 }

@@ -1,14 +1,12 @@
-package com.example.shoppingapi.dto.request;
+package com.example.shoppingapi.dto.create;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
 @Data
-public class UserRequestDTO {
-
-    
+public class UserCreateDTO {
     @NotBlank(message = "Username is required.")
-    @Size(max = 50, message = "Username must not exceed 50 characters")
+    @Size(max = 30, message = "Username must not exceed 30 characters")
     private String username;
 
     @NotBlank(message = "Email is required.")

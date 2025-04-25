@@ -3,6 +3,7 @@ package com.example.shoppingapi.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.SoftDelete;
@@ -29,8 +30,8 @@ public class ProductVariant {
     @Column(name = "variant_name", length = 255)
     private String variantName;
 
-    @Column(name = "product_reviews")
-    private Integer productReviews;
+    @Column(name = "price", precision = 10, scale = 2, nullable = false)
+    private BigDecimal price;
 
     @Builder.Default
     @Column(name = "stock_quantity", nullable = false, columnDefinition = "INT DEFAULT 0")

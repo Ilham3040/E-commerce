@@ -1,6 +1,10 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.StoreCreateDTO;
+import com.example.shoppingapi.dto.patch.StorePatchDTO;
+import com.example.shoppingapi.dto.put.StorePutDTO;
 import com.example.shoppingapi.model.Store;
+import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.modelhelper.ModelHelper;
 import com.example.shoppingapi.modelhelper.ModelHelperFactory;
 import com.example.shoppingapi.repository.StoreRepository;
@@ -71,27 +75,19 @@ class StoreServiceTest {
         verify(storeRepository).findById(2L);
     }
 
-    @Test
-    void saveStore_missingUser_throwsException() {
-        Store store = storeHelper.createModel(1);
-        store.setUser(null);
-
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> storeService.saveStore(store)
-        );
-        assertEquals("User ID is required to create a store.", ex.getMessage());
-        verify(storeRepository, never()).save(any());
-    }
 
     @Test
     void saveStore_userNotFound_throwsException() {
         Store store = storeHelper.createModel(1);
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
+        StoreCreateDTO storeCreateDTO = new StoreCreateDTO();
+        storeCreateDTO.setStoreName(store.getStoreName());
+        storeCreateDTO.setUserId(store.getUser().getUserId());
+
         ResourceNotFoundException ex = assertThrows(
             ResourceNotFoundException.class,
-            () -> storeService.saveStore(store)
+            () -> storeService.saveStore(storeCreateDTO)
         );
         assertEquals("User not found with ID: 1", ex.getMessage());
         verify(userRepository).findById(1L);
@@ -101,71 +97,37 @@ class StoreServiceTest {
     @Test
     void saveStore_success_savesAndReturnsStore() {
         Store store = storeHelper.createModel(1);
-        when(userRepository.findById(1L))
-            .thenReturn(Optional.of(store.getUser()));
+
+        StoreCreateDTO storeCreateDTO = new StoreCreateDTO();
+        storeCreateDTO.setStoreName(store.getStoreName());
+        storeCreateDTO.setUserId(store.getUser().getUserId());
+
+        Store savedUser = Store.builder().storeName(storeCreateDTO.getStoreName()).user(User.builder().userId(storeCreateDTO.getUserId()).build()).build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(store.getUser()));
         when(storeRepository.save(any())).thenReturn(store);
 
-        Store saved = storeService.saveStore(store);
-        assertEquals(store, saved);
+        Store result = storeService.saveStore(storeCreateDTO);
+        assertEquals(store, result);
         verify(userRepository).findById(1L);
-        verify(storeRepository).save(store);
-    }
-
-    @Test
-    void updateStore_idMismatch_throwsException() {
-        Store store = storeHelper.createModel(1);
-        store.setStoreId(2L);
-
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> storeService.updateStore(1L, store)
-        );
-        assertEquals("Store ID in URL and body must match.", ex.getMessage());
-        verify(storeRepository, never()).save(any());
+        verify(storeRepository).save(savedUser);
     }
 
     @Test
     void updateStore_notFound_throwsException() {
         Store store = storeHelper.createModel(1);
+        StorePutDTO storePutDTO = new StorePutDTO();
+        storePutDTO.setStoreName(store.getStoreName());
+
         when(storeRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(
             ResourceNotFoundException.class,
-            () -> storeService.updateStore(1L, store)
+            () -> storeService.updateStore(1L, storePutDTO)
         );
         assertEquals("Store not found with ID: 1", ex.getMessage());
         verify(storeRepository).findById(1L);
     }
 
-    @Test
-    void updateStore_missingUser_throwsException() {
-        Store store = storeHelper.createModel(1);
-        when(storeRepository.findById(1L)).thenReturn(Optional.of(store));
-        store.setUser(null);
-
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> storeService.updateStore(1L, store)
-        );
-        assertEquals("User ID is required to update a store.", ex.getMessage());
-        verify(storeRepository).findById(1L);
-        verify(storeRepository, never()).save(any());
-    }
-
-    @Test
-    void updateStore_userNotFound_throwsException() {
-        Store store = storeHelper.createModel(1);
-        when(storeRepository.findById(1L)).thenReturn(Optional.of(store));
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException ex = assertThrows(
-            ResourceNotFoundException.class,
-            () -> storeService.updateStore(1L, store)
-        );
-        assertEquals("User not found with ID: 1", ex.getMessage());
-        verify(userRepository).findById(1L);
-        verify(storeRepository, never()).save(any());
-    }
 
     @Test
     void updateStore_success_savesUpdatedStore() {
@@ -174,42 +136,56 @@ class StoreServiceTest {
                                  .storeName("New Name")
                                  .build();
 
+        StorePutDTO storePutDTO = new StorePutDTO();
+        storePutDTO.setStoreName(updated.getStoreName());
+
         when(storeRepository.findById(1L))
             .thenReturn(Optional.of(original));
-        when(userRepository.findById(1L))
-            .thenReturn(Optional.of(original.getUser()));
         when(storeRepository.save(any()))
             .thenReturn(updated);
 
-        Store result = storeService.updateStore(1L, updated);
+        Store result = storeService.updateStore(1L, storePutDTO);
         assertEquals("New Name", result.getStoreName());
         verify(storeRepository).findById(1L);
-        verify(userRepository).findById(1L);
         verify(storeRepository).save(updated);
     }
 
     @Test
     void partialUpdateStore_found_appliesUpdates() {
         Store existing = storeHelper.createModel(1);
+        Store updated  = existing.toBuilder()
+                .storeName("New Name")
+                .build();
+
+        StorePatchDTO storePatchDTO = new StorePatchDTO();
+        storePatchDTO.setStoreName(updated.getStoreName());
+
         when(storeRepository.findById(1L))
             .thenReturn(Optional.of(existing));
         when(storeRepository.save(any()))
             .thenAnswer(inv -> inv.getArgument(0));
 
-        Map<String, Object> updates = Map.of("storeName", "Updated Store");
-        Store result = storeService.partialUpdateStore(1L, updates);
-        assertEquals("Updated Store", result.getStoreName());
+
+        Store result = storeService.partialUpdateStore(1L, storePatchDTO);
+        assertEquals("New Name", result.getStoreName());
         verify(storeRepository).findById(1L);
         verify(storeRepository).save(existing);
     }
 
     @Test
     void partialUpdateStore_notFound_throwsException() {
+        Store existing = storeHelper.createModel(1);
+        Store updated  = existing.toBuilder()
+                .storeName("New Name")
+                .build();
+
+        StorePatchDTO storePatchDTO = new StorePatchDTO();
+        storePatchDTO.setStoreName(updated.getStoreName());
         when(storeRepository.findById(2L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(
             ResourceNotFoundException.class,
-            () -> storeService.partialUpdateStore(2L, Map.of("storeName", "X"))
+            () -> storeService.partialUpdateStore(2L, storePatchDTO)
         );
         assertEquals("Store not found with ID: 2", ex.getMessage());
         verify(storeRepository).findById(2L);
@@ -219,14 +195,8 @@ class StoreServiceTest {
     void deleteById_existing_setsDeletedAt() {
         Store existing = storeHelper.createModel(1);
         when(storeRepository.findById(1L)).thenReturn(Optional.of(existing));
-        when(storeRepository.save(any()))
-            .thenAnswer(inv -> inv.getArgument(0));
-
-        Store result = storeService.deleteById(1L);
-        assertNotNull(result.getDeletedAt());
-        assertTrue(result.getDeletedAt().isBefore(LocalDateTime.now().plusSeconds(1)));
+        storeService.deleteById(1L);
         verify(storeRepository).findById(1L);
-        verify(storeRepository).save(existing);
     }
 
     @Test

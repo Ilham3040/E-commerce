@@ -1,17 +1,15 @@
-package com.example.shoppingapi.dto.request;
+package com.example.shoppingapi.dto.create;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class StoreDetailRequestDTO {
+public class StoreDetailCreateDTO {
     @NotNull(message = "Store ID is required")
     private Long storeId;
 
-    @NotNull(message = "Store Address is required")
     private String address;
 
-    @NotNull(message = "Store Description is required")
     private String description;
 
 }

@@ -4,7 +4,6 @@ import com.example.shoppingapi.model.StoreDetail;
 import com.example.shoppingapi.model.Store;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
@@ -19,7 +18,7 @@ public class StoreDetailModelHelper implements ModelHelper<StoreDetail> {
                 .storeDetailId(1L)
                 .store(storeHelper.createModel(1))
                 .address("123 Main St, Example City")
-                .review(BigDecimal.valueOf(4.5))
+                .totaReview(0)
                 .totalProducts(150)
                 .description("A great pet shop with a variety of products")
                 .followerCount(120)
@@ -30,8 +29,7 @@ public class StoreDetailModelHelper implements ModelHelper<StoreDetail> {
             return StoreDetail.builder()
                 .storeDetailId(2L)
                 .store(storeHelper.createModel(2))
-                .address("456 Market Rd, Sample City")
-                .review(BigDecimal.valueOf(3.8))
+                .address("456 Market Rd, Sample City").totaReview(0)
                 .totalProducts(200)
                 .description("A well-known bookstore with an extensive collection")
                 .followerCount(80)

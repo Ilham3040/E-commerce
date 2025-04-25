@@ -1,9 +1,15 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.OrderCreateDTO;
+import com.example.shoppingapi.dto.patch.OrderPatchDTO;
+import com.example.shoppingapi.dto.put.OrderPutDTO;
 import com.example.shoppingapi.model.Order;
+import com.example.shoppingapi.model.Product;
+import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.modelhelper.ModelHelper;
 import com.example.shoppingapi.modelhelper.ModelHelperFactory;
 import com.example.shoppingapi.repository.OrderRepository;
+import com.example.shoppingapi.repository.ProductRepository;
 import com.example.shoppingapi.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +31,7 @@ class OrderServiceTest {
 
     @Mock private OrderRepository orderRepository;
     @Mock private UserRepository  userRepository;
+    @Mock private ProductRepository productRepository;
     @InjectMocks private OrderService orderService;
 
     private final ModelHelper<Order> orderHelper =
@@ -64,68 +71,61 @@ class OrderServiceTest {
     @Test
     void saveOrder_withValidOrder_savesAndReturnsOrder() {
         Order order = orderHelper.createModel(1);
-        when(userRepository.findById(order.getUser().getUserId()))
-            .thenReturn(Optional.of(order.getUser()));
+        when(userRepository.findById(order.getUser().getUserId())).thenReturn(Optional.of(order.getUser()));
+        when(productRepository.findById(order.getProduct().getProductId())).thenReturn(Optional.of(order.getProduct()));
         when(orderRepository.save(any())).thenReturn(order);
 
-        Order saved = orderService.saveOrder(order);
+        OrderCreateDTO orderCreateDTO = new OrderCreateDTO();
+        orderCreateDTO.setUserId(order.getUser().getUserId());
+        orderCreateDTO.setProductId(order.getProduct().getProductId());
+        orderCreateDTO.setStatus(order.getStatus());
+
+        Order toSave = Order.builder()
+                .user(User.builder().userId(orderCreateDTO.getUserId()).build())
+                .product(Product.builder().productId(orderCreateDTO.getProductId()).build())
+                .status(orderCreateDTO.getStatus())
+                .build();
+
+        Order saved = orderService.saveOrder(orderCreateDTO);
         assertEquals(order.getOrderId(), saved.getOrderId());
         verify(userRepository).findById(order.getUser().getUserId());
-        verify(orderRepository).save(order);
+        verify(productRepository).findById(order.getProduct().getProductId());
+        verify(orderRepository).save(toSave);
     }
 
-    @Test
-    void saveOrder_missingUser_throwsException() {
-        Order order = orderHelper.createModel(1);
-        order.setUser(null);
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> orderService.saveOrder(order)
-        );
-        assertEquals("User ID is required to create an order.", ex.getMessage());
-        verify(orderRepository, never()).save(any());
-    }
-
-    @Test
-    void saveOrder_missingProduct_throwsException() {
-        Order order = orderHelper.createModel(1);
-        order.setProduct(null);
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> orderService.saveOrder(order)
-        );
-        assertEquals("Product ID is required to create an order.", ex.getMessage());
-        verify(orderRepository, never()).save(any());
-    }
 
     @Test
     void updateOrder_existingOrder_savesUpdatedOrder() {
         Order original = orderHelper.createModel(1);
+
+        OrderPutDTO orderPutDTO = new OrderPutDTO();
+        orderPutDTO.setStatus("completed");
+
         when(orderRepository.findById(1L)).thenReturn(Optional.of(original));
-        when(userRepository.findById(original.getUser().getUserId()))
-            .thenReturn(Optional.of(original.getUser()));
         when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        Order updated = original.toBuilder().status("completed").build();
-        Order result  = orderService.updateOrder(1L, updated);
+        Order result  = orderService.updateOrder(1L, orderPutDTO);
 
-        assertEquals("completed", result.getStatus());
+        assertEquals(orderPutDTO.getStatus(), result.getStatus());
         verify(orderRepository).findById(1L);
-        verify(orderRepository).save(updated);
+        verify(orderRepository).save(original);
     }
 
     @Test
     void partialUpdateOrder_existing_appliesUpdates() {
-        Order existing = orderHelper.createModel(1);
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(existing));
+        Order original = orderHelper.createModel(1);
+
+        OrderPatchDTO orderPatchDTO = new OrderPatchDTO();
+        orderPatchDTO.setStatus("shipped");
+
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(original));
         when(orderRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        Map<String,Object> changes = Map.of("status","shipped");
-        Order result = orderService.partialUpdateOrder(1L, changes);
+        Order result = orderService.partiallyUpdateOrder(1L, orderPatchDTO);
 
         assertEquals("shipped", result.getStatus());
         verify(orderRepository).findById(1L);
-        verify(orderRepository).save(existing);
+        verify(orderRepository).save(original);
     }
 
     @Test
@@ -150,9 +150,4 @@ class OrderServiceTest {
         verify(orderRepository).findByProductProductId(o.getProduct().getProductId());
     }
 
-    // @Test
-    // void deleteOrder_invokesRepositoryDelete() {
-    //     orderService.deleteOrder(1L);
-    //     verify(orderRepository).deleteById(1L);
-    // }
 }

@@ -4,6 +4,7 @@ import com.example.shoppingapi.model.ProductVariant;
 
 import java.util.Optional;
 
+import com.example.shoppingapi.model.Store;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,4 +19,7 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     
     @Query("SELECT pd FROM ProductVariant pd WHERE pd.product.id = :id")
     Optional<ProductVariant> findProductVariantbyProductId(@Param("id") Long id);
+
+    @Query("SELECT p FROM ProductVariant p WHERE p.id = :id AND p.isDeleted = true")
+    Optional<ProductVariant> findSoftDeletedById(Long id);
 }

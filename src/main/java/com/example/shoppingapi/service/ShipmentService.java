@@ -1,7 +1,12 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.ShipmentCreateDTO;
+import com.example.shoppingapi.dto.patch.ShipmentPatchDTO;
+import com.example.shoppingapi.dto.put.ShipmentPutDTO;
+import com.example.shoppingapi.model.Order;
 import com.example.shoppingapi.model.Shipment;
 import com.example.shoppingapi.model.ShipmentId;
+import com.example.shoppingapi.model.ShipmentVendor;
 import com.example.shoppingapi.repository.OrderRepository;
 import com.example.shoppingapi.repository.ShipmentRepository;
 import com.example.shoppingapi.repository.ShipmentVendorRepository;
@@ -10,7 +15,9 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
@@ -26,41 +33,30 @@ public class ShipmentService {
         return shipmentRepository.findAll();
     }
 
-    public Shipment findById(ShipmentId id) {
+    public Shipment getShipmentById(ShipmentId id) {
         return shipmentRepository.findById(id)
             .orElseThrow(() ->
                 new ResourceNotFoundException("Shipment not found with ID: " + id));
     }
 
-    public Shipment saveShipment(Shipment shipment) {
-        vendorRepository.findById(shipment.getShipmentVendor().getVendorId())
+    public Shipment saveShipment(ShipmentCreateDTO shipmentCreateDTO) {
+        vendorRepository.findById(shipmentCreateDTO.getVendorId())
             .orElseThrow(() -> new ResourceNotFoundException("Vendor not found"));
-        orderRepository.findById(shipment.getOrder().getOrderId())
+        orderRepository.findById(shipmentCreateDTO.getOrderId())
             .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        Shipment shipment = Shipment.builder()
+                .shipmentVendor(ShipmentVendor.builder().vendorId(shipmentCreateDTO.getVendorId()).build())
+                .order(Order.builder().orderId(shipmentCreateDTO.getOrderId()).build())
+                .build();
 
         return shipmentRepository.save(shipment);
     }
 
-    public Shipment updateShipment(ShipmentId id, Shipment shipment) {
-        if (!id.equals(shipment.getId())) {
-            throw new IllegalArgumentException("ID parameter and ID in body must match");
-        }
-        findById(id);
-        vendorRepository.findById(shipment.getShipmentVendor().getVendorId())
-            .orElseThrow(() -> new ResourceNotFoundException("Vendor not found"));
-        orderRepository.findById(shipment.getOrder().getOrderId())
-            .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-
-        shipment.setId(id);
-        return shipmentRepository.save(shipment);
+    public Shipment updateShipment(ShipmentId id, ShipmentPutDTO shipmentPutDTO) {
+        Shipment existingShipment = getShipmentById(id);
+        existingShipment.setShipmentStatus(shipmentPutDTO.getShipmentStatus());
+        return shipmentRepository.save(existingShipment);
     }
 
-    public Shipment partialUpdateShipment(ShipmentId id, Map<String, Object> updates) {
-        Shipment existing = findById(id);
-
-        BeanWrapper wrapper = new BeanWrapperImpl(existing);
-        updates.forEach(wrapper::setPropertyValue);
-
-        return shipmentRepository.save(existing);
-    }
 }

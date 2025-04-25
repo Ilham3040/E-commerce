@@ -1,7 +1,13 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.StoreRoleCreateDTO;
+import com.example.shoppingapi.dto.patch.StoreRolePatchDTO;
+import com.example.shoppingapi.dto.put.StoreRolePutDTO;
+import com.example.shoppingapi.global.exception.OwnerRoleDeletionException;
+import com.example.shoppingapi.model.Store;
 import com.example.shoppingapi.model.StoreRole;
 import com.example.shoppingapi.model.StoreRoleId;
+import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.repository.StoreRepository;
 import com.example.shoppingapi.repository.StoreRoleRepository;
 import com.example.shoppingapi.repository.UserRepository;
@@ -10,9 +16,12 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,48 +31,39 @@ public class StoreRoleService {
     private final UserRepository      userRepository;
     private final StoreRepository     storeRepository;
 
-    public List<StoreRole> findAll() {
-        return storeRoleRepository.findAll();
+    public List<StoreRole> getAllStoreRoleByStoreId(Long id) {
+        storeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Store not found with ID: " + id));
+        return storeRoleRepository.findByIdStoreId(id);
     }
 
-    public StoreRole findById(StoreRoleId id) {
-        storeRepository.findById(id.getStoreId())
-            .orElseThrow(() ->
-                new ResourceNotFoundException("Store not found with ID: " + id.getStoreId()));
-        userRepository.findById(id.getUserId())
-            .orElseThrow(() ->
-                new ResourceNotFoundException("User not found with ID: " + id.getUserId()));
-        return storeRoleRepository.findById(id)
-            .orElseThrow(() ->
-                new ResourceNotFoundException("StoreRole not found with ID: " + id));
+    public List<StoreRole> getAllStoreRoleByUserId(Long id) {
+        userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+        return storeRoleRepository.findByIdStoreId(id);
     }
 
-    public StoreRole saveStoreRole(StoreRole storeRole) {
-        storeRepository.findById(storeRole.getStore().getStoreId())
+    public StoreRole promoteToAdminStoreRole(StoreRoleCreateDTO storeRoleCreateDTO) {
+        storeRepository.findById(storeRoleCreateDTO.getStoreId())
             .orElseThrow(() ->
-                new ResourceNotFoundException("Store not found with ID: " + storeRole.getStore().getStoreId()));
-        userRepository.findById(storeRole.getUser().getUserId())
+                new ResourceNotFoundException("Store not found with ID: " + storeRoleCreateDTO.getStoreId()));
+        userRepository.findById(storeRoleCreateDTO.getUserId())
             .orElseThrow(() ->
-                new ResourceNotFoundException("User not found with ID: " + storeRole.getUser().getUserId()));
-        return storeRoleRepository.save(storeRole);
+                new ResourceNotFoundException("User not found with ID: " + storeRoleCreateDTO.getUserId()));
+
+        StoreRole newStoreRole = StoreRole.builder()
+                .user(User.builder().userId(storeRoleCreateDTO.getUserId()).build())
+                .store(Store.builder().storeId(storeRoleCreateDTO.getStoreId()).build())
+                .role("admin")
+                .build();
+        return storeRoleRepository.save(newStoreRole);
     }
 
-    public StoreRole updateStoreRole(StoreRoleId id, StoreRole storeRole) {
-        findById(id);  // parents + existing
-        storeRole.setId(id);
-        return storeRoleRepository.save(storeRole);
-    }
-
-    public StoreRole partialUpdateStoreRole(StoreRoleId id, Map<String, Object> updates) {
-        findById(id);
-        StoreRole existing = storeRoleRepository.findById(id).get();
-        BeanWrapper wrapper = new BeanWrapperImpl(existing);
-        updates.forEach(wrapper::setPropertyValue);
-        return storeRoleRepository.save(existing);
-    }
-
-    public void deleteById(StoreRoleId id) {
-        findById(id);
-        storeRoleRepository.deleteById(id);
+    public void deleteStoreRoleById(StoreRoleId id) {
+        StoreRole role = storeRoleRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Store Role of User with ID: " + String.valueOf(id.getUserId()) + " of Store with ID: " + String.valueOf(id.getStoreId()))
+        );
+        if (role.getRole() == "admin"){
+            throw new OwnerRoleDeletionException("Deleting owner is not allowed");
+        }
+        storeRoleRepository.delete(role);
     }
 }

@@ -1,6 +1,10 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.ProductCreateDTO;
+import com.example.shoppingapi.dto.patch.ProductPatchDTO;
+import com.example.shoppingapi.dto.put.ProductPutDTO;
 import com.example.shoppingapi.model.Product;
+import com.example.shoppingapi.model.Store;
 import com.example.shoppingapi.modelhelper.*;
 import com.example.shoppingapi.repository.ProductRepository;
 import com.example.shoppingapi.repository.StoreRepository;
@@ -73,28 +77,18 @@ class ProductServiceTest {
     }
 
     @Test
-    void saveProduct_missingStore_throwsException() {
-        Product toSave = Product.builder().productId(1L).build();
-
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> productService.saveProduct(toSave)
-        );
-        assertEquals(
-            "Store ID is required to create a product.",
-            ex.getMessage()
-        );
-        verify(productRepository, never()).save(any());
-    }
-
-    @Test
     void saveProduct_storeNotFound_throwsException() {
         Product product = helper.createModel(1);
         when(storeRepository.findById(1L)).thenReturn(Optional.empty());
+        ProductCreateDTO productCreateDTO = new ProductCreateDTO();
+
+        productCreateDTO.setPrice(product.getPrice());
+        productCreateDTO.setProductName(product.getProductName());
+        productCreateDTO.setStoreId(product.getStore().getStoreId());
 
         ResourceNotFoundException ex = assertThrows(
             ResourceNotFoundException.class,
-            () -> productService.saveProduct(product)
+            () -> productService.saveProduct(productCreateDTO)
         );
         assertEquals("Store not found with ID: 1", ex.getMessage());
         verify(storeRepository).findById(1L);
@@ -107,106 +101,75 @@ class ProductServiceTest {
         when(storeRepository.findById(1L)).thenReturn(Optional.of(toSave.getStore()));
         when(productRepository.save(any())).thenReturn(toSave);
 
-        Product saved = productService.saveProduct(toSave);
+        ProductCreateDTO productCreateDTO = new ProductCreateDTO();
+        productCreateDTO.setProductName(toSave.getProductName());
+        productCreateDTO.setPrice(toSave.getPrice());
+        productCreateDTO.setStoreId(toSave.getStore().getStoreId());
+
+        Product createProduct = Product.builder()
+                .productName(productCreateDTO.getProductName())
+                .price(productCreateDTO.getPrice())
+                .store(Store.builder().storeId(productCreateDTO.getStoreId()).build())
+                .build();
+
+        Product saved = productService.saveProduct(productCreateDTO);
         assertEquals(toSave, saved);
         verify(storeRepository).findById(1L);
-        verify(productRepository).save(toSave);
+        verify(productRepository).save(createProduct);
     }
 
-    @Test
-    void updateProduct_idMismatch_throwsException() {
-
-        Product mismatch = helper.createModel(2);
-
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> productService.updateProduct(1L, mismatch)
-        );
-        assertEquals(
-            "Product ID in URL and body must match.",
-            ex.getMessage()
-        );
-        verify(productRepository, never()).save(any());
-    }
 
     @Test
     void updateProduct_notFound_throwsException() {
 
         Product toUpdate = helper.createModel(1);
+        ProductPutDTO productPutDTO = new ProductPutDTO();
+        productPutDTO.setProductName(toUpdate.getProductName());
+        productPutDTO.setPrice(toUpdate.getPrice());
         when(productRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(
             ResourceNotFoundException.class,
-            () -> productService.updateProduct(1L, toUpdate)
+            () -> productService.updateProduct(1L, productPutDTO)
         );
         assertEquals("Product not found with ID: 1", ex.getMessage());
         verify(productRepository).findById(1L);
     }
 
-    @Test
-    void updateProduct_missingStore_throwsException() {
-
-        Product original = helper.createModel(1);
-        when(productRepository.findById(1L)).thenReturn(Optional.of(original));
-        Product noStore = original.toBuilder().store(null).build();
-
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> productService.updateProduct(1L, noStore)
-        );
-        assertEquals(
-            "Store ID is required to update a product.",
-            ex.getMessage()
-        );
-        verify(productRepository).findById(1L);
-        verify(storeRepository, never()).findById(any());
-    }
-
-    @Test
-    void updateProduct_storeNotFound_throwsException() {
-
-        Product original = helper.createModel(1);
-        when(productRepository.findById(1L)).thenReturn(Optional.of(original));
-        when(storeRepository.findById(1L)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException ex = assertThrows(
-            ResourceNotFoundException.class,
-            () -> productService.updateProduct(1L, original)
-        );
-        assertEquals("Store not found with ID: 1", ex.getMessage());
-        verify(storeRepository).findById(1L);
-        verify(productRepository, never()).save(any());
-    }
 
     @Test
     void updateProduct_success_savesUpdatedProduct() {
 
         Product original = helper.createModel(1);
+        ProductPutDTO productPutDTO = new ProductPutDTO();
+        productPutDTO.setProductName("Never gonna give you up");
+        productPutDTO.setPrice(original.getPrice());
+
         when(productRepository.findById(1L)).thenReturn(Optional.of(original));
-        when(storeRepository.findById(1L)).thenReturn(Optional.of(original.getStore()));
         when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        Product updated = original.toBuilder().price(BigDecimal.valueOf(35000)).build();
-        Product result = productService.updateProduct(1L, updated);
+        Product result = productService.updateProduct(1L, productPutDTO);
 
-        assertEquals(updated, result);
+        assertEquals(productPutDTO.getProductName(), result.getProductName());
+        assertEquals(productPutDTO.getPrice(), result.getPrice());
         verify(productRepository).findById(1L);
-        verify(storeRepository).findById(1L);
-        verify(productRepository).save(updated);
+        verify(productRepository).save(original);
     }
 
     @Test
     void partialUpdateProduct_existing_appliesUpdates() {
 
         Product original = helper.createModel(1);
+        ProductPatchDTO productPatchDTO = new ProductPatchDTO();
+        productPatchDTO.setProductName("Never gonna give you up");
+
         when(productRepository.findById(1L)).thenReturn(Optional.of(original));
         when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        Map<String, Object> changes = Map.of("price", 35000, "productName", "NewName");
-        Product result = productService.partialUpdateProduct(1L, changes);
+        Product result = productService.partialUpdateProduct(1L, productPatchDTO);
 
-        assertEquals(BigDecimal.valueOf(35000), result.getPrice());
-        assertEquals("NewName", result.getProductName());
+        assertEquals(productPatchDTO.getProductName(), result.getProductName());
+
         verify(productRepository).findById(1L);
         verify(productRepository).save(original);
     }
@@ -216,8 +179,8 @@ class ProductServiceTest {
 
         Product original = helper.createModel(1);
 
-        when(productRepository.findById(1L))
-            .thenReturn(Optional.of(original));
+        when(productRepository.findById(1L)).thenReturn(Optional.of(original));
+
         doNothing().when(productRepository).delete(original);
 
         productService.deleteById(1L);

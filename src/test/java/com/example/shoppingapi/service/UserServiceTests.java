@@ -1,5 +1,8 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.UserCreateDTO;
+import com.example.shoppingapi.dto.patch.UserPatchDTO;
+import com.example.shoppingapi.dto.put.UserPutDTO;
 import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.modelhelper.ModelHelper;
 import com.example.shoppingapi.modelhelper.ModelHelperFactory;
@@ -11,9 +14,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
-import java.time.LocalDateTime;
+
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,7 +32,8 @@ class UserServiceTest {
     private UserService userService;
 
     private final ModelHelper<User> userHelper =
-        ModelHelperFactory.getModelHelper(User.class);
+            ModelHelperFactory.getModelHelper(User.class);
+
 
     @Test
     void getAllUsers_returnsAllUsers() {
@@ -48,14 +51,26 @@ class UserServiceTest {
 
     @Test
     void createUser_savesAndReturnsUser() {
-        User toCreate = userHelper.createModel(1);
-        when(userRepository.save(any())).thenReturn(toCreate);
+        User newUser = userHelper.createModel(1);
+        UserCreateDTO userCreateDTO = new UserCreateDTO();
+        userCreateDTO.setUsername(newUser.getUsername());
+        userCreateDTO.setEmail(newUser.getEmail());
+        userCreateDTO.setPhoneNumber(newUser.getPhoneNumber());
 
-        User created = userService.createUser(toCreate);
+        User userToCreate = User.builder()
+                .username(userCreateDTO.getUsername())
+                .email(userCreateDTO.getEmail())
+                .phoneNumber(userCreateDTO.getPhoneNumber())
+                .build();
 
-        assertEquals(toCreate, created);
-        verify(userRepository).save(toCreate);
+        when(userRepository.save(any())).thenReturn(userToCreate);
+
+        User createdUser = userService.createUser(userCreateDTO);
+
+        assertEquals(userToCreate, createdUser);
+        verify(userRepository).save(userToCreate);
     }
+
 
     @Test
     void getUserById_found_returnsUser() {
@@ -106,25 +121,17 @@ class UserServiceTest {
     }
 
     @Test
-    void updateUser_idMismatch_throwsException() {
-        User user = userHelper.createModel(1);
-
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> userService.updateUser(2L, user)
-        );
-        assertEquals("User ID in URL and body must match.", ex.getMessage());
-        verify(userRepository, never()).save(any());
-    }
-
-    @Test
     void updateUser_notFound_throwsException() {
-        User user = userHelper.createModel(1);
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        UserPutDTO userPutDTO = new UserPutDTO();
+        userPutDTO.setUsername("updatedAlice");
+        userPutDTO.setEmail("updated@example.com");
+        userPutDTO.setPhoneNumber("0987654321");
 
         ResourceNotFoundException ex = assertThrows(
             ResourceNotFoundException.class,
-            () -> userService.updateUser(1L, user)
+            () -> userService.updateUser(1L, userPutDTO)
         );
         assertEquals("User not found with ID: 1", ex.getMessage());
         verify(userRepository).findById(1L);
@@ -132,57 +139,53 @@ class UserServiceTest {
 
     @Test
     void updateUser_existing_savesUpdatedUser() {
-        User original = userHelper.createModel(1);
-        User updated  = original.toBuilder()
-                                .phoneNumber("9999999999")
-                                .build();
+        User existingUser = userHelper.createModel(1);
+        UserPutDTO userPutDTO = new UserPutDTO();
+        userPutDTO.setUsername(existingUser.getUsername());
+        userPutDTO.setEmail(existingUser.getEmail());
+        userPutDTO.setPhoneNumber("0987654321");
 
-        when(userRepository.findById(1L))
-            .thenReturn(Optional.of(original));
-        when(userRepository.save(any()))
-            .thenReturn(updated);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any())).thenReturn(existingUser);
 
-        User result = userService.updateUser(1L, updated);
+        User updatedUser = userService.updateUser(1L, userPutDTO);
 
-        assertEquals(updated, result);
+        assertEquals(existingUser.getUsername(), updatedUser.getUsername());
+        assertEquals(existingUser.getEmail(), updatedUser.getEmail());
+        assertEquals("0987654321", updatedUser.getPhoneNumber());
         verify(userRepository).findById(1L);
-        verify(userRepository).save(updated);
+        verify(userRepository).save(existingUser);
     }
 
     @Test
     void partialUpdateUser_existing_appliesUpdates() {
-        User existing = userHelper.createModel(1);
-        when(userRepository.findById(1L))
-            .thenReturn(Optional.of(existing));
-        when(userRepository.save(any()))
-            .thenAnswer(inv -> inv.getArgument(0));
+        User existingUser = userHelper.createModel(1);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Map<String, Object> changes = Map.of(
-            "email", "new@example.com",
-            "phoneNumber", "1112223333"
-        );
-        User result = userService.partialUpdateUser(1L, changes);
+        UserPatchDTO userPatchDTO = new UserPatchDTO();
+        userPatchDTO.setEmail("updated@example.com");
+        userPatchDTO.setPhoneNumber("0987654321");
 
-        assertEquals("new@example.com", result.getEmail());
-        assertEquals("1112223333",      result.getPhoneNumber());
+        User updatedUser = userService.partialUpdateUser(1L, userPatchDTO);
+
+        assertEquals(existingUser.getUsername(), updatedUser.getUsername());
+        assertEquals("updated@example.com", updatedUser.getEmail());
+        assertEquals("0987654321", updatedUser.getPhoneNumber());
+        assertEquals(existingUser.getUsername(), updatedUser.getUsername());
+
         verify(userRepository).findById(1L);
-        verify(userRepository).save(existing);
+        verify(userRepository).save(existingUser);
     }
 
     @Test
-    void deleteById_existing_setsDeletedAt() {
-        User existing = userHelper.createModel(1);
-        when(userRepository.findById(1L))
-            .thenReturn(Optional.of(existing));
-        when(userRepository.save(any()))
-            .thenAnswer(inv -> inv.getArgument(0));
+    void deleteById_existing_deletesUser() {
+        User existingUser = userHelper.createModel(1);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
 
-        User result = userService.deleteById(1L);
+        userService.deleteById(1L);
 
-        assertNotNull(result.getDeletedAt());
-        assertTrue(result.getDeletedAt().isBefore(LocalDateTime.now().plusSeconds(1)));
         verify(userRepository).findById(1L);
-        verify(userRepository).save(existing);
     }
 
     @Test
@@ -190,10 +193,11 @@ class UserServiceTest {
         when(userRepository.findById(4L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(
-            ResourceNotFoundException.class,
-            () -> userService.deleteById(4L)
+                ResourceNotFoundException.class,
+                () -> userService.deleteById(4L)
         );
         assertEquals("User not found with ID: 4", ex.getMessage());
         verify(userRepository).findById(4L);
     }
+
 }

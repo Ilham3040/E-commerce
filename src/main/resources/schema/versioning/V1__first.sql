@@ -5,7 +5,8 @@ CREATE TABLE users (
     phoneNumber VARCHAR(16),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 CREATE TABLE stores (
@@ -14,17 +15,20 @@ CREATE TABLE stores (
     user_id INT NOT NULL REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 CREATE TABLE products (
     id SERIAL PRIMARY KEY,
     product_name VARCHAR(255) NOT NULL,
-    price DECIMAL(10, 2) NOT NULL,
+    price DECIMAL(10, 2) DEFAULT 0,
     store_id INT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+    product_reviews INT DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 CREATE TABLE orders (

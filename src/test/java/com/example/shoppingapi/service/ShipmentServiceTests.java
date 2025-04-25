@@ -1,9 +1,11 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.ShipmentCreateDTO;
+import com.example.shoppingapi.dto.put.ShipmentPutDTO;
+import com.example.shoppingapi.model.Order;
 import com.example.shoppingapi.model.Shipment;
 import com.example.shoppingapi.model.ShipmentId;
-import com.example.shoppingapi.modelhelper.ModelHelper;
-import com.example.shoppingapi.modelhelper.ModelHelperFactory;
+import com.example.shoppingapi.model.ShipmentVendor;
 import com.example.shoppingapi.repository.OrderRepository;
 import com.example.shoppingapi.repository.ShipmentRepository;
 import com.example.shoppingapi.repository.ShipmentVendorRepository;
@@ -14,95 +16,145 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ShipmentServiceTest {
 
-    @Mock private ShipmentRepository       shipmentRepo;
-    @Mock private ShipmentVendorRepository vendorRepo;
-    @Mock private OrderRepository          orderRepo;
-    @InjectMocks private ShipmentService    service;
-
-    private final ModelHelper<Shipment> helper =
-        ModelHelperFactory.getModelHelper(Shipment.class);
+    @Mock
+    private ShipmentRepository       shipmentRepository;
+    @Mock
+    private ShipmentVendorRepository vendorRepository;
+    @Mock
+    private OrderRepository          orderRepository;
+    @InjectMocks
+    private ShipmentService          service;
 
     @Test
     void findAll_returnsAllShipments() {
-        List<Shipment> list = List.of(helper.createModel(1), helper.createModel(2));
-        when(shipmentRepo.findAll()).thenReturn(list);
-
-        assertEquals(list, service.findAll());
-        verify(shipmentRepo).findAll();
-    }
-
-    @Test
-    void findById_found_returnsShipment() {
-        Shipment s = helper.createModel(1);
-        ShipmentId id = s.getId();
-        when(shipmentRepo.findById(id)).thenReturn(Optional.of(s));
-
-        assertEquals(s, service.findById(id));
-        verify(shipmentRepo).findById(id);
-    }
-
-    @Test
-    void findById_notFound_throwsException() {
-        ShipmentId id = ShipmentId.builder().vendorId(9L).orderId(9L).build();
-        when(shipmentRepo.findById(id)).thenReturn(Optional.empty());
-
-        ResourceNotFoundException ex = assertThrows(
-            ResourceNotFoundException.class,
-            () -> service.findById(id)
+        List<Shipment> shipments = Arrays.asList(
+                new Shipment(), new Shipment()
         );
-        assertEquals("Shipment not found with ID: " + id, ex.getMessage());
+        when(shipmentRepository.findAll()).thenReturn(shipments);
+
+        List<Shipment> result = service.findAll();
+
+        assertEquals(shipments, result);
+        verify(shipmentRepository).findAll();
     }
 
     @Test
-    void saveShipment_success_savesAndReturnsShipment() {
-        Shipment s = helper.createModel(1);
-        when(vendorRepo.findById(s.getShipmentVendor().getVendorId()))
-            .thenReturn(Optional.of(s.getShipmentVendor()));
-        when(orderRepo.findById(s.getOrder().getOrderId()))
-            .thenReturn(Optional.of(s.getOrder()));
-        when(shipmentRepo.save(any())).thenReturn(s);
+    void getShipmentById_found_returnsShipment() {
+        ShipmentId shipmentId = new ShipmentId(1L, 2L);
+        Shipment existingShipment = new Shipment();
+        existingShipment.setId(shipmentId);
 
-        assertEquals(s, service.saveShipment(s));
-        verify(shipmentRepo).save(s);
+        when(shipmentRepository.findById(shipmentId))
+                .thenReturn(Optional.of(existingShipment));
+
+        Shipment result = service.getShipmentById(shipmentId);
+
+        assertSame(existingShipment, result);
+        verify(shipmentRepository).findById(shipmentId);
     }
 
     @Test
-    void saveShipment_vendorNotFound_throwsException() {
-        Shipment s = helper.createModel(1);
-        when(vendorRepo.findById(s.getShipmentVendor().getVendorId()))
-            .thenReturn(Optional.empty());
+    void getShipmentById_notFound_throwsResourceNotFound() {
+        ShipmentId missingId = new ShipmentId(5L, 6L);
+        when(shipmentRepository.findById(missingId))
+                .thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(
-            ResourceNotFoundException.class,
-            () -> service.saveShipment(s)
+                ResourceNotFoundException.class,
+                () -> service.getShipmentById(missingId)
+        );
+        assertEquals("Shipment not found with ID: " + missingId, ex.getMessage());
+    }
+
+    @Test
+    void saveShipment_validData_savesAndReturnsShipment() {
+        ShipmentCreateDTO createDTO = new ShipmentCreateDTO();
+        createDTO.setOrderId(10L);
+        createDTO.setVendorId(20L);
+
+        when(vendorRepository.findById(20L))
+                .thenReturn(Optional.of(ShipmentVendor.builder().vendorId(20L).build()));
+        when(orderRepository.findById(10L))
+                .thenReturn(Optional.of(Order.builder().orderId(10L).build()));
+        when(shipmentRepository.save(any(Shipment.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        Shipment result = service.saveShipment(createDTO);
+
+        assertNotNull(result);
+        assertEquals(20L, result.getShipmentVendor().getVendorId());
+        assertEquals(10L, result.getOrder().getOrderId());
+        verify(vendorRepository).findById(20L);
+        verify(orderRepository).findById(10L);
+        verify(shipmentRepository).save(result);
+    }
+
+    @Test
+    void saveShipment_vendorNotFound_throwsResourceNotFound() {
+        ShipmentCreateDTO createDTO = new ShipmentCreateDTO();
+        createDTO.setOrderId(10L);
+        createDTO.setVendorId(20L);
+
+        when(vendorRepository.findById(20L)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> service.saveShipment(createDTO)
         );
         assertEquals("Vendor not found", ex.getMessage());
-        verify(shipmentRepo, never()).save(any());
+        verify(vendorRepository).findById(20L);
+        verifyNoInteractions(orderRepository, shipmentRepository);
     }
 
     @Test
-    void saveShipment_orderNotFound_throwsException() {
-        Shipment s = helper.createModel(1);
-        when(vendorRepo.findById(s.getShipmentVendor().getVendorId()))
-            .thenReturn(Optional.of(s.getShipmentVendor()));
-        when(orderRepo.findById(s.getOrder().getOrderId()))
-            .thenReturn(Optional.empty());
+    void saveShipment_orderNotFound_throwsResourceNotFound() {
+        ShipmentCreateDTO createDTO = new ShipmentCreateDTO();
+        createDTO.setOrderId(10L);
+        createDTO.setVendorId(20L);
+
+        when(vendorRepository.findById(20L))
+                .thenReturn(Optional.of(ShipmentVendor.builder().vendorId(20L).build()));
+        when(orderRepository.findById(10L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(
-            ResourceNotFoundException.class,
-            () -> service.saveShipment(s)
+                ResourceNotFoundException.class,
+                () -> service.saveShipment(createDTO)
         );
         assertEquals("Order not found", ex.getMessage());
-        verify(shipmentRepo, never()).save(any());
+        verify(vendorRepository).findById(20L);
+        verify(orderRepository).findById(10L);
+        verifyNoInteractions(shipmentRepository);
+    }
+
+    @Test
+    void updateShipment_valid_updatesStatus() {
+        ShipmentId shipmentId = new ShipmentId(3L, 4L);
+        Shipment existing = new Shipment();
+        existing.setId(shipmentId);
+        existing.setShipmentStatus(1);
+
+        ShipmentPutDTO putDTO = new ShipmentPutDTO();
+        putDTO.setShipmentStatus(7);
+
+        when(shipmentRepository.findById(shipmentId))
+                .thenReturn(Optional.of(existing));
+        when(shipmentRepository.save(existing))
+                .thenReturn(existing);
+
+        Shipment updated = service.updateShipment(shipmentId, putDTO);
+
+        assertEquals(7, updated.getShipmentStatus());
+        verify(shipmentRepository).findById(shipmentId);
+        verify(shipmentRepository).save(existing);
     }
 }
