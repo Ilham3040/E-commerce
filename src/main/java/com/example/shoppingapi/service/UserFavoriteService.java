@@ -1,8 +1,7 @@
 package com.example.shoppingapi.service;
 
-import com.example.shoppingapi.model.Product;
-import com.example.shoppingapi.model.UserFavorite;
-import com.example.shoppingapi.model.UserFavoriteId;
+import com.example.shoppingapi.dto.create.UserFavoriteCreateDTO;
+import com.example.shoppingapi.model.*;
 import com.example.shoppingapi.repository.UserFavoriteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -27,7 +26,13 @@ public class UserFavoriteService {
                         new ResourceNotFoundException("UserFavorite not found with ID: " + id));
     }
 
-    public UserFavorite addingUserFavorite(UserFavorite userFavorite) {
+    public UserFavorite addingUserFavorite(UserFavoriteCreateDTO userFavoriteCreateDTO) {
+
+        UserFavorite userFavorite = UserFavorite.builder()
+                .user(User.builder().userId(userFavoriteCreateDTO.getUserId()).build())
+                .product(Product.builder().productId(userFavoriteCreateDTO.getProductId()).build())
+                .build();
+
         return userFavoriteRepository.save(userFavorite);
     }
 

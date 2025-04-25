@@ -1,6 +1,8 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.UserCartCreateDTO;
 import com.example.shoppingapi.model.Product;
+import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.model.UserCart;
 import com.example.shoppingapi.model.UserCartId;
 import com.example.shoppingapi.repository.UserCartRepository;
@@ -26,7 +28,12 @@ public class UserCartService {
                 new ResourceNotFoundException("UserCart not found with ID: " + id));
     }
 
-    public UserCart addingUserCart(UserCart userCart) {
+    public UserCart addingUserCart(UserCartCreateDTO userCartCreateDTO) {
+        UserCart userCart = UserCart.builder()
+                .user(User.builder().userId(userCartCreateDTO.getUserId()).build())
+                .product(Product.builder().productId(userCartCreateDTO.getProductId()).build())
+                .build();
+
         return userCartRepository.save(userCart);
     }
 

@@ -80,7 +80,7 @@ public class StoreCategoryService {
     }
 
     // Delete method for StoreCategoryService
-    public void deleteStoreCategoryById(Long id) {
+    public void deleteById(Long id) {
         StoreCategory storeCategory = getStoreCategoryById(id);
         storeCategoryRepository.delete(storeCategory);
     }

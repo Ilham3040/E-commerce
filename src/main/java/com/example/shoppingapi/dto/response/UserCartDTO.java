@@ -6,7 +6,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class UserCartDTO {
-    private Long cartId;
     private Long userId;
     private Long productId;
 
