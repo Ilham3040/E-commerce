@@ -39,6 +39,7 @@ public class StoreController {
         return new ApiResponse<>("Fetched store", new StoreDTO(store.getStoreId(), store.getUser().getUserId()), HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ApiResponse<StoreDTO> createStore(@Validated @RequestBody StoreCreateDTO storeCreateDTO) {
         Store createdStore = storeService.saveStore(storeCreateDTO);
@@ -57,6 +58,7 @@ public class StoreController {
         return new ApiResponse<>("Store partially updated", new StoreDTO(updatedStore.getStoreId(), updatedStore.getUser().getUserId()), HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteStore(@PathVariable Long id) {
         storeService.deleteById(id);

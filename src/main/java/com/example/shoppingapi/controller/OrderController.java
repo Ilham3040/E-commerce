@@ -41,6 +41,7 @@ public class OrderController {
         return new ApiResponse<>("Fetched order", new OrderDTO(order.getOrderId(), order.getUser().getUserId(), order.getProduct().getProductId()), HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ApiResponse<OrderDTO> createOrder(@Validated @RequestBody OrderCreateDTO orderCreateDTO) {
         Order createdOrder = orderService.saveOrder(orderCreateDTO);

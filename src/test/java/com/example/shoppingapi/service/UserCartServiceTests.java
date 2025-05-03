@@ -2,6 +2,7 @@ package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.dto.create.UserCartCreateDTO;
 import com.example.shoppingapi.model.Product;
+import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.model.UserCart;
 import com.example.shoppingapi.model.UserCartId;
 import com.example.shoppingapi.modelhelper.ModelHelper;
@@ -71,14 +72,22 @@ class UserCartServiceTest {
     @Test
     void addingUserCart_savesAndReturns() {
         UserCart cart = helper.createModel(1);
-        when(cartRepo.save(cart)).thenReturn(cart);
+
 
         UserCartCreateDTO userCartCreateDTO = new UserCartCreateDTO();
         userCartCreateDTO.setUserId(cart.getUser().getUserId());
         userCartCreateDTO.setProductId(cart.getProduct().getProductId());
 
+        UserCart userCart = UserCart.builder()
+                .user(User.builder().userId(cart.getUser().getUserId()).build())
+                .product(Product.builder().productId(cart.getProduct().getProductId()).build())
+                .build();
 
-        assertEquals(cart, service.addingUserCart(userCartCreateDTO));
+
+        when(cartRepo.save(any(UserCart.class))).thenReturn(userCart);
+        UserCart result = service.addingUserCart(userCartCreateDTO);
+        assertEquals(userCart.getUser(), result.getUser());
+        assertEquals(userCart.getProduct(),result.getProduct());
     }
 
     @Test

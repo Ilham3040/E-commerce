@@ -131,7 +131,7 @@ class StoreCategoryServiceTest {
 
         when(storeCategoryRepository.findById(1L)).thenReturn(Optional.of(storeCategory));
 
-        storeCategoryService.deleteStoreCategoryById(1L);
+        storeCategoryService.deleteById(1L);
 
         verify(storeCategoryRepository).delete(storeCategory);
     }
@@ -142,7 +142,7 @@ class StoreCategoryServiceTest {
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> storeCategoryService.deleteStoreCategoryById(1L)
+                () -> storeCategoryService.deleteById(1L)
         );
 
         assertEquals("StoreCategory not found with ID: 1", exception.getMessage());

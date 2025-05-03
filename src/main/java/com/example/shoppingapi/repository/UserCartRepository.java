@@ -13,8 +13,9 @@ import java.util.List;
 
 @Repository
 public interface UserCartRepository extends JpaRepository<UserCart, UserCartId> {
-    @Query("SELECT p FROM Product p JOIN UserCart uc ON p.productId = uc.productId WHERE uc.userId = :userId")
+    @Query(value = "SELECT p.* FROM Product p INNER JOIN UserCart uc ON p.product_id = uc.product_id WHERE uc.user_id = :userId", nativeQuery = true)
     List<Product> findProductsByUserId(@Param("userId") Long userId);
+
     List<UserCart> findByIdProductId(Long productId);
     List<UserCart> findByIdUserId(Long userId);
 }

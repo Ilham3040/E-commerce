@@ -12,6 +12,6 @@ import java.util.Optional;
 public interface StoreRepository extends JpaRepository<Store, Long> {
     Store findByStoreName(String storeName);
 
-    @Query("SELECT s FROM Store s WHERE s.id = :id AND s.isDeleted = true")
+    @Query(value = "SELECT s FROM Store s WHERE s.id = :id AND s.isDeleted = true",nativeQuery = true)
     Optional<Store> findSoftDeletedById(Long id);
 }

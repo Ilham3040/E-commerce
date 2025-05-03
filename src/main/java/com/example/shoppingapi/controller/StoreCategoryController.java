@@ -1,7 +1,6 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.dto.create.StoreCategoryCreateDTO;
-import com.example.shoppingapi.dto.request.StoreCategoryCreateDTO;
 import com.example.shoppingapi.dto.put.StoreCategoryPutDTO;
 import com.example.shoppingapi.dto.patch.StoreCategoryPatchDTO;
 import com.example.shoppingapi.dto.response.ApiResponse;
@@ -40,6 +39,7 @@ public class StoreCategoryController {
         return new ApiResponse<>("Successfully fetched store category", new StoreCategoryDTO(storeCategory.getCategoryId(), storeCategory.getStore().getStoreId()), HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ApiResponse<StoreCategoryDTO> createStoreCategory(@Validated @RequestBody StoreCategoryCreateDTO storeCategoryCreateDTO) {
         StoreCategory createdStoreCategory = storeCategoryService.saveStoreCategory(storeCategoryCreateDTO);
@@ -58,6 +58,7 @@ public class StoreCategoryController {
         return new ApiResponse<>("Successfully partially updated store category", new StoreCategoryDTO(updatedStoreCategory.getCategoryId(), updatedStoreCategory.getStore().getStoreId()), HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteStoreCategory(@PathVariable Long id) {
         storeCategoryService.deleteById(id);
