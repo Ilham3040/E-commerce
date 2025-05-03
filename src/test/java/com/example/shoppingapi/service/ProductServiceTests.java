@@ -82,7 +82,6 @@ class ProductServiceTest {
         when(storeRepository.findById(1L)).thenReturn(Optional.empty());
         ProductCreateDTO productCreateDTO = new ProductCreateDTO();
 
-        productCreateDTO.setPrice(product.getPrice());
         productCreateDTO.setProductName(product.getProductName());
         productCreateDTO.setStoreId(product.getStore().getStoreId());
 
@@ -103,12 +102,10 @@ class ProductServiceTest {
 
         ProductCreateDTO productCreateDTO = new ProductCreateDTO();
         productCreateDTO.setProductName(toSave.getProductName());
-        productCreateDTO.setPrice(toSave.getPrice());
         productCreateDTO.setStoreId(toSave.getStore().getStoreId());
 
         Product createProduct = Product.builder()
                 .productName(productCreateDTO.getProductName())
-                .price(productCreateDTO.getPrice())
                 .store(Store.builder().storeId(productCreateDTO.getStoreId()).build())
                 .build();
 
@@ -121,11 +118,9 @@ class ProductServiceTest {
 
     @Test
     void updateProduct_notFound_throwsException() {
-
         Product toUpdate = helper.createModel(1);
         ProductPutDTO productPutDTO = new ProductPutDTO();
         productPutDTO.setProductName(toUpdate.getProductName());
-        productPutDTO.setPrice(toUpdate.getPrice());
         when(productRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(
@@ -139,11 +134,9 @@ class ProductServiceTest {
 
     @Test
     void updateProduct_success_savesUpdatedProduct() {
-
         Product original = helper.createModel(1);
         ProductPutDTO productPutDTO = new ProductPutDTO();
         productPutDTO.setProductName("Never gonna give you up");
-        productPutDTO.setPrice(original.getPrice());
 
         when(productRepository.findById(1L)).thenReturn(Optional.of(original));
         when(productRepository.save(any())).thenAnswer(i -> i.getArgument(0));
@@ -151,14 +144,12 @@ class ProductServiceTest {
         Product result = productService.updateProduct(1L, productPutDTO);
 
         assertEquals(productPutDTO.getProductName(), result.getProductName());
-        assertEquals(productPutDTO.getPrice(), result.getPrice());
         verify(productRepository).findById(1L);
         verify(productRepository).save(original);
     }
 
     @Test
     void partialUpdateProduct_existing_appliesUpdates() {
-
         Product original = helper.createModel(1);
         ProductPatchDTO productPatchDTO = new ProductPatchDTO();
         productPatchDTO.setProductName("Never gonna give you up");

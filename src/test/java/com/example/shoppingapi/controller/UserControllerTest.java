@@ -1,6 +1,7 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.DotenvLoader;
+import com.example.shoppingapi.EntityCreationHelper;
 import com.example.shoppingapi.dto.create.UserCreateDTO;
 import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.modelhelper.ModelHelper;
@@ -39,21 +40,16 @@ public class UserControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private EntityCreationHelper entityCreationHelper;
+
+
     @BeforeAll
     public static void setUp() {
         DotenvLoader.load();
     }
 
     private final ModelHelper<User> helper = ModelHelperFactory.getModelHelper(User.class);
-
-    private User createUser() throws Exception {
-        User newuser = helper.createModel(1);
-        UserCreateDTO userCreateDTO = new UserCreateDTO();
-        userCreateDTO.setUsername(newuser.getUsername());
-        userCreateDTO.setEmail(newuser.getEmail());
-        userCreateDTO.setPhoneNumber(newuser.getPhoneNumber());
-        return userService.createUser(userCreateDTO);
-    }
 
     private String createUserJson(String username, String email, String phoneNumber) {
         return String.format("{ \"username\": \"%s\", \"email\": \"%s\", \"phoneNumber\": \"%s\" }",
@@ -74,7 +70,6 @@ public class UserControllerTest {
     public void testCreateUser() throws Exception {
         String jsonContent = createUserJson("testuser", "testuser@example.com", "1234567890");
 
-        // Perform the POST request to create the user
         String responseContent = mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
@@ -82,13 +77,10 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.message").value("Successfully created user"))
                 .andReturn().getResponse().getContentAsString();
 
-        // Extract the created user's ID from the response
         Integer createdUserIdInteger = JsonPath.parse(responseContent).read("$.data.userId");
 
-        // Convert the Integer to Long
         Long createdUserId = Long.valueOf(createdUserIdInteger.toString());
 
-        // Retrieve and validate the created user using the ID from the response
         User createdUser = userService.getUserById(createdUserId);
         assertEquals("testuser", createdUser.getUsername());
     }
@@ -96,7 +88,7 @@ public class UserControllerTest {
 
     @Test
     public void testGetAllUsers() throws Exception {
-        User createdUser = createUser();
+        User createdUser = entityCreationHelper.createUser();
 
         mockMvc.perform(get("/api/users"))
                 .andExpect(status().isOk())
@@ -106,7 +98,7 @@ public class UserControllerTest {
 
     @Test
     public void testGetUserById() throws Exception {
-        User createdUser = createUser();
+        User createdUser = entityCreationHelper.createUser();
 
         assertUserResponse(createdUser.getUserId(), createdUser.getUsername(),
                 createdUser.getEmail(), createdUser.getPhoneNumber());
@@ -114,7 +106,7 @@ public class UserControllerTest {
 
     @Test
     public void testUpdateUser() throws Exception {
-        User createdUser = createUser();
+        User createdUser = entityCreationHelper.createUser();
 
         String jsonContent = createUserJson("updateduser", "updateduser@example.com", "0987654321");
 
@@ -130,7 +122,7 @@ public class UserControllerTest {
 
     @Test
     public void testPartialUpdateUser() throws Exception {
-        User createdUser = createUser();
+        User createdUser = entityCreationHelper.createUser();
 
         String jsonContent = "{ \"email\": \"newemail@example.com\" }";
 
@@ -147,7 +139,7 @@ public class UserControllerTest {
 
     @Test
     public void testDeleteUser() throws Exception {
-        User createdUser = createUser();
+        User createdUser = entityCreationHelper.createUser();
 
         mockMvc.perform(delete("/api/users/{id}", createdUser.getUserId()))
                 .andExpect(status().isNoContent())

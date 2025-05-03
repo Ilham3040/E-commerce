@@ -1,6 +1,7 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.DotenvLoader;
+import com.example.shoppingapi.EntityCreationHelper;
 import com.example.shoppingapi.dto.create.StoreCreateDTO;
 import com.example.shoppingapi.dto.create.StoreDetailCreateDTO;
 import com.example.shoppingapi.dto.create.UserCreateDTO;
@@ -66,35 +67,12 @@ public class StoreDetailControllerTest {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private EntityCreationHelper entityCreationHelper;
+
     @BeforeAll
     public static void setUp() {
         DotenvLoader.load();
-    }
-
-    private User createUser() throws Exception {
-        UserCreateDTO userCreateDTO = new UserCreateDTO();
-        userCreateDTO.setUsername("testuser");
-        userCreateDTO.setEmail("testuser" + System.currentTimeMillis() + "@example.com"); // Use a unique email
-        userCreateDTO.setPhoneNumber("1234567890");
-        return userService.createUser(userCreateDTO);
-    }
-
-    // Create a new StoreCreateDTO and associate it with an existing user
-    private Store createStore(User user) throws Exception {
-        StoreCreateDTO storeCreateDTO = new StoreCreateDTO();
-        storeCreateDTO.setStoreName("Test Store");
-        storeCreateDTO.setUserId(user.getUserId());
-
-        // Save the store
-        return storeService.saveStore(storeCreateDTO);
-    }
-
-    private StoreDetailCreateDTO createStoreDetailCreateDTO(Store store) {
-        StoreDetailCreateDTO storeDetailCreateDTO = new StoreDetailCreateDTO();
-        storeDetailCreateDTO.setStoreId(store.getStoreId());
-        storeDetailCreateDTO.setAddress("Test Address");
-        storeDetailCreateDTO.setDescription("Test Description");
-        return storeDetailCreateDTO;
     }
 
     private StoreDetailPutDTO createStoreDetailPutDTO() {
@@ -117,12 +95,9 @@ public class StoreDetailControllerTest {
 
     @Test
     public void testCreateStoreDetail() throws Exception {
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-
-        StoreDetailCreateDTO storeDetailCreateDTO = createStoreDetailCreateDTO(createdStore);
-
-        String jsonContent = createStoreDetailJson(storeDetailCreateDTO.getStoreId(), storeDetailCreateDTO.getAddress(), storeDetailCreateDTO.getDescription());
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        String jsonContent = createStoreDetailJson(createdStore.getStoreId(), "New Address", "New Desc");
 
         String responseContent = mockMvc.perform(post("/api/storesdetail")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -131,20 +106,16 @@ public class StoreDetailControllerTest {
                 .andExpect(jsonPath("$.message").value("Successfully created store detail"))
                 .andReturn().getResponse().getContentAsString();
 
-        Integer createdStoreDetailIdInteger = JsonPath.parse(responseContent).read("$.data.storeDetailId");
-        Long createdStoreDetailId = Long.valueOf(createdStoreDetailIdInteger.toString());
-
         StoreDetail createdStoreDetail = storeDetailService.getStoreDetailByStoreId(createdStore.getStoreId());
-        assertEquals(storeDetailCreateDTO.getAddress(), createdStoreDetail.getAddress());
-        assertEquals(storeDetailCreateDTO.getDescription(), createdStoreDetail.getDescription());
+        assertEquals("New Address", createdStoreDetail.getAddress());
+        assertEquals("New Desc", createdStoreDetail.getDescription());
     }
 
     @Test
     public void testGetAllStoreDetails() throws Exception {
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        StoreDetailCreateDTO storeDetailCreateDTO = createStoreDetailCreateDTO(createdStore);
-        storeDetailService.saveStoreDetail(storeDetailCreateDTO);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        entityCreationHelper.createStoreDetail(createdStore);
 
         mockMvc.perform(get("/api/storesdetail"))
                 .andExpect(status().isOk())
@@ -154,10 +125,9 @@ public class StoreDetailControllerTest {
 
     @Test
     public void testGetStoreDetailById() throws Exception {
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        StoreDetailCreateDTO storeDetailCreateDTO = createStoreDetailCreateDTO(createdStore);
-        StoreDetail createdStoreDetail = storeDetailService.saveStoreDetail(storeDetailCreateDTO);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        StoreDetail createdStoreDetail = entityCreationHelper.createStoreDetail(createdStore);
 
         mockMvc.perform(get("/api/storesdetail/{id}", createdStore.getStoreId()))
                 .andExpect(status().isOk())
@@ -170,24 +140,18 @@ public class StoreDetailControllerTest {
 
     @Test
     public void testUpdateStoreDetail() throws Exception {
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        StoreDetailCreateDTO storeDetailCreateDTO = createStoreDetailCreateDTO(createdStore);
-        StoreDetail createdStoreDetail = storeDetailService.saveStoreDetail(storeDetailCreateDTO);
-
-        StoreDetailPutDTO storeDetailPutDTO = createStoreDetailPutDTO();
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        StoreDetail createdStoreDetail = entityCreationHelper.createStoreDetail(createdStore);
 
         String jsonContent = createStoreDetailJson(createdStore.getStoreId(), "Yugo Road no.22-24", "Updated desc");
 
-        String responseContent = mockMvc.perform(put("/api/storesdetail/{id}", createdStoreDetail.getStore().getStoreId())
+        mockMvc.perform(put("/api/storesdetail/{id}", createdStoreDetail.getStore().getStoreId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.message").value("Successfully updated store detail"))
-                        .andReturn().getResponse().getContentAsString();
+                        .andExpect(jsonPath("$.message").value("Successfully updated store detail"));
 
-        Integer createdStoreDetailIdInteger = JsonPath.parse(responseContent).read("$.data.storeId");
-        Long createdStoreDetailId = Long.valueOf(createdStoreDetailIdInteger.toString());
         mockMvc.perform(get("/api/storesdetail/{id}", createdStore.getStoreId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched store detail"))
@@ -201,26 +165,19 @@ public class StoreDetailControllerTest {
 
     @Test
     public void testPartialUpdateStoreDetail() throws Exception {
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        StoreDetailCreateDTO storeDetailCreateDTO = createStoreDetailCreateDTO(createdStore);
-        StoreDetail createdStoreDetail = storeDetailService.saveStoreDetail(storeDetailCreateDTO);
-
-        StoreDetailPatchDTO storeDetailPatchDTO = createStoreDetailPatchDTO();
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        StoreDetail createdStoreDetail = entityCreationHelper.createStoreDetail(createdStore);
 
         String jsonContent = "{ \"description\": \"Updated desc\" }";
 
-        String responseContent = mockMvc.perform(patch("/api/storesdetail/{id}", createdStore.getStoreId())
+        mockMvc.perform(patch("/api/storesdetail/{id}", createdStore.getStoreId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Successfully updated store detail"))
-                .andReturn().getResponse().getContentAsString();
+                .andExpect(jsonPath("$.message").value("Successfully updated store detail"));
 
-
-        Integer createdStoreDetailIdInteger = JsonPath.parse(responseContent).read("$.data.storeId");
-        Long createdStoreDetailId = Long.valueOf(createdStoreDetailIdInteger.toString());
-        mockMvc.perform(get("/api/storesdetail/{id}", createdStoreDetailId))
+        mockMvc.perform(get("/api/storesdetail/{id}", createdStore.getStoreId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched store detail"))
                 .andExpect(jsonPath("$.data.storeDetailId").value(createdStoreDetail.getStoreDetailId()))
@@ -231,10 +188,9 @@ public class StoreDetailControllerTest {
     }
     @Test
     public void testDeleteStoreDetail() throws Exception {
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        StoreDetailCreateDTO storeDetailCreateDTO = createStoreDetailCreateDTO(createdStore);
-        StoreDetail createdStoreDetail = storeDetailService.saveStoreDetail(storeDetailCreateDTO);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        StoreDetail createdStoreDetail = entityCreationHelper.createStoreDetail(createdStore);
 
         mockMvc.perform(delete("/api/storesdetail/{id}", createdStore.getStoreId()))
                 .andExpect(status().isNoContent())

@@ -1,6 +1,7 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.DotenvLoader;
+import com.example.shoppingapi.EntityCreationHelper;
 import com.example.shoppingapi.dto.create.ProductCreateDTO;
 import com.example.shoppingapi.dto.create.StoreCreateDTO;
 import com.example.shoppingapi.dto.create.UserCreateDTO;
@@ -61,55 +62,16 @@ public class ProductControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private EntityCreationHelper entityCreationHelper;
+
     @BeforeAll
     public static void setUp() {
         DotenvLoader.load();
     }
 
-    // Create a new User for each test
-    private User createUser() throws Exception {
-        UserCreateDTO userCreateDTO = new UserCreateDTO();
-        userCreateDTO.setUsername("testuser");
-        userCreateDTO.setEmail("testuser" + System.currentTimeMillis() + "@example.com"); // Use a unique email
-        userCreateDTO.setPhoneNumber("1234567890");
-        return userService.createUser(userCreateDTO);
-    }
-
-
-    // Create a new StoreCreateDTO and associate it with an existing user
-    private Store createStore(User user) throws Exception {
-        StoreCreateDTO storeCreateDTO = new StoreCreateDTO();
-        storeCreateDTO.setStoreName("Test Store");
-        storeCreateDTO.setUserId(user.getUserId());
-
-        // Save the store
-        return storeService.saveStore(storeCreateDTO);
-    }
-
-    // Create a ProductCreateDTO linked to the store's ID
-    private ProductCreateDTO createProductCreateDTO(Store store) {
-        ProductCreateDTO productCreateDTO = new ProductCreateDTO();
-        productCreateDTO.setProductName("Test Product");
-        productCreateDTO.setPrice(new BigDecimal("9.99"));
-        productCreateDTO.setStoreId(store.getStoreId());
-        return productCreateDTO;
-    }
-
-    private ProductPutDTO createProductPutDTO() {
-        ProductPutDTO productPutDTO = new ProductPutDTO();
-        productPutDTO.setProductName("Updated Product");
-        productPutDTO.setPrice(new BigDecimal("12.99"));
-        return productPutDTO;
-    }
-
-    private ProductPatchDTO createProductPatchDTO() {
-        ProductPatchDTO productPatchDTO = new ProductPatchDTO();
-        productPatchDTO.setProductName("Partially Updated Product");
-        return productPatchDTO;
-    }
-
-    private String createProductJson(String productName, Long storeId, BigDecimal price) {
-        return String.format("{ \"productName\": \"%s\", \"storeId\": %d, \"price\": %s }", productName, storeId, price);
+    private String createProductJson(String productName, Long storeId) {
+        return String.format("{ \"productName\": \"%s\", \"storeId\": %d }", productName, storeId);
     }
 
     private void assertProductResponse(Long productId, String productName, Long storeId) throws Exception {
@@ -122,16 +84,11 @@ public class ProductControllerTest {
 
     @Test
     public void testCreateProduct() throws Exception {
-        // Create a user and store
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
 
-        // Create ProductCreateDTO with the newly created store
-        ProductCreateDTO productCreateDTO = createProductCreateDTO(createdStore);
+        String jsonContent = createProductJson("New product", createdStore.getStoreId());
 
-        String jsonContent = createProductJson(productCreateDTO.getProductName(), productCreateDTO.getStoreId(), productCreateDTO.getPrice());
-
-        // Perform the POST request to create the product
         String responseContent = mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
@@ -139,52 +96,42 @@ public class ProductControllerTest {
                 .andExpect(jsonPath("$.message").value("Product created"))
                 .andReturn().getResponse().getContentAsString();
 
-        // Extract the created product's ID from the response
         Integer createdProductIdInteger = JsonPath.parse(responseContent).read("$.data.productId");
 
         Long createdProductId = Long.valueOf(createdProductIdInteger.toString());
 
         Product createdProduct = productService.getProductById(createdProductId);
-        assertEquals(productCreateDTO.getProductName(), createdProduct.getProductName());
+        assertEquals("New product", createdProduct.getProductName());
     }
 
     @Test
     public void testGetAllProducts() throws Exception {
-        // Create a user, store, and product
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        ProductCreateDTO productCreateDTO = createProductCreateDTO(createdStore);
-        Product savedProduct = productService.saveProduct(productCreateDTO);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        Product createdProduct = entityCreationHelper.createProduct(createdStore);
 
         mockMvc.perform(get("/api/products"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Fetched all products"))
-                .andExpect(jsonPath("$.data[0].productId").value(savedProduct.getProductId()));
+                .andExpect(jsonPath("$.data[0].productId").value(createdProduct.getProductId()));
     }
 
     @Test
     public void testGetProductById() throws Exception {
-        // Create a store and product for testing
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        ProductCreateDTO productCreateDTO = createProductCreateDTO(createdStore);
-        Product createdProduct = productService.saveProduct(productCreateDTO);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        Product createdProduct = entityCreationHelper.createProduct(createdStore);
 
-        assertProductResponse(createdProduct.getProductId(), productCreateDTO.getProductName(), productCreateDTO.getStoreId());
+        assertProductResponse(createdProduct.getProductId(), createdProduct.getProductName(), createdProduct.getStore().getStoreId());
     }
 
     @Test
     public void testUpdateProduct() throws Exception {
-        // Create a product for testing
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        ProductCreateDTO productCreateDTO = createProductCreateDTO(createdStore);
-        Product createdProduct = productService.saveProduct(productCreateDTO);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        Product createdProduct = entityCreationHelper.createProduct(createdStore);
 
-        // Use helper method to create a ProductPutDTO
-        ProductPutDTO productPutDTO = createProductPutDTO();
-
-        String jsonContent = createProductJson(productPutDTO.getProductName(), createdProduct.getStore().getStoreId(), productPutDTO.getPrice());
+        String jsonContent = createProductJson("Updated Product", createdProduct.getStore().getStoreId());
 
         mockMvc.perform(put("/api/products/{id}", createdProduct.getProductId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -197,16 +144,11 @@ public class ProductControllerTest {
 
     @Test
     public void testPartialUpdateProduct() throws Exception {
-        // Create product for testing
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        ProductCreateDTO productCreateDTO = createProductCreateDTO(createdStore);
-        Product createdProduct = productService.saveProduct(productCreateDTO);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        Product createdProduct = entityCreationHelper.createProduct(createdStore);
 
-        // Use helper method to create ProductPatchDTO
-        ProductPatchDTO productPatchDTO = createProductPatchDTO();
-
-        String jsonContent = "{ \"productName\": \"" + productPatchDTO.getProductName() + "\" }";
+        String jsonContent = "{ \"productName\": \"Partially Updated Product\" }";
 
         mockMvc.perform(patch("/api/products/{id}", createdProduct.getProductId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -219,11 +161,9 @@ public class ProductControllerTest {
 
     @Test
     public void testDeleteProduct() throws Exception {
-        // Create product for testing
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        ProductCreateDTO productCreateDTO = createProductCreateDTO(createdStore);
-        Product createdProduct = productService.saveProduct(productCreateDTO);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        Product createdProduct = entityCreationHelper.createProduct(createdStore);
 
         mockMvc.perform(delete("/api/products/{id}", createdProduct.getProductId()))
                 .andExpect(status().isNoContent())

@@ -1,10 +1,8 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.DotenvLoader;
+import com.example.shoppingapi.EntityCreationHelper;
 import com.example.shoppingapi.dto.create.OrderCreateDTO;
-import com.example.shoppingapi.dto.create.ProductCreateDTO;
-import com.example.shoppingapi.dto.create.StoreCreateDTO;
-import com.example.shoppingapi.dto.create.UserCreateDTO;
 import com.example.shoppingapi.dto.put.OrderPutDTO;
 import com.example.shoppingapi.dto.patch.OrderPatchDTO;
 import com.example.shoppingapi.model.Order;
@@ -30,10 +28,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -71,57 +67,12 @@ public class OrderControllerTest {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private EntityCreationHelper entityCreationHelper;
+
     @BeforeAll
     public static void setUp() {
         DotenvLoader.load();
-    }
-
-    private User createUser() throws Exception {
-        UserCreateDTO userCreateDTO = new UserCreateDTO();
-        userCreateDTO.setUsername("testuser");
-        userCreateDTO.setEmail("testuser" + System.currentTimeMillis() + "@example.com"); // Use a unique email
-        userCreateDTO.setPhoneNumber("1234567890");
-        return userService.createUser(userCreateDTO);
-    }
-
-
-    // Create a new StoreCreateDTO and associate it with an existing user
-    private Store createStore(User user) throws Exception {
-        StoreCreateDTO storeCreateDTO = new StoreCreateDTO();
-        storeCreateDTO.setStoreName("Test Store");
-        storeCreateDTO.setUserId(user.getUserId());
-
-        // Save the store
-        return storeService.saveStore(storeCreateDTO);
-    }
-    // Create a ProductCreateDTO linked to the store's ID
-    private Product createProduct(Store store) {
-        ProductCreateDTO productCreateDTO = new ProductCreateDTO();
-        productCreateDTO.setProductName("Test Product");
-        productCreateDTO.setPrice(new BigDecimal("9.99"));
-        productCreateDTO.setStoreId(store.getStoreId());
-        return productService.saveProduct(productCreateDTO);
-    }
-
-    // Create a new OrderCreateDTO linked to the created User and Product
-    private OrderCreateDTO createOrderCreateDTO(User user, Product product) {
-        OrderCreateDTO orderCreateDTO = new OrderCreateDTO();
-        orderCreateDTO.setUserId(user.getUserId());
-        orderCreateDTO.setProductId(product.getProductId());
-        orderCreateDTO.setStatus("pending");
-        return orderCreateDTO;
-    }
-
-    private OrderPutDTO createOrderPutDTO() {
-        OrderPutDTO orderPutDTO = new OrderPutDTO();
-        orderPutDTO.setStatus("completed");
-        return orderPutDTO;
-    }
-
-    private OrderPatchDTO createOrderPatchDTO() {
-        OrderPatchDTO orderPatchDTO = new OrderPatchDTO();
-        orderPatchDTO.setStatus("canceled");
-        return orderPatchDTO;
     }
 
     private String createOrderJson(Long userId, Long productId, String status) {
@@ -140,17 +91,13 @@ public class OrderControllerTest {
 
     @Test
     public void testCreateOrder() throws Exception {
-        // Create a user, store, and product
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        Product createdProduct = createProduct(createdStore);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        Product createdProduct = entityCreationHelper.createProduct(createdStore);
 
-        // Create OrderCreateDTO with the newly created user and product
-        OrderCreateDTO orderCreateDTO = createOrderCreateDTO(createdUser, createdProduct);
 
-        String jsonContent = createOrderJson(orderCreateDTO.getUserId(), orderCreateDTO.getProductId(), orderCreateDTO.getStatus());
+        String jsonContent = createOrderJson(createdUser.getUserId(), createdProduct.getProductId(), "pending");
 
-        // Perform the POST request to create the order
         String responseContent = mockMvc.perform(post("/api/orders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
@@ -158,52 +105,46 @@ public class OrderControllerTest {
                 .andExpect(jsonPath("$.message").value("Order created"))
                 .andReturn().getResponse().getContentAsString();
 
-        // Extract the created order's ID from the response
         Integer createdOrderIdInteger = JsonPath.parse(responseContent).read("$.data.orderId");
         Long createdOrderId = Long.valueOf(createdOrderIdInteger.toString());
 
         Order createdOrder = orderService.getOrderById(createdOrderId);
-        assertEquals(orderCreateDTO.getStatus(), createdOrder.getStatus());
+        assertEquals("pending", createdOrder.getStatus());
+        assertEquals(createdUser.getUserId(), createdOrder.getUser().getUserId());
+        assertEquals(createdProduct.getProductId(), createdOrder.getProduct().getProductId());
     }
 
     @Test
     public void testGetAllOrders() throws Exception {
-        // Create a user, store, and product
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        Product createdProduct = createProduct(createdStore);
-        OrderCreateDTO orderCreateDTO = createOrderCreateDTO(createdUser, createdProduct);
-        Order savedOrder = orderService.saveOrder(orderCreateDTO);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        Product createdProduct = entityCreationHelper.createProduct(createdStore);
+        Order createdOrder = entityCreationHelper.createOrder(createdUser,createdProduct);
 
         mockMvc.perform(get("/api/orders"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Fetched all orders"))
-                .andExpect(jsonPath("$.data[0].orderId").value(savedOrder.getOrderId()));
+                .andExpect(jsonPath("$.data[0].orderId").value(createdOrder.getOrderId()));
     }
 
     @Test
     public void testGetOrderById() throws Exception {
-        // Create a user, store, product, and order
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        Product createdProduct = createProduct(createdStore);
-        OrderCreateDTO orderCreateDTO = createOrderCreateDTO(createdUser, createdProduct);
-        Order createdOrder = orderService.saveOrder(orderCreateDTO);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        Product createdProduct = entityCreationHelper.createProduct(createdStore);
+        Order createdOrder = entityCreationHelper.createOrder(createdUser,createdProduct);
 
-        assertOrderResponse(createdOrder.getOrderId(), orderCreateDTO.getStatus(), createdUser.getUserId(), createdProduct.getProductId());
+        assertOrderResponse(createdOrder.getOrderId(), createdOrder.getStatus(), createdUser.getUserId(), createdProduct.getProductId());
     }
 
     @Test
     public void testUpdateOrder() throws Exception {
-        // Create a user, store, product, and order
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        Product createdProduct = createProduct(createdStore);
-        OrderCreateDTO orderCreateDTO = createOrderCreateDTO(createdUser, createdProduct);
-        Order createdOrder = orderService.saveOrder(orderCreateDTO);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        Product createdProduct = entityCreationHelper.createProduct(createdStore);
+        Order createdOrder = entityCreationHelper.createOrder(createdUser,createdProduct);
 
-        OrderPutDTO orderPutDTO = createOrderPutDTO();
-        String jsonContent = createOrderJson(createdOrder.getUser().getUserId(), createdOrder.getProduct().getProductId(), orderPutDTO.getStatus());
+        String jsonContent = createOrderJson(createdOrder.getUser().getUserId(), createdOrder.getProduct().getProductId(), "completed");
 
         mockMvc.perform(put("/api/orders/{id}", createdOrder.getOrderId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -216,15 +157,12 @@ public class OrderControllerTest {
 
     @Test
     public void testPartialUpdateOrder() throws Exception {
-        // Create a user, store, product, and order
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        Product createdProduct = createProduct(createdStore);
-        OrderCreateDTO orderCreateDTO = createOrderCreateDTO(createdUser, createdProduct);
-        Order createdOrder = orderService.saveOrder(orderCreateDTO);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        Product createdProduct = entityCreationHelper.createProduct(createdStore);
+        Order createdOrder = entityCreationHelper.createOrder(createdUser,createdProduct);
 
-        OrderPatchDTO orderPatchDTO = createOrderPatchDTO();
-        String jsonContent = "{ \"status\": \"" + orderPatchDTO.getStatus() + "\" }";
+        String jsonContent = "{ \"status\": \"canceled\" }";
 
         mockMvc.perform(patch("/api/orders/{id}", createdOrder.getOrderId())
                         .contentType(MediaType.APPLICATION_JSON)

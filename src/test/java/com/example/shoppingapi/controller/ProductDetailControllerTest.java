@@ -1,6 +1,7 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.DotenvLoader;
+import com.example.shoppingapi.EntityCreationHelper;
 import com.example.shoppingapi.dto.create.UserCreateDTO;
 import com.example.shoppingapi.dto.create.StoreCreateDTO;
 import com.example.shoppingapi.dto.create.ProductCreateDTO;
@@ -71,6 +72,9 @@ public class ProductDetailControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private EntityCreationHelper entityCreationHelper;
+
     @BeforeAll
     public static void setUp() {
         DotenvLoader.load();
@@ -97,7 +101,6 @@ public class ProductDetailControllerTest {
     private Product createProduct(Store store) throws Exception {
         ProductCreateDTO productCreateDTO = new ProductCreateDTO();
         productCreateDTO.setProductName("Test Product");
-        productCreateDTO.setPrice(new BigDecimal("9.99"));
         productCreateDTO.setStoreId(store.getStoreId());
         return productService.saveProduct(productCreateDTO);
     }
@@ -125,66 +128,44 @@ public class ProductDetailControllerTest {
         return String.format("{ \"productId\": %d, \"description\": \"%s\" }", productId, description);
     }
 
-    private void assertProductDetailResponse(Long productDetailId, String description, Long productId) throws Exception {
-        mockMvc.perform(get("/api/productsdetail/{id}", productDetailId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Fetched product detail"))
-                .andExpect(jsonPath("$.data.productDetailId").value(productDetailId))
-                .andExpect(jsonPath("$.data.description").value(description))
-                .andExpect(jsonPath("$.data.productId").value(productId));
-    }
-
     @Test
     public void testCreateProductDetail() throws Exception {
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        Product createdProduct = createProduct(createdStore);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        Product createdProduct = entityCreationHelper.createProduct(createdStore);
 
-        // Create ProductDetailCreateDTO with the newly created product
-        ProductDetailCreateDTO productDetailCreateDTO = createProductDetailCreateDTO(createdProduct);
+        String jsonContent = createProductDetailJson(createdProduct.getProductId(), "New desc");
 
-        String jsonContent = createProductDetailJson(productDetailCreateDTO.getProductId(), productDetailCreateDTO.getDescription());
-
-        // Perform the POST request to create the product detail
-        String responseContent = mockMvc.perform(post("/api/productsdetail")
+        mockMvc.perform(post("/api/productsdetail")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.message").value("Successfully created product detail"))
-                .andReturn().getResponse().getContentAsString();
-
-        Integer createdProductDetailIdInteger = JsonPath.parse(responseContent).read("$.data.productDetailId");
-
-        Long createdProductDetailId = Long.valueOf(createdProductDetailIdInteger.toString());
+                .andExpect(jsonPath("$.message").value("Successfully created product detail"));
 
         ProductDetail createdProductDetail = productDetailService.getProductDetailByProductId(createdProduct.getProductId());
-        assertEquals(productDetailCreateDTO.getDescription(), createdProductDetail.getDescription());
-        assertEquals(productDetailCreateDTO.getProductId(), createdProductDetail.getProduct().getProductId());
+        assertEquals("New desc", createdProductDetail.getDescription());
+        assertEquals(createdProduct.getProductId(), createdProductDetail.getProduct().getProductId());
     }
 
     @Test
     public void testGetAllProductDetails() throws Exception {
-        // Create user, store, product, and product detail
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        Product createdProduct = createProduct(createdStore);
-        ProductDetailCreateDTO productDetailCreateDTO = createProductDetailCreateDTO(createdProduct);
-        ProductDetail savedProductDetail = productDetailService.saveProductDetail(productDetailCreateDTO);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        Product createdProduct = entityCreationHelper.createProduct(createdStore);
+        ProductDetail createdProductDetail = entityCreationHelper.createProductDetail(createdProduct);
 
         mockMvc.perform(get("/api/productsdetail"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched all product details"))
-                .andExpect(jsonPath("$.data[0].productDetailId").value(savedProductDetail.getProductDetailId()));
+                .andExpect(jsonPath("$.data[0].productDetailId").value(createdProductDetail.getProductDetailId()));
     }
 
     @Test
     public void testGetProductDetailById() throws Exception {
-        // Create user, store, product, and product detail
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        Product createdProduct = createProduct(createdStore);
-        ProductDetailCreateDTO productDetailCreateDTO = createProductDetailCreateDTO(createdProduct);
-        ProductDetail createdProductDetail = productDetailService.saveProductDetail(productDetailCreateDTO);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        Product createdProduct = entityCreationHelper.createProduct(createdStore);
+        ProductDetail createdProductDetail = entityCreationHelper.createProductDetail(createdProduct);
 
         mockMvc.perform(get("/api/productsdetail/{id}", createdProduct.getProductId()))
                 .andExpect(status().isOk())
@@ -196,14 +177,10 @@ public class ProductDetailControllerTest {
 
     @Test
     public void testUpdateProductDetail() throws Exception {
-        // Create product detail for testing
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        Product createdProduct = createProduct(createdStore);
-        ProductDetailCreateDTO productDetailCreateDTO = createProductDetailCreateDTO(createdProduct);
-        ProductDetail createdProductDetail = productDetailService.saveProductDetail(productDetailCreateDTO);
-
-        ProductDetailPutDTO productDetailPutDTO = createProductDetailPutDTO();
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        Product createdProduct = entityCreationHelper.createProduct(createdStore);
+        ProductDetail createdProductDetail = entityCreationHelper.createProductDetail(createdProduct);
 
         String jsonContent = createProductDetailJson(createdProductDetail.getProduct().getProductId(), "updated");
 
@@ -223,15 +200,11 @@ public class ProductDetailControllerTest {
 
     @Test
     public void testPartialUpdateProductDetail() throws Exception {
-        // Create product detail for testing
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        Product createdProduct = createProduct(createdStore);
-        ProductDetailCreateDTO productDetailCreateDTO = createProductDetailCreateDTO(createdProduct);
-        ProductDetail createdProductDetail = productDetailService.saveProductDetail(productDetailCreateDTO);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        Product createdProduct = entityCreationHelper.createProduct(createdStore);
+        ProductDetail createdProductDetail = entityCreationHelper.createProductDetail(createdProduct);
 
-        // Use helper method to create ProductDetailPatchDTO
-        ProductDetailPatchDTO productDetailPatchDTO = createProductDetailPatchDTO();
 
         String jsonContent = "{ \"description\": \"updated\" }";
 
@@ -251,12 +224,10 @@ public class ProductDetailControllerTest {
 
     @Test
     public void testDeleteProductDetail() throws Exception {
-        // Create product detail for testing
-        User createdUser = createUser();
-        Store createdStore = createStore(createdUser);
-        Product createdProduct = createProduct(createdStore);
-        ProductDetailCreateDTO productDetailCreateDTO = createProductDetailCreateDTO(createdProduct);
-        ProductDetail createdProductDetail = productDetailService.saveProductDetail(productDetailCreateDTO);
+        User createdUser = entityCreationHelper.createUser();
+        Store createdStore = entityCreationHelper.createStore(createdUser);
+        Product createdProduct = entityCreationHelper.createProduct(createdStore);
+        ProductDetail createdProductDetail = entityCreationHelper.createProductDetail(createdProduct);
 
         mockMvc.perform(delete("/api/productsdetail/{id}", createdProduct.getProductId()))
                 .andExpect(status().isNoContent())
