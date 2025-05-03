@@ -7,8 +7,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class OrderDTO {
     private Long orderId;
-
     private Long userId;
     private Long productId;
-
+    private String status;
 }
