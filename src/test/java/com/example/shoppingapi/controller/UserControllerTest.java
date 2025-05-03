@@ -26,6 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
+@Rollback(true)
 public class UserControllerTest {
 
     @Autowired
@@ -69,8 +71,6 @@ public class UserControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testCreateUser() throws Exception {
         String jsonContent = createUserJson("testuser", "testuser@example.com", "1234567890");
 
@@ -95,8 +95,6 @@ public class UserControllerTest {
 
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testGetAllUsers() throws Exception {
         User createdUser = createUser();
 
@@ -107,8 +105,6 @@ public class UserControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testGetUserById() throws Exception {
         User createdUser = createUser();
 
@@ -117,8 +113,6 @@ public class UserControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testUpdateUser() throws Exception {
         User createdUser = createUser();
 
@@ -135,8 +129,6 @@ public class UserControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testPartialUpdateUser() throws Exception {
         User createdUser = createUser();
 
@@ -154,8 +146,6 @@ public class UserControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testDeleteUser() throws Exception {
         User createdUser = createUser();
 

@@ -29,7 +29,7 @@ public class StoreDetailService {
     }
 
     public StoreDetail getStoreDetailByStoreId(Long id) {
-        return storeDetailRepository.findStoreDetailbyProductId(id)
+        return storeDetailRepository.findStoreDetailbyStoreId(id)
             .orElseThrow(() ->
                 new ResourceNotFoundException("StoreDetail not found with ID: " + id));
     }

@@ -34,9 +34,9 @@ public class StoreDetailController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<StoreDetailDTO> getStoreDetailById(@PathVariable Long id) {
+    public ApiResponse<StoreDetail> getStoreDetailById(@PathVariable Long id) {
         StoreDetail storeDetail = storeDetailService.getStoreDetailByStoreId(id);
-        return new ApiResponse<>("Successfully fetched store detail", new StoreDetailDTO(storeDetail.getStoreDetailId(), storeDetail.getStore().getStoreId()), HttpStatus.OK);
+        return new ApiResponse<>("Successfully fetched store detail", storeDetail, HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.CREATED)

@@ -30,6 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
+@Rollback(true)
 public class StoreControllerTest {
 
     @Autowired
@@ -94,8 +96,6 @@ public class StoreControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testCreateStore() throws Exception {
         // Create a new user
         User createdUser = createUser();
@@ -124,8 +124,6 @@ public class StoreControllerTest {
 
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testGetAllStores() throws Exception {
         // Create a new user and store
         User createdUser = createUser();
@@ -139,8 +137,6 @@ public class StoreControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testGetStoreById() throws Exception {
         // Create a store and retrieve it for testing
         User createdUser = createUser();
@@ -151,8 +147,6 @@ public class StoreControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testUpdateStore() throws Exception {
         // Create a store for testing
         User createdUser = createUser();
@@ -175,8 +169,6 @@ public class StoreControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testPartialUpdateStore() throws Exception {
         // Create store for testing
         User createdUser = createUser();
@@ -199,8 +191,6 @@ public class StoreControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testDeleteStore() throws Exception {
         // Create store for testing
         User createdUser = createUser();

@@ -45,13 +45,13 @@ class StoreDetailServiceTest {
     @Test
     void findById_found_returnsDetail() {
         StoreDetail detail = helper.createModel(1);
-        when(storeDetailRepository.findStoreDetailbyProductId(1L)).thenReturn(Optional.of(detail));
+        when(storeDetailRepository.findStoreDetailbyStoreId(1L)).thenReturn(Optional.of(detail));
         assertEquals(detail, service.getStoreDetailByStoreId(1L));
     }
 
     @Test
     void findById_notFound_throws() {
-        when(storeDetailRepository.findStoreDetailbyProductId(2L)).thenReturn(Optional.empty());
+        when(storeDetailRepository.findStoreDetailbyStoreId(2L)).thenReturn(Optional.empty());
         ResourceNotFoundException ex = assertThrows(
             ResourceNotFoundException.class,
             () -> service.getStoreDetailByStoreId(2L)
@@ -91,13 +91,13 @@ class StoreDetailServiceTest {
         storeDetailPutDTO.setAddress("never mind");
         storeDetailPutDTO.setDescription("whatever you want");
 
-        when(storeDetailRepository.findStoreDetailbyProductId(1L)).thenReturn(Optional.of(detail));
+        when(storeDetailRepository.findStoreDetailbyStoreId(1L)).thenReturn(Optional.of(detail));
         when(storeDetailRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         StoreDetail result = service.updateStoreDetail(1L, storeDetailPutDTO);
         assertEquals(result.getDescription(),storeDetailPutDTO.getDescription());
         assertEquals(result.getAddress(),storeDetailPutDTO.getAddress());
-        verify(storeDetailRepository).findStoreDetailbyProductId(1L);
+        verify(storeDetailRepository).findStoreDetailbyStoreId(1L);
         verify(storeDetailRepository).save(detail);
     }
 
@@ -108,13 +108,13 @@ class StoreDetailServiceTest {
         StoreDetailPatchDTO storeDetailPatchDTO = new StoreDetailPatchDTO();
         storeDetailPatchDTO.setDescription("whatever you want");
 
-        when(storeDetailRepository.findStoreDetailbyProductId(1L)).thenReturn(Optional.of(detail));
+        when(storeDetailRepository.findStoreDetailbyStoreId(1L)).thenReturn(Optional.of(detail));
         when(storeDetailRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         StoreDetail result = service.partiallyUpdateStoreDetail(1L, storeDetailPatchDTO);
 
         assertEquals(result.getDescription(),"whatever you want");
-        verify(storeDetailRepository).findStoreDetailbyProductId(1L);
+        verify(storeDetailRepository).findStoreDetailbyStoreId(1L);
         verify(storeDetailRepository).save(detail);
     }
 
@@ -123,13 +123,13 @@ class StoreDetailServiceTest {
 
         StoreDetail original = helper.createModel(1);
 
-        when(storeDetailRepository.findStoreDetailbyProductId(1L))
+        when(storeDetailRepository.findStoreDetailbyStoreId(1L))
             .thenReturn(Optional.of(original));
         doNothing().when(storeDetailRepository).delete(original);
 
         service.deleteById(1L);
 
-        verify(storeDetailRepository).findStoreDetailbyProductId(1L);
+        verify(storeDetailRepository).findStoreDetailbyStoreId(1L);
         verify(storeDetailRepository).delete(original);
     }
 }

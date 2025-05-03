@@ -34,9 +34,9 @@ public class ProductDetailController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<ProductDetailDTO> getProductDetailById(@PathVariable Long id) {
-        ProductDetail productDetail = productDetailService.findById(id);
-        return new ApiResponse<>("Successfully fetched product detail", new ProductDetailDTO(productDetail.getProductDetailId(), productDetail.getProduct().getProductId()), HttpStatus.OK);
+    public ApiResponse<ProductDetail> getProductDetailById(@PathVariable Long id) {
+        ProductDetail productDetail = productDetailService.getProductDetailByProductId(id);
+        return new ApiResponse<>("Successfully fetched product detail", productDetail, HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.CREATED)

@@ -12,8 +12,9 @@ import com.example.shoppingapi.model.ProductDetail;
 @Repository
 public interface ProductDetailRepository extends JpaRepository<ProductDetail, Long> {
 
-    @Query(value = "SELECT pd FROM ProductDetail pd WHERE pd.product.id = :id",nativeQuery = true)
+    @Query("SELECT pd FROM ProductDetail pd WHERE pd.product.id = :id")
     Optional<ProductDetail> findProductDetailbyProductId(@Param("id") Long id);
+
 
     @Query("SELECT p FROM ProductDetail p WHERE p.id = :id AND p.isDeleted = true")
     Optional<ProductDetail> findSoftDeletedById(Long id);

@@ -40,6 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
+@Rollback(true)
 public class OrderControllerTest {
 
     @Autowired
@@ -137,8 +139,6 @@ public class OrderControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testCreateOrder() throws Exception {
         // Create a user, store, and product
         User createdUser = createUser();
@@ -167,8 +167,6 @@ public class OrderControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testGetAllOrders() throws Exception {
         // Create a user, store, and product
         User createdUser = createUser();
@@ -184,8 +182,6 @@ public class OrderControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testGetOrderById() throws Exception {
         // Create a user, store, product, and order
         User createdUser = createUser();
@@ -198,8 +194,6 @@ public class OrderControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testUpdateOrder() throws Exception {
         // Create a user, store, product, and order
         User createdUser = createUser();
@@ -221,8 +215,6 @@ public class OrderControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testPartialUpdateOrder() throws Exception {
         // Create a user, store, product, and order
         User createdUser = createUser();

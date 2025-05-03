@@ -38,6 +38,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
+@Rollback(true)
 public class StoreDetailControllerTest {
 
     @Autowired
@@ -112,19 +114,8 @@ public class StoreDetailControllerTest {
         return String.format("{ \"storeId\": %d, \"address\": \"%s\", \"description\": \"%s\" }", storeId, address, description);
     }
 
-    private void assertStoreDetailResponse(Long storeDetailId, String address, String description, Long storeId) throws Exception {
-        mockMvc.perform(get("/api/storesdetail/{id}", storeDetailId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Successfully fetched store detail"))
-                .andExpect(jsonPath("$.data.storeDetailId").value(storeDetailId))
-                .andExpect(jsonPath("$.data.address").value(address))
-                .andExpect(jsonPath("$.data.description").value(description))
-                .andExpect(jsonPath("$.data.storeId").value(storeId));
-    }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testCreateStoreDetail() throws Exception {
         User createdUser = createUser();
         Store createdStore = createStore(createdUser);
@@ -149,8 +140,6 @@ public class StoreDetailControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testGetAllStoreDetails() throws Exception {
         User createdUser = createUser();
         Store createdStore = createStore(createdUser);
@@ -164,20 +153,22 @@ public class StoreDetailControllerTest {
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testGetStoreDetailById() throws Exception {
         User createdUser = createUser();
         Store createdStore = createStore(createdUser);
         StoreDetailCreateDTO storeDetailCreateDTO = createStoreDetailCreateDTO(createdStore);
         StoreDetail createdStoreDetail = storeDetailService.saveStoreDetail(storeDetailCreateDTO);
 
-        assertStoreDetailResponse(createdStoreDetail.getStoreDetailId(), storeDetailCreateDTO.getAddress(), storeDetailCreateDTO.getDescription(), createdStore.getStoreId());
+        mockMvc.perform(get("/api/storesdetail/{id}", createdStore.getStoreId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Successfully fetched store detail"))
+                .andExpect(jsonPath("$.data.storeDetailId").value(createdStoreDetail.getStoreDetailId()))
+                .andExpect(jsonPath("$.data.address").value(createdStoreDetail.getAddress()))
+                .andExpect(jsonPath("$.data.description").value(createdStoreDetail.getDescription()))
+                .andExpect(jsonPath("$.data.store.storeId").value(createdStoreDetail.getStore().getStoreId()));
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testUpdateStoreDetail() throws Exception {
         User createdUser = createUser();
         Store createdStore = createStore(createdUser);
@@ -186,20 +177,29 @@ public class StoreDetailControllerTest {
 
         StoreDetailPutDTO storeDetailPutDTO = createStoreDetailPutDTO();
 
-        String jsonContent = createStoreDetailJson(createdStore.getStoreId(), storeDetailPutDTO.getAddress(), storeDetailPutDTO.getDescription());
+        String jsonContent = createStoreDetailJson(createdStore.getStoreId(), "Yugo Road no.22-24", "Updated desc");
 
-        mockMvc.perform(put("/api/storesdetail/{id}", createdStoreDetail.getStoreDetailId())
+        String responseContent = mockMvc.perform(put("/api/storesdetail/{id}", createdStoreDetail.getStore().getStoreId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Successfully updated store detail"));
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.message").value("Successfully updated store detail"))
+                        .andReturn().getResponse().getContentAsString();
 
-        assertStoreDetailResponse(createdStoreDetail.getStoreDetailId(), "Updated Address", "Updated Description", createdStore.getStoreId());
+        Integer createdStoreDetailIdInteger = JsonPath.parse(responseContent).read("$.data.storeId");
+        Long createdStoreDetailId = Long.valueOf(createdStoreDetailIdInteger.toString());
+        mockMvc.perform(get("/api/storesdetail/{id}", createdStore.getStoreId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Successfully fetched store detail"))
+                .andExpect(jsonPath("$.data.storeDetailId").value(createdStoreDetail.getStoreDetailId()))
+                .andExpect(jsonPath("$.data.address").value("Yugo Road no.22-24"))
+                .andExpect(jsonPath("$.data.description").value("Updated desc"))
+                .andExpect(jsonPath("$.data.store.storeId").value(createdStoreDetail.getStore().getStoreId()));
+
+
     }
 
     @Test
-    @Transactional
-    @Rollback(true)
     public void testPartialUpdateStoreDetail() throws Exception {
         User createdUser = createUser();
         Store createdStore = createStore(createdUser);
@@ -208,27 +208,35 @@ public class StoreDetailControllerTest {
 
         StoreDetailPatchDTO storeDetailPatchDTO = createStoreDetailPatchDTO();
 
-        String jsonContent = "{ \"address\": \"" + storeDetailPatchDTO.getAddress() + "\" }";
+        String jsonContent = "{ \"description\": \"Updated desc\" }";
 
-        mockMvc.perform(patch("/api/storesdetail/{id}", createdStoreDetail.getStoreDetailId())
+        String responseContent = mockMvc.perform(patch("/api/storesdetail/{id}", createdStore.getStoreId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Successfully updated store detail"));
+                .andExpect(jsonPath("$.message").value("Successfully updated store detail"))
+                .andReturn().getResponse().getContentAsString();
 
-        assertStoreDetailResponse(createdStoreDetail.getStoreDetailId(), "Partially Updated Address", createdStoreDetail.getDescription(), createdStore.getStoreId());
+
+        Integer createdStoreDetailIdInteger = JsonPath.parse(responseContent).read("$.data.storeId");
+        Long createdStoreDetailId = Long.valueOf(createdStoreDetailIdInteger.toString());
+        mockMvc.perform(get("/api/storesdetail/{id}", createdStoreDetailId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Successfully fetched store detail"))
+                .andExpect(jsonPath("$.data.storeDetailId").value(createdStoreDetail.getStoreDetailId()))
+                .andExpect(jsonPath("$.data.address").value(createdStoreDetail.getAddress()))
+                .andExpect(jsonPath("$.data.description").value("Updated desc"))
+                .andExpect(jsonPath("$.data.store.storeId").value(createdStoreDetail.getStore().getStoreId()));
+
     }
-
     @Test
-    @Transactional
-    @Rollback(true)
     public void testDeleteStoreDetail() throws Exception {
         User createdUser = createUser();
         Store createdStore = createStore(createdUser);
         StoreDetailCreateDTO storeDetailCreateDTO = createStoreDetailCreateDTO(createdStore);
         StoreDetail createdStoreDetail = storeDetailService.saveStoreDetail(storeDetailCreateDTO);
 
-        mockMvc.perform(delete("/api/storesdetail/{id}", createdStoreDetail.getStoreDetailId()))
+        mockMvc.perform(delete("/api/storesdetail/{id}", createdStore.getStoreId()))
                 .andExpect(status().isNoContent())
                 .andExpect(jsonPath("$.message").value("Successfully deleted store detail"));
 
