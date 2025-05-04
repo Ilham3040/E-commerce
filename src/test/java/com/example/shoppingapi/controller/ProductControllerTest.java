@@ -2,11 +2,6 @@ package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.DotenvLoader;
 import com.example.shoppingapi.EntityCreationHelper;
-import com.example.shoppingapi.dto.create.ProductCreateDTO;
-import com.example.shoppingapi.dto.create.StoreCreateDTO;
-import com.example.shoppingapi.dto.create.UserCreateDTO;
-import com.example.shoppingapi.dto.put.ProductPutDTO;
-import com.example.shoppingapi.dto.patch.ProductPatchDTO;
 import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.Store;
 import com.example.shoppingapi.model.User;

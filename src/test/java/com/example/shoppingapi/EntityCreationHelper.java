@@ -45,6 +45,12 @@ public class EntityCreationHelper {
     @Autowired
     private StoreRoleService storeRoleService;
 
+    @Autowired
+    private ProductVariantService productVariantService;
+
+    @Autowired
+    private ProductReviewService productReviewService;
+
     public User createUser() throws Exception {
         UserCreateDTO userCreateDTO = new UserCreateDTO();
         userCreateDTO.setUsername("testuser");
@@ -116,5 +122,23 @@ public class EntityCreationHelper {
         userFavoriteCreateDTO.setUserId(user.getUserId());
         userFavoriteCreateDTO.setProductId(product.getProductId());
         return userFavoriteService.addingUserFavorite(userFavoriteCreateDTO);
+    }
+
+    public ProductVariant createProductVariant(Product product) throws Exception {
+        ProductVariantCreateDTO productVariantCreateDTO = new ProductVariantCreateDTO();
+        productVariantCreateDTO.setVariantName("Test Variant");
+        productVariantCreateDTO.setProductId(product.getProductId());
+        productVariantCreateDTO.setPrice(new BigDecimal("10.99"));
+        productVariantCreateDTO.setStockQuantity(100);
+        return productVariantService.saveProductVariant(productVariantCreateDTO);
+    }
+
+    public ProductReview createProductReview(User user, Product product) throws Exception {
+        ProductReviewCreateDTO productReviewCreateDTO = new ProductReviewCreateDTO();
+        productReviewCreateDTO.setProductId(product.getProductId());
+        productReviewCreateDTO.setUserId(user.getUserId());
+        productReviewCreateDTO.setStarRating(5);
+        productReviewCreateDTO.setDescription("Excellent product!");
+        return productReviewService.saveProductReview(productReviewCreateDTO);
     }
 }

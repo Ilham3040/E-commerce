@@ -1,5 +1,6 @@
 package com.example.shoppingapi.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,6 +32,7 @@ public class ProductVariant {
     private String variantName;
 
     @Column(name = "price", precision = 10, scale = 2, nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private BigDecimal price;
 
     @Builder.Default
