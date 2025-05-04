@@ -1,8 +1,6 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.dto.create.StoreRoleCreateDTO;
-import com.example.shoppingapi.dto.put.StoreRolePutDTO;
-import com.example.shoppingapi.dto.patch.StoreRolePatchDTO;
 import com.example.shoppingapi.dto.response.ApiResponse;
 import com.example.shoppingapi.dto.response.StoreRoleDTO;
 import com.example.shoppingapi.model.StoreRole;
@@ -16,7 +14,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -43,12 +40,14 @@ public class StoreRoleController {
         return new ApiResponse<>("Successfully fetched all store roles by user ID", storeRoleDTOs, HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ApiResponse<StoreRoleDTO> createStoreRole(@Validated @RequestBody StoreRoleCreateDTO storeRoleCreateDTO) {
         StoreRole createdStoreRole = storeRoleService.promoteToAdminStoreRole(storeRoleCreateDTO);
         return new ApiResponse<>("Successfully created store role", new StoreRoleDTO(createdStoreRole.getUser().getUserId(), createdStoreRole.getStore().getStoreId(),createdStoreRole.getRole()), HttpStatus.CREATED);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{storeId}/{userId}")
     public ApiResponse<Void> deleteStoreRole(@PathVariable Long storeId, @PathVariable Long userId) {
         storeRoleService.deleteStoreRoleById(new StoreRoleId(storeId, userId));

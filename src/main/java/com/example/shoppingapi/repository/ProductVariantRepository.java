@@ -17,7 +17,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ProductVariantRepository extends JpaRepository<ProductVariant, Long> {
     
-    @Query("SELECT pd FROM ProductVariant pd WHERE pd.product.id = :id")
+    @Query(value = "SELECT pd FROM ProductVariant pd WHERE pd.product.id = :id",nativeQuery = true)
     Optional<ProductVariant> findProductVariantbyProductId(@Param("id") Long id);
 
     @Query("SELECT p FROM ProductVariant p WHERE p.id = :id AND p.isDeleted = true")

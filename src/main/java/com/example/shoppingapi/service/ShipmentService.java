@@ -33,10 +33,16 @@ public class ShipmentService {
         return shipmentRepository.findAll();
     }
 
+    public Shipment getShipmentByOrderId(Long id) {
+        return shipmentRepository.findByOrderOrderId(id)
+            .orElseThrow(() ->
+                new ResourceNotFoundException("Shipment not found for order with ID: " + id));
+    }
+
     public Shipment getShipmentById(ShipmentId id) {
         return shipmentRepository.findById(id)
-            .orElseThrow(() ->
-                new ResourceNotFoundException("Shipment not found with ID: " + id));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Shipment not found for order with ID: " + id));
     }
 
     public Shipment saveShipment(ShipmentCreateDTO shipmentCreateDTO) {
@@ -45,7 +51,10 @@ public class ShipmentService {
         orderRepository.findById(shipmentCreateDTO.getOrderId())
             .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
+        ShipmentId shipmentId = ShipmentId.builder().orderId(shipmentCreateDTO.getOrderId()).vendorId(shipmentCreateDTO.getVendorId()).build();
+
         Shipment shipment = Shipment.builder()
+                .id(shipmentId)
                 .shipmentVendor(ShipmentVendor.builder().vendorId(shipmentCreateDTO.getVendorId()).build())
                 .order(Order.builder().orderId(shipmentCreateDTO.getOrderId()).build())
                 .build();

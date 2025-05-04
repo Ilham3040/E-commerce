@@ -1,7 +1,6 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.dto.create.StoreCategoryCreateDTO;
-import com.example.shoppingapi.dto.request.StoreCategoryCreateDTO;
 import com.example.shoppingapi.dto.put.StoreCategoryPutDTO;
 import com.example.shoppingapi.dto.patch.StoreCategoryPatchDTO;
 import com.example.shoppingapi.dto.response.ApiResponse;
@@ -35,11 +34,22 @@ public class StoreCategoryController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<StoreCategoryDTO> getStoreCategoryById(@PathVariable Long id) {
+    public ApiResponse<StoreCategory> getStoreCategoryById(@PathVariable Long id) {
         StoreCategory storeCategory = storeCategoryService.getStoreCategoryById(id);
-        return new ApiResponse<>("Successfully fetched store category", new StoreCategoryDTO(storeCategory.getCategoryId(), storeCategory.getStore().getStoreId()), HttpStatus.OK);
+        return new ApiResponse<>("Successfully fetched store category", storeCategory, HttpStatus.OK);
     }
 
+    @GetMapping("/store/{storeId}")
+    public ApiResponse<List<StoreCategoryDTO>> getAllCategoriesByStoreId(@PathVariable Long storeId) {
+        List<StoreCategory> storeCategories = storeCategoryService.getAllCategoriesByStoreId(storeId);
+        List<StoreCategoryDTO> storeCategoryDTOs = storeCategories.stream()
+                .map(category -> new StoreCategoryDTO(category.getCategoryId(), category.getStore().getStoreId()))
+                .collect(Collectors.toList());
+
+        return new ApiResponse<>("Successfully fetched store categories by store ID", storeCategoryDTOs, HttpStatus.OK);
+    }
+
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ApiResponse<StoreCategoryDTO> createStoreCategory(@Validated @RequestBody StoreCategoryCreateDTO storeCategoryCreateDTO) {
         StoreCategory createdStoreCategory = storeCategoryService.saveStoreCategory(storeCategoryCreateDTO);
@@ -58,6 +68,7 @@ public class StoreCategoryController {
         return new ApiResponse<>("Successfully partially updated store category", new StoreCategoryDTO(updatedStoreCategory.getCategoryId(), updatedStoreCategory.getStore().getStoreId()), HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteStoreCategory(@PathVariable Long id) {
         storeCategoryService.deleteById(id);

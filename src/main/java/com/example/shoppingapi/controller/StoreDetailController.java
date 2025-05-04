@@ -34,11 +34,12 @@ public class StoreDetailController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<StoreDetailDTO> getStoreDetailById(@PathVariable Long id) {
+    public ApiResponse<StoreDetail> getStoreDetailById(@PathVariable Long id) {
         StoreDetail storeDetail = storeDetailService.getStoreDetailByStoreId(id);
-        return new ApiResponse<>("Successfully fetched store detail", new StoreDetailDTO(storeDetail.getStoreDetailId(), storeDetail.getStore().getStoreId()), HttpStatus.OK);
+        return new ApiResponse<>("Successfully fetched store detail", storeDetail, HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ApiResponse<StoreDetailDTO> createStoreDetail(@Validated @RequestBody StoreDetailCreateDTO storeDetailCreateDTO) {
         StoreDetail createdStoreDetail = storeDetailService.saveStoreDetail(storeDetailCreateDTO);
@@ -57,6 +58,7 @@ public class StoreDetailController {
         return new ApiResponse<>("Successfully updated store detail", new StoreDetailDTO(updatedStoreDetail.getStoreDetailId(), updatedStoreDetail.getStore().getStoreId()), HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteStoreDetail(@PathVariable Long id) {
         storeDetailService.deleteById(id);

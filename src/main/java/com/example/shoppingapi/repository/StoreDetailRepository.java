@@ -13,10 +13,11 @@ import java.util.Optional;
 @Repository
 public interface StoreDetailRepository extends JpaRepository<StoreDetail, Long> {
 
-    @Query("SELECT sd FROM StoreDetail sd WHERE sd.product.id = :id")
-    Optional<StoreDetail> findStoreDetailbyProductId(@Param("id") Long id);
+    @Query("SELECT sd FROM StoreDetail sd WHERE sd.store.id = :storeId")
+    Optional<StoreDetail> findStoreDetailbyStoreId(@Param("storeId") Long storeId);
 
-    @Query("SELECT s FROM StoreDetail s WHERE s.id = :id AND s.isDeleted = true")
-    Optional<StoreDetail> findSoftDeletedById(Long id);
+    @Query("SELECT sd FROM StoreDetail sd WHERE sd.store.id = :storeId")
+    Optional<StoreDetail> findStoreDetailByStoreId(@Param("storeId") Long storeId);
+
 }
 

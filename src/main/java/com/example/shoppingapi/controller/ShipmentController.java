@@ -34,21 +34,24 @@ public class ShipmentController {
         return new ApiResponse<>("Successfully fetched all shipments", shipmentDTOs, HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
-    public ApiResponse<ShipmentDTO> getShipmentById(@PathVariable ShipmentId id) {
-        Shipment shipment = shipmentService.getShipmentById(id);
+    @GetMapping("/order/{id}")
+    public ApiResponse<ShipmentDTO> getShipmentById(@PathVariable Long id) {
+        Shipment shipment = shipmentService.getShipmentByOrderId(id);
         return new ApiResponse<>("Successfully fetched shipment", new ShipmentDTO(shipment.getOrder().getOrderId(), shipment.getShipmentVendor().getVendorId()), HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ApiResponse<ShipmentDTO> createShipment(@Validated @RequestBody ShipmentCreateDTO shipmentCreateDTO) {
         Shipment createdShipment = shipmentService.saveShipment(shipmentCreateDTO);
         return new ApiResponse<>("Successfully created shipment", new ShipmentDTO(createdShipment.getOrder().getOrderId(), createdShipment.getShipmentVendor().getVendorId()), HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
-    public ApiResponse<ShipmentDTO> updateShipment(@PathVariable ShipmentId id, @Validated @RequestBody ShipmentPutDTO shipmentPutDTO) {
+    @PutMapping("/{vendorId}/{orderId}")
+    public ApiResponse<ShipmentDTO> updateShipment(@PathVariable Long vendorId, @PathVariable Long orderId, @Validated @RequestBody ShipmentPutDTO shipmentPutDTO) {
+        ShipmentId id = ShipmentId.builder().vendorId(vendorId).orderId(orderId).build();
         Shipment updatedShipment = shipmentService.updateShipment(id, shipmentPutDTO);
         return new ApiResponse<>("Successfully updated shipment", new ShipmentDTO(updatedShipment.getOrder().getOrderId(), updatedShipment.getShipmentVendor().getVendorId()), HttpStatus.OK);
     }
+
 }

@@ -40,6 +40,11 @@ public class StoreCategoryItemService {
             .orElseThrow(() ->
                 new ResourceNotFoundException("Product not found with ID: " + storeCategoryItemCreateDTO.getProductId()));
 
+        StoreCategoryItemId storeCategoryItemId = StoreCategoryItemId.builder()
+                .categoryId(storeCategoryItemCreateDTO.getCategoryId())
+                .productId(storeCategoryItemCreateDTO.getProductId())
+                .build();
+
         StoreCategoryItem newItemCategory = StoreCategoryItem.builder()
                 .storeCategory(StoreCategory.builder().categoryId(storeCategoryItemCreateDTO.getCategoryId()).build())
                 .product(Product.builder().productId(storeCategoryItemCreateDTO.getProductId()).build())

@@ -47,7 +47,6 @@ public class ProductService {
 
         Product saved = Product.builder()
                 .productName(dto.getProductName())
-                .price(dto.getPrice())
                 .store(Store.builder().storeId(dto.getStoreId()).build())
                 .build();
 

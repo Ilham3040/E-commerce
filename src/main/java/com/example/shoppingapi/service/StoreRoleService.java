@@ -21,6 +21,7 @@ import org.springframework.util.ReflectionUtils;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -38,7 +39,7 @@ public class StoreRoleService {
 
     public List<StoreRole> getAllStoreRoleByUserId(Long id) {
         userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
-        return storeRoleRepository.findByIdStoreId(id);
+        return storeRoleRepository.findByIdUserId(id);
     }
 
     public StoreRole promoteToAdminStoreRole(StoreRoleCreateDTO storeRoleCreateDTO) {
@@ -49,9 +50,12 @@ public class StoreRoleService {
             .orElseThrow(() ->
                 new ResourceNotFoundException("User not found with ID: " + storeRoleCreateDTO.getUserId()));
 
+        StoreRoleId newStoreRoleId = StoreRoleId.builder().storeId(storeRoleCreateDTO.getStoreId()).userId(storeRoleCreateDTO.getUserId()).build();
+
         StoreRole newStoreRole = StoreRole.builder()
-                .user(User.builder().userId(storeRoleCreateDTO.getUserId()).build())
+                .id(newStoreRoleId)
                 .store(Store.builder().storeId(storeRoleCreateDTO.getStoreId()).build())
+                .user(User.builder().userId(storeRoleCreateDTO.getUserId()).build())
                 .role("admin")
                 .build();
         return storeRoleRepository.save(newStoreRole);
@@ -61,7 +65,7 @@ public class StoreRoleService {
         StoreRole role = storeRoleRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Store Role of User with ID: " + String.valueOf(id.getUserId()) + " of Store with ID: " + String.valueOf(id.getStoreId()))
         );
-        if (role.getRole() == "admin"){
+        if (Objects.equals(role.getRole(), "owner")){
             throw new OwnerRoleDeletionException("Deleting owner is not allowed");
         }
         storeRoleRepository.delete(role);

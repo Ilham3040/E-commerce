@@ -9,5 +9,4 @@ import lombok.Data;
 public class ProductDTO {
     private Long productId;
     private Long storeId;
-
 }

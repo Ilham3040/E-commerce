@@ -38,6 +38,7 @@ public class UserController {
         return new ApiResponse<>("Fetched user", user, HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ApiResponse<?> createUser(@Validated @RequestBody UserCreateDTO dto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -74,6 +75,7 @@ public class UserController {
     }
 
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteUser(@PathVariable Long id) {
         userService.deleteById(id);

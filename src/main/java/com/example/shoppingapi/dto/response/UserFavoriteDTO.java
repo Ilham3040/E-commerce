@@ -9,5 +9,4 @@ import lombok.Data;
 public class UserFavoriteDTO {
     private Long userId;
     private Long productId;
-
 }

@@ -23,22 +23,25 @@ public class UserCartController {
     private final UserCartService userCartService;
 
     @GetMapping("/user/{userId}")
-    public ApiResponse<List<ProductDTO>> getAllUserCartsByUserId(@PathVariable Long userId) {
-        List<ProductDTO> productDTOs = userCartService.getAllByUserId(userId)
+    public ApiResponse<List<UserCartDTO>> getAllUserCartsByUserId(@PathVariable Long userId) {
+        List<UserCartDTO> userCartDTOs = userCartService.getAllByUserId(userId)
                 .stream()
-                .map(cart -> new ProductDTO(cart.getProductId(),cart.getStore().getStoreId()))
+                .map(cart -> new UserCartDTO(cart.getUser().getUserId(), cart.getProduct().getProductId(),cart.getQuantity()))
                 .collect(Collectors.toList());
-        return new ApiResponse<>("Successfully fetched all user carts", productDTOs, HttpStatus.OK);
+        return new ApiResponse<>("Successfully fetched all user carts", userCartDTOs, HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ApiResponse<UserCartDTO> addToUserCart(@RequestBody UserCartCreateDTO userCartCreateDTO) {
         UserCart addedCart = userCartService.addingUserCart(userCartCreateDTO);
-        return new ApiResponse<>("Successfully added product to user cart", new UserCartDTO(addedCart.getUser().getUserId(), addedCart.getProduct().getProductId()), HttpStatus.CREATED);
+        return new ApiResponse<>("Successfully added product to user cart", new UserCartDTO(addedCart.getUser().getUserId(), addedCart.getProduct().getProductId(),addedCart.getQuantity()), HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/{cartId}")
-    public ApiResponse<Void> removeFromUserCart(@PathVariable UserCartId cartId) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{userId}/{productId}")
+    public ApiResponse<Void> removeFromUserCart(@PathVariable Long userId, @PathVariable Long productId) {
+        UserCartId cartId = UserCartId.builder().userId(userId).productId(productId).build();
         userCartService.deleteById(cartId);
         return new ApiResponse<>("Successfully removed product from user cart", null, HttpStatus.NO_CONTENT);
     }

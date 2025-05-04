@@ -24,22 +24,25 @@ public class UserFavoriteController {
     private final UserFavoriteService userFavoriteService;
 
     @GetMapping("/user/{userId}")
-    public ApiResponse<List<ProductDTO>> getAllUserFavoritesByUserId(@PathVariable Long userId) {
-        List<ProductDTO> productDTOs = userFavoriteService.getAllByUserId(userId)
+    public ApiResponse<List<UserFavoriteDTO>> getAllUserFavoritesByUserId(@PathVariable Long userId) {
+        List<UserFavoriteDTO> userFavoriteDTOs = userFavoriteService.getAllByUserId(userId)
                 .stream()
-                .map(cart -> new ProductDTO(cart.getProductId(),cart.getStore().getStoreId()))
+                .map(cart -> new UserFavoriteDTO(cart.getUser().getUserId(),cart.getProduct().getProductId()))
                 .collect(Collectors.toList());
-        return new ApiResponse<>("Successfully fetched all user carts", productDTOs, HttpStatus.OK);
+        return new ApiResponse<>("Successfully fetched all user carts", userFavoriteDTOs, HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ApiResponse<UserFavoriteDTO> addToUserFavorites(@RequestBody UserFavoriteCreateDTO userFavoriteCreateDTO) {
         UserFavorite addedFavorite = userFavoriteService.addingUserFavorite(userFavoriteCreateDTO);
         return new ApiResponse<>("Successfully added product to user favorites", new UserFavoriteDTO(addedFavorite.getUser().getUserId(), addedFavorite.getProduct().getProductId()), HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/{favoriteId}")
-    public ApiResponse<Void> removeFromUserFavorites(@PathVariable UserFavoriteId favoriteId) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{userId}/{productId}")
+    public ApiResponse<Void> removeFromUserFavorites(@PathVariable Long userId, @PathVariable Long productId) {
+        UserFavoriteId favoriteId = UserFavoriteId.builder().userId(userId).productId(productId).build();
         userFavoriteService.deleteById(favoriteId);
         return new ApiResponse<>("Successfully removed product from user favorites", null, HttpStatus.NO_CONTENT);
     }

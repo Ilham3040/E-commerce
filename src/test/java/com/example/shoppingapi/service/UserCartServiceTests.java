@@ -2,6 +2,7 @@ package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.dto.create.UserCartCreateDTO;
 import com.example.shoppingapi.model.Product;
+import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.model.UserCart;
 import com.example.shoppingapi.model.UserCartId;
 import com.example.shoppingapi.modelhelper.ModelHelper;
@@ -34,16 +35,15 @@ class UserCartServiceTest {
     void getAllByUserId_found_returnsProducts() {
         Long userId = 1L;
 
-        Product product1 = Product.builder().productId(1L).productName("Product1").build();
-        Product product2 = Product.builder().productId(2L).productName("Product2").build();
+        UserCart userCart1 = helper.createModel(1);
+        UserCart userCart2 = helper.createModel(2);
 
-        List<Product> products = Arrays.asList(product1, product2);
-        when(cartRepo.findProductsByUserId(userId)).thenReturn(products);
+        List<UserCart> userCarts = Arrays.asList(userCart1, userCart2);
+        when(cartRepo.findItemsByUserId(userId)).thenReturn(userCarts);
 
-        List<Product> result = service.getAllByUserId(userId);
+        List<UserCart> result = service.getAllByUserId(userId);
 
-        assertEquals(products, result);
-        verify(cartRepo).findProductsByUserId(userId);
+        assertEquals(userCarts, result);
     }
 
     @Test
@@ -71,14 +71,22 @@ class UserCartServiceTest {
     @Test
     void addingUserCart_savesAndReturns() {
         UserCart cart = helper.createModel(1);
-        when(cartRepo.save(cart)).thenReturn(cart);
+
 
         UserCartCreateDTO userCartCreateDTO = new UserCartCreateDTO();
         userCartCreateDTO.setUserId(cart.getUser().getUserId());
         userCartCreateDTO.setProductId(cart.getProduct().getProductId());
 
+        UserCart userCart = UserCart.builder()
+                .user(User.builder().userId(cart.getUser().getUserId()).build())
+                .product(Product.builder().productId(cart.getProduct().getProductId()).build())
+                .build();
 
-        assertEquals(cart, service.addingUserCart(userCartCreateDTO));
+
+        when(cartRepo.save(any(UserCart.class))).thenReturn(userCart);
+        UserCart result = service.addingUserCart(userCartCreateDTO);
+        assertEquals(userCart.getUser(), result.getUser());
+        assertEquals(userCart.getProduct(),result.getProduct());
     }
 
     @Test

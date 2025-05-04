@@ -34,11 +34,12 @@ public class ProductReviewController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<ProductReviewDTO> getProductReviewById(@PathVariable Long id) {
+    public ApiResponse<ProductReview> getProductReviewById(@PathVariable Long id) {
         ProductReview review = productReviewService.getProductReviewById(id);
-        return new ApiResponse<>("Successfully fetched product review", new ProductReviewDTO(review.getReviewId(), review.getUser().getUserId(), review.getProduct().getProductId()), HttpStatus.OK);
+        return new ApiResponse<>("Successfully fetched product review", review, HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ApiResponse<ProductReviewDTO> createProductReview(@Validated @RequestBody ProductReviewCreateDTO productReviewCreateDTO) {
         ProductReview createdReview = productReviewService.saveProductReview(productReviewCreateDTO);
@@ -57,6 +58,7 @@ public class ProductReviewController {
         return new ApiResponse<>("Successfully updated product review", new ProductReviewDTO(updatedReview.getReviewId(), updatedReview.getUser().getUserId(), updatedReview.getProduct().getProductId()), HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteProductReview(@PathVariable Long id) {
         productReviewService.deleteById(id);

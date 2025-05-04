@@ -18,14 +18,12 @@ public class ProductModelHelper implements ModelHelper<Product> {
             return Product.builder()
                 .productId(1L)
                 .productName("Cat Food")
-                .price(BigDecimal.valueOf(40000))
                 .store(storeHelper.createModel(1))
                 .build();
         } else {
             return Product.builder()
                 .productId(2L)
                 .productName("Fish food")
-                .price(BigDecimal.valueOf(5000))
                 .store(storeHelper.createModel(2))
                 .build();
         }

@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -34,11 +36,12 @@ public class ProductVariantController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<ProductVariantDTO> getProductVariantById(@PathVariable Long id) {
+    public ApiResponse<ProductVariant> getProductVariantById(@PathVariable Long id) {
         ProductVariant productVariant = productVariantService.getProductVariantById(id);
-        return new ApiResponse<>("Successfully fetched product variant", new ProductVariantDTO(productVariant.getVariantId(), productVariant.getProduct().getProductId()), HttpStatus.OK);
+        return new ApiResponse<>("Successfully fetched product variant", productVariant, HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ApiResponse<ProductVariantDTO> createProductVariant(@Validated @RequestBody ProductVariantCreateDTO productVariantCreateDTO) {
         ProductVariant createdProductVariant = productVariantService.saveProductVariant(productVariantCreateDTO);
@@ -57,6 +60,7 @@ public class ProductVariantController {
         return new ApiResponse<>("Successfully partially updated product variant", new ProductVariantDTO(updatedProductVariant.getVariantId(), updatedProductVariant.getProduct().getProductId()), HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteProductVariant(@PathVariable Long id) {
         productVariantService.deleteById(id);

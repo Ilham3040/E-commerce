@@ -34,11 +34,12 @@ public class ProductDetailController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<ProductDetailDTO> getProductDetailById(@PathVariable Long id) {
-        ProductDetail productDetail = productDetailService.findById(id);
-        return new ApiResponse<>("Successfully fetched product detail", new ProductDetailDTO(productDetail.getProductDetailId(), productDetail.getProduct().getProductId()), HttpStatus.OK);
+    public ApiResponse<ProductDetail> getProductDetailById(@PathVariable Long id) {
+        ProductDetail productDetail = productDetailService.getProductDetailByProductId(id);
+        return new ApiResponse<>("Successfully fetched product detail", productDetail, HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ApiResponse<ProductDetailDTO> createProductDetail(@Validated @RequestBody ProductDetailCreateDTO productDetailCreateDTO) {
         ProductDetail createdProductDetail = productDetailService.saveProductDetail(productDetailCreateDTO);
@@ -57,6 +58,7 @@ public class ProductDetailController {
         return new ApiResponse<>("Successfully partially updated product detail", new ProductDetailDTO(updatedProductDetail.getProductDetailId(), updatedProductDetail.getProduct().getProductId()), HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteProductDetail(@PathVariable Long id) {
         productDetailService.deleteByProductId(id);

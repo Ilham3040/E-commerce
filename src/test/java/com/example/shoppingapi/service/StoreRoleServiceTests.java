@@ -50,7 +50,7 @@ class StoreRoleServiceTest {
     void deleteStoreRoleById_roleIsAdmin_throwsOwnerRoleDeletionException() {
         StoreRoleId storeRoleId = new StoreRoleId(1L, 1L);
         StoreRole adminRole = new StoreRole();
-        adminRole.setRole("admin");
+        adminRole.setRole("owner");
         adminRole.setId(storeRoleId);
 
         when(storeRoleRepository.findById(storeRoleId)).thenReturn(Optional.of(adminRole));

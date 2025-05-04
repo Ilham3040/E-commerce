@@ -40,6 +40,7 @@ public class ProductController {
         return new ApiResponse<>("Fetched product", new ProductDTO(product.getProductId(), product.getStore().getStoreId()), HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ApiResponse<ProductDTO> createProduct(@Validated @RequestBody ProductCreateDTO productCreateDTO) {
         Product createdProduct = productService.saveProduct(productCreateDTO);
@@ -58,6 +59,7 @@ public class ProductController {
         return new ApiResponse<>("Product partially updated", new ProductDTO(updatedProduct.getProductId(), updatedProduct.getStore().getStoreId()), HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteById(id);

@@ -1,6 +1,9 @@
 package com.example.shoppingapi.service;
 
+import com.example.shoppingapi.dto.create.UserFavoriteCreateDTO;
+import com.example.shoppingapi.dto.response.UserFavoriteDTO;
 import com.example.shoppingapi.model.Product;
+import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.model.UserFavorite;
 import com.example.shoppingapi.model.UserFavoriteId;
 import com.example.shoppingapi.modelhelper.ModelHelper;
@@ -33,17 +36,17 @@ class UserFavoriteServiceTest {
     void getAllByUserId_found_returnsProducts() {
         Long userId = 1L;
 
-        Product product1 = Product.builder().productId(1L).productName("Product1").build();
-        Product product2 = Product.builder().productId(2L).productName("Product2").build();
+        UserFavorite userFavorite1 = helper.createModel(1);
+        UserFavorite userFavorite2 = helper.createModel(2);
 
         // Mocking the response from the repository
-        List<Product> products = Arrays.asList(product1, product2);
-        when(favRepo.findProductsByUserId(userId)).thenReturn(products);
+        List<UserFavorite> products = Arrays.asList(userFavorite1, userFavorite2);
+        when(favRepo.findItemsByUserId(userId)).thenReturn(products);
 
-        List<Product> result = service.getAllByUserId(userId);
+        List<UserFavorite> result = service.getAllByUserId(userId);
 
         assertEquals(products, result);
-        verify(favRepo).findProductsByUserId(userId);
+        verify(favRepo).findItemsByUserId(userId);
     }
 
     @Test
@@ -71,10 +74,25 @@ class UserFavoriteServiceTest {
     @Test
     void saveUserFavorite_savesAndReturns() {
         UserFavorite fav = helper.createModel(1);
-        when(favRepo.save(fav)).thenReturn(fav);
 
-        assertEquals(fav, service.addingUserFavorite(fav));
-        verify(favRepo).save(fav);
+
+        UserFavoriteCreateDTO userFavoriteCreateDTO = new UserFavoriteCreateDTO();
+        userFavoriteCreateDTO.setUserId(fav.getUser().getUserId());
+        userFavoriteCreateDTO.setProductId(fav.getProduct().getProductId());
+
+        UserFavoriteId userFavoriteId = new UserFavoriteId(fav.getUser().getUserId(), fav.getProduct().getProductId());
+
+        UserFavorite userFavorite = new UserFavorite(userFavoriteId,
+                User.builder().userId(fav.getUser().getUserId()).build(),
+                Product.builder().productId(fav.getProduct().getProductId()).build());
+
+        when(favRepo.save(any(UserFavorite.class))).thenReturn(userFavorite);
+
+        UserFavorite result = service.addingUserFavorite(userFavoriteCreateDTO);
+
+        assertEquals(userFavorite.getId(),result.getId());
+        assertEquals(userFavorite.getUser(),result.getUser());
+        assertEquals(userFavorite.getProduct(),result.getProduct());
     }
 
     @Test

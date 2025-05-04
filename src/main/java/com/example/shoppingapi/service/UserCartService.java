@@ -18,8 +18,8 @@ public class UserCartService {
 
     private final UserCartRepository userCartRepository;
 
-    public List<Product> getAllByUserId(Long id) {
-        return userCartRepository.findProductsByUserId(id);
+    public List<UserCart> getAllByUserId(Long id) {
+        return userCartRepository.findItemsByUserId(id);
     }
 
     public UserCart findById(UserCartId id) {
@@ -29,7 +29,10 @@ public class UserCartService {
     }
 
     public UserCart addingUserCart(UserCartCreateDTO userCartCreateDTO) {
+        UserCartId userCartId = UserCartId.builder().userId(userCartCreateDTO.getUserId()).productId(userCartCreateDTO.getProductId()).build();
+
         UserCart userCart = UserCart.builder()
+                .id(userCartId)
                 .user(User.builder().userId(userCartCreateDTO.getUserId()).build())
                 .product(Product.builder().productId(userCartCreateDTO.getProductId()).build())
                 .build();

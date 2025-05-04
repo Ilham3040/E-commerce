@@ -8,6 +8,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class ShipmentDTO {
-    private Long vendorId;
     private Long orderId;
+    private Long vendorId;
 }

@@ -54,26 +54,25 @@ class ShipmentServiceTest {
         Shipment existingShipment = new Shipment();
         existingShipment.setId(shipmentId);
 
-        when(shipmentRepository.findById(shipmentId))
+        when(shipmentRepository.findByOrderOrderId(shipmentId.getOrderId()))
                 .thenReturn(Optional.of(existingShipment));
 
-        Shipment result = service.getShipmentById(shipmentId);
+        Shipment result = service.getShipmentByOrderId(shipmentId.getOrderId());
 
         assertSame(existingShipment, result);
-        verify(shipmentRepository).findById(shipmentId);
     }
 
     @Test
     void getShipmentById_notFound_throwsResourceNotFound() {
         ShipmentId missingId = new ShipmentId(5L, 6L);
-        when(shipmentRepository.findById(missingId))
+        when(shipmentRepository.findByOrderOrderId(missingId.getOrderId()))
                 .thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(
                 ResourceNotFoundException.class,
-                () -> service.getShipmentById(missingId)
+                () -> service.getShipmentByOrderId(missingId.getOrderId())
         );
-        assertEquals("Shipment not found with ID: " + missingId, ex.getMessage());
+        assertEquals("Shipment not found for order with ID: " + missingId.getOrderId(), ex.getMessage());
     }
 
     @Test
