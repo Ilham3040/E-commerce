@@ -14,6 +14,8 @@ import java.util.Optional;
 
 @Repository
 public interface UserFavoriteRepository extends JpaRepository<UserFavorite, UserFavoriteId> {
-    @Query(value = "SELECT p FROM Product p JOIN UserFavorite uf ON p.productId = uf.productId WHERE uf.userId = :userId",nativeQuery = true)
-    List<Product> findProductsByUserId(@Param("userId") Long userId);
+    @Query("SELECT uf FROM UserFavorite uf " +
+            "JOIN FETCH uf.product p " +
+            "WHERE uf.user.userId = :userId")
+    List<UserFavorite> findItemsByUserId(@Param("userId") Long userId);
 }

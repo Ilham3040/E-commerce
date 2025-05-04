@@ -6,9 +6,9 @@ import lombok.Data;
 
 @Data
 public class StoreRoleCreateDTO {
-    @NotNull(message = "User ID is required")
-    private Long userId;
-
     @NotNull(message = "Store ID is required")
     private Long storeId;
+
+    @NotNull(message = "User ID is required")
+    private Long userId;
 }

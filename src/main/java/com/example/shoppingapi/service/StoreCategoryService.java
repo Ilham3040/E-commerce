@@ -36,6 +36,11 @@ public class StoreCategoryService {
                 new ResourceNotFoundException("StoreCategory not found with ID: " + id));
     }
 
+    public List<StoreCategory> getAllCategoriesByStoreId(Long storeId) {
+        return storeCategoryRepository.findByStoreId(storeId);
+    }
+
+
     public StoreCategory saveStoreCategory(StoreCategoryCreateDTO storeCategoryCreateDTO) {
         storeRepository.findById(storeCategoryCreateDTO.getStoreId()).orElseThrow(()-> new ResourceNotFoundException("Store not found cannot create Store Detail"));
 

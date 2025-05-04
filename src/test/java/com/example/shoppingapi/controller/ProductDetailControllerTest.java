@@ -80,49 +80,6 @@ public class ProductDetailControllerTest {
         DotenvLoader.load();
     }
 
-    // Create a new User
-    private User createUser() throws Exception {
-        UserCreateDTO userCreateDTO = new UserCreateDTO();
-        userCreateDTO.setUsername("testuser");
-        userCreateDTO.setEmail("testuser" + System.currentTimeMillis() + "@example.com");
-        userCreateDTO.setPhoneNumber("1234567890");
-        return userService.createUser(userCreateDTO);
-    }
-
-    // Create a Store and link it with User
-    private Store createStore(User user) throws Exception {
-        StoreCreateDTO storeCreateDTO = new StoreCreateDTO();
-        storeCreateDTO.setStoreName("Test Store");
-        storeCreateDTO.setUserId(user.getUserId());
-        return storeService.saveStore(storeCreateDTO);
-    }
-
-    // Create Product linked to the store
-    private Product createProduct(Store store) throws Exception {
-        ProductCreateDTO productCreateDTO = new ProductCreateDTO();
-        productCreateDTO.setProductName("Test Product");
-        productCreateDTO.setStoreId(store.getStoreId());
-        return productService.saveProduct(productCreateDTO);
-    }
-
-    private ProductDetailCreateDTO createProductDetailCreateDTO(Product product) {
-        ProductDetailCreateDTO productDetailCreateDTO = new ProductDetailCreateDTO();
-        productDetailCreateDTO.setProductId(product.getProductId());
-        productDetailCreateDTO.setDescription("Product description");
-        return productDetailCreateDTO;
-    }
-
-    private ProductDetailPutDTO createProductDetailPutDTO() {
-        ProductDetailPutDTO productDetailPutDTO = new ProductDetailPutDTO();
-        productDetailPutDTO.setDescription("Updated description");
-        return productDetailPutDTO;
-    }
-
-    private ProductDetailPatchDTO createProductDetailPatchDTO() {
-        ProductDetailPatchDTO productDetailPatchDTO = new ProductDetailPatchDTO();
-        productDetailPatchDTO.setDescription("Partially Updated description");
-        return productDetailPatchDTO;
-    }
 
     private String createProductDetailJson(Long productId, String description) {
         return String.format("{ \"productId\": %d, \"description\": \"%s\" }", productId, description);

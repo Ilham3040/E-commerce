@@ -36,17 +36,17 @@ class UserFavoriteServiceTest {
     void getAllByUserId_found_returnsProducts() {
         Long userId = 1L;
 
-        Product product1 = Product.builder().productId(1L).productName("Product1").build();
-        Product product2 = Product.builder().productId(2L).productName("Product2").build();
+        UserFavorite userFavorite1 = helper.createModel(1);
+        UserFavorite userFavorite2 = helper.createModel(2);
 
         // Mocking the response from the repository
-        List<Product> products = Arrays.asList(product1, product2);
-        when(favRepo.findProductsByUserId(userId)).thenReturn(products);
+        List<UserFavorite> products = Arrays.asList(userFavorite1, userFavorite2);
+        when(favRepo.findItemsByUserId(userId)).thenReturn(products);
 
-        List<Product> result = service.getAllByUserId(userId);
+        List<UserFavorite> result = service.getAllByUserId(userId);
 
         assertEquals(products, result);
-        verify(favRepo).findProductsByUserId(userId);
+        verify(favRepo).findItemsByUserId(userId);
     }
 
     @Test

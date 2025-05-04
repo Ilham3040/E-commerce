@@ -75,19 +75,6 @@ public class StoreDetailControllerTest {
         DotenvLoader.load();
     }
 
-    private StoreDetailPutDTO createStoreDetailPutDTO() {
-        StoreDetailPutDTO storeDetailPutDTO = new StoreDetailPutDTO();
-        storeDetailPutDTO.setAddress("Updated Address");
-        storeDetailPutDTO.setDescription("Updated Description");
-        return storeDetailPutDTO;
-    }
-
-    private StoreDetailPatchDTO createStoreDetailPatchDTO() {
-        StoreDetailPatchDTO storeDetailPatchDTO = new StoreDetailPatchDTO();
-        storeDetailPatchDTO.setAddress("Partially Updated Address");
-        return storeDetailPatchDTO;
-    }
-
     private String createStoreDetailJson(Long storeId, String address, String description) {
         return String.format("{ \"storeId\": %d, \"address\": \"%s\", \"description\": \"%s\" }", storeId, address, description);
     }
@@ -99,12 +86,11 @@ public class StoreDetailControllerTest {
         Store createdStore = entityCreationHelper.createStore(createdUser);
         String jsonContent = createStoreDetailJson(createdStore.getStoreId(), "New Address", "New Desc");
 
-        String responseContent = mockMvc.perform(post("/api/storesdetail")
+        mockMvc.perform(post("/api/storesdetail")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.message").value("Successfully created store detail"))
-                .andReturn().getResponse().getContentAsString();
+                .andExpect(jsonPath("$.message").value("Successfully created store detail"));
 
         StoreDetail createdStoreDetail = storeDetailService.getStoreDetailByStoreId(createdStore.getStoreId());
         assertEquals("New Address", createdStoreDetail.getAddress());

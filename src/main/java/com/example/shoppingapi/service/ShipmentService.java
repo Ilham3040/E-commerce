@@ -45,6 +45,8 @@ public class ShipmentService {
         orderRepository.findById(shipmentCreateDTO.getOrderId())
             .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
+        ShipmentId shipmentId = ShipmentId.builder().orderId(shipmentCreateDTO.getOrderId()).vendorId(shipmentCreateDTO.getVendorId()).build();
+
         Shipment shipment = Shipment.builder()
                 .shipmentVendor(ShipmentVendor.builder().vendorId(shipmentCreateDTO.getVendorId()).build())
                 .order(Order.builder().orderId(shipmentCreateDTO.getOrderId()).build())

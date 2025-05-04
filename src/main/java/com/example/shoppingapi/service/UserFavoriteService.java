@@ -16,8 +16,8 @@ public class UserFavoriteService {
     private final UserFavoriteRepository userFavoriteRepository;
 
     // Method to return products for a given user ID
-    public List<Product> getAllByUserId(Long id) {
-        return userFavoriteRepository.findProductsByUserId(id);
+    public List<UserFavorite> getAllByUserId(Long id) {
+        return userFavoriteRepository.findItemsByUserId(id);
     }
 
     public UserFavorite findById(UserFavoriteId id) {
@@ -27,8 +27,10 @@ public class UserFavoriteService {
     }
 
     public UserFavorite addingUserFavorite(UserFavoriteCreateDTO userFavoriteCreateDTO) {
+        UserFavoriteId userFavoriteId = UserFavoriteId.builder().userId(userFavoriteCreateDTO.getUserId()).productId(userFavoriteCreateDTO.getProductId()).build();
 
         UserFavorite userFavorite = UserFavorite.builder()
+                .id(userFavoriteId)
                 .user(User.builder().userId(userFavoriteCreateDTO.getUserId()).build())
                 .product(Product.builder().productId(userFavoriteCreateDTO.getProductId()).build())
                 .build();

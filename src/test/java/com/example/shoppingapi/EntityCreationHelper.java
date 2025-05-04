@@ -3,16 +3,26 @@ package com.example.shoppingapi;
 import com.example.shoppingapi.dto.create.*;
 import com.example.shoppingapi.model.*;
 import com.example.shoppingapi.service.*;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.test.annotation.Rollback;
 
 import java.math.BigDecimal;
 
+@Transactional
+@Rollback(true)
 @Component
 public class EntityCreationHelper {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserCartService userCartService;
+
+    @Autowired
+    private UserFavoriteService userFavoriteService;
 
     @Autowired
     private StoreService storeService;
@@ -28,6 +38,12 @@ public class EntityCreationHelper {
 
     @Autowired
     private StoreDetailService storeDetailService;
+
+    @Autowired
+    private StoreCategoryService storeCategoryService;
+
+    @Autowired
+    private StoreRoleService storeRoleService;
 
     public User createUser() throws Exception {
         UserCreateDTO userCreateDTO = new UserCreateDTO();
@@ -72,5 +88,33 @@ public class EntityCreationHelper {
         storeDetailCreateDTO.setAddress("Test Address");
         storeDetailCreateDTO.setDescription("Test Description");
         return storeDetailService.saveStoreDetail(storeDetailCreateDTO);
+    }
+
+    public StoreCategory createStoreCategory(Store store) throws Exception {
+        StoreCategoryCreateDTO storeCategoryCreateDTO = new StoreCategoryCreateDTO();
+        storeCategoryCreateDTO.setStoreId(store.getStoreId());
+        storeCategoryCreateDTO.setCategoryName("new category"); // Assign the category name
+        return storeCategoryService.saveStoreCategory(storeCategoryCreateDTO);
+    }
+
+    public StoreRole createStoreRole(Store store, User user) throws Exception {
+        StoreRoleCreateDTO storeRoleCreateDTO = new StoreRoleCreateDTO();
+        storeRoleCreateDTO.setStoreId(store.getStoreId());
+        storeRoleCreateDTO.setUserId(user.getUserId());
+        return storeRoleService.promoteToAdminStoreRole(storeRoleCreateDTO);
+    }
+
+    public UserCart createUserCart(User user, Product product) throws Exception {
+        UserCartCreateDTO userCartCreateDTO = new UserCartCreateDTO();
+        userCartCreateDTO.setUserId(user.getUserId());
+        userCartCreateDTO.setProductId(product.getProductId());
+        return userCartService.addingUserCart(userCartCreateDTO);
+    }
+
+    public UserFavorite createUserFavorite(User user, Product product) throws Exception {
+        UserFavoriteCreateDTO userFavoriteCreateDTO = new UserFavoriteCreateDTO();
+        userFavoriteCreateDTO.setUserId(user.getUserId());
+        userFavoriteCreateDTO.setProductId(product.getProductId());
+        return userFavoriteService.addingUserFavorite(userFavoriteCreateDTO);
     }
 }
