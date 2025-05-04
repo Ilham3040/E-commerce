@@ -51,6 +51,12 @@ public class EntityCreationHelper {
     @Autowired
     private ProductReviewService productReviewService;
 
+    @Autowired
+    private ShipmentService shipmentService;
+
+    @Autowired
+    private ShipmentVendorService shipmentVendorService;
+
     public User createUser() throws Exception {
         UserCreateDTO userCreateDTO = new UserCreateDTO();
         userCreateDTO.setUsername("testuser");
@@ -140,5 +146,21 @@ public class EntityCreationHelper {
         productReviewCreateDTO.setStarRating(5);
         productReviewCreateDTO.setDescription("Excellent product!");
         return productReviewService.saveProductReview(productReviewCreateDTO);
+    }
+
+    public Shipment createShipment(Order order, Long vendorId) throws Exception {
+        ShipmentCreateDTO shipmentCreateDTO = new ShipmentCreateDTO();
+        shipmentCreateDTO.setOrderId(order.getOrderId());
+        shipmentCreateDTO.setVendorId(vendorId);
+        return shipmentService.saveShipment(shipmentCreateDTO);
+    }
+
+    public ShipmentVendor createShipmentVendor() throws Exception {
+        ShipmentVendorCreateDTO shipmentVendorCreateDTO = new ShipmentVendorCreateDTO();
+        shipmentVendorCreateDTO.setVendorName("Test Vendor");
+        shipmentVendorCreateDTO.setVendorContact("1234567890");
+        shipmentVendorCreateDTO.setVendorEmail("testvendor@example.com");
+        shipmentVendorCreateDTO.setOfficialWebsiteUrl("http://testvendor.com");
+        return shipmentVendorService.saveShipmentVendor(shipmentVendorCreateDTO);
     }
 }
