@@ -1,6 +1,7 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.dto.create.ProductReviewCreateDTO;
+import com.example.shoppingapi.dto.detailed.DetailedProductReviewDTO;
 import com.example.shoppingapi.dto.response.ProductReviewDTO;
 import com.example.shoppingapi.dto.put.ProductReviewPutDTO;
 import com.example.shoppingapi.dto.patch.ProductReviewPatchDTO;
@@ -19,7 +20,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/productsreview")
+@RequestMapping("/api/productsreviews/")
 @RequiredArgsConstructor
 public class ProductReviewController {
     private final ProductReviewService productReviewService;
@@ -34,9 +35,18 @@ public class ProductReviewController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<ProductReview> getProductReviewById(@PathVariable Long id) {
+    public ApiResponse<DetailedProductReviewDTO> getProductReviewById(@PathVariable Long id) {
         ProductReview review = productReviewService.getProductReviewById(id);
-        return new ApiResponse<>("Successfully fetched product review", review, HttpStatus.OK);
+        return new ApiResponse<>("Successfully fetched product review", DetailedProductReviewDTO.builder()
+                .reviewId(review.getReviewId())
+                .userId(review.getUser().getUserId())
+                .productId(review.getProduct().getProductId())
+                .starRating(review.getStarRating())
+                .description(review.getDescription())
+                .images(review.getAttachmentUrls())
+                .createdAt(review.getCreatedAt())
+                .updatedAT(review.getUpdatedAt())
+                .build(), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.CREATED)

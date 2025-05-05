@@ -61,7 +61,7 @@ public class StoreCategoryControllerTest {
         storeCategoryCreateDTO.setCategoryName("Category 1");
         storeCategoryCreateDTO.setStoreId(createdStore.getStoreId());
 
-        mockMvc.perform(post("/api/storecategories")
+        mockMvc.perform(post("/api/storecategories/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{ \"storeId\": " + createdStore.getStoreId() + ", \"categoryName\": \"Category 1\" }"))
                 .andExpect(status().isCreated())
@@ -76,7 +76,7 @@ public class StoreCategoryControllerTest {
         Store createdStore = entityCreationHelper.createStore(createdUser);
         entityCreationHelper.createStoreCategory(createdStore);
 
-        mockMvc.perform(get("/api/storecategories"))
+        mockMvc.perform(get("/api/storecategories/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched all store categories"))
                 .andExpect(jsonPath("$.data[0].storeId").value(createdStore.getStoreId()));
@@ -91,7 +91,7 @@ public class StoreCategoryControllerTest {
         mockMvc.perform(get("/api/storecategories/{id}", storeCategory.getCategoryId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched store category"))
-                .andExpect(jsonPath("$.data.store.storeId").value(createdStore.getStoreId()))
+                .andExpect(jsonPath("$.data.storeId").value(createdStore.getStoreId()))
                 .andExpect(jsonPath("$.data.categoryId").value(storeCategory.getCategoryId()))
                 .andExpect(jsonPath("$.data.categoryName").value("new category"));
     }
@@ -124,7 +124,7 @@ public class StoreCategoryControllerTest {
         mockMvc.perform(get("/api/storecategories/{id}", storeCategory.getCategoryId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched store category"))
-                .andExpect(jsonPath("$.data.store.storeId").value(createdStore.getStoreId()))
+                .andExpect(jsonPath("$.data.storeId").value(createdStore.getStoreId()))
                 .andExpect(jsonPath("$.data.categoryId").value(storeCategory.getCategoryId()))
                 .andExpect(jsonPath("$.data.categoryName").value("Updated Category"));
 

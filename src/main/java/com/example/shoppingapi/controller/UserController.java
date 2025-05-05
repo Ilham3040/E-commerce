@@ -1,6 +1,7 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.dto.create.UserCreateDTO;
+import com.example.shoppingapi.dto.detailed.DetailedUserDTO;
 import com.example.shoppingapi.dto.put.UserPutDTO;
 import com.example.shoppingapi.dto.response.ApiResponse;
 import com.example.shoppingapi.dto.response.UserDTO;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/users/")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
@@ -33,9 +34,16 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<User> getUserById(@PathVariable Long id) {
+    public ApiResponse<DetailedUserDTO> getUserById(@PathVariable Long id) {
         User user = userService.getUserById(id);
-        return new ApiResponse<>("Fetched user", user, HttpStatus.OK);
+        return new ApiResponse<>("Fetched user", DetailedUserDTO.builder()
+                .userId(user.getUserId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .build(),HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.CREATED)

@@ -57,7 +57,7 @@ public class StoreRoleControllerTest {
 
         String jsonContent = createStoreRoleJson(createdStore.getStoreId(), createdUser.getUserId());
 
-        mockMvc.perform(post("/api/storeroles")
+        mockMvc.perform(post("/api/storeroles/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                 .andExpect(status().isCreated())

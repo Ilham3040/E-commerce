@@ -82,7 +82,7 @@ public class StoreControllerTest {
         User createdUser = entityCreationHelper.createUser();
         String jsonContent = createStoreJson("new store", createdUser.getUserId());
 
-        String responseContent = mockMvc.perform(post("/api/stores")
+        String responseContent = mockMvc.perform(post("/api/stores/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                 .andExpect(status().isCreated())
@@ -103,7 +103,7 @@ public class StoreControllerTest {
         User createdUser = entityCreationHelper.createUser();
         Store createdStore = entityCreationHelper.createStore(createdUser);
 
-        mockMvc.perform(get("/api/stores"))
+        mockMvc.perform(get("/api/stores/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Fetched all stores"))
                 .andExpect(jsonPath("$.data[0].storeId").value(createdStore.getStoreId()));

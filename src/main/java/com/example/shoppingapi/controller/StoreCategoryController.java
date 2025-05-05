@@ -1,6 +1,7 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.dto.create.StoreCategoryCreateDTO;
+import com.example.shoppingapi.dto.detailed.DetailedStoreCategoryDTO;
 import com.example.shoppingapi.dto.put.StoreCategoryPutDTO;
 import com.example.shoppingapi.dto.patch.StoreCategoryPatchDTO;
 import com.example.shoppingapi.dto.response.ApiResponse;
@@ -19,7 +20,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/storecategories")
+@RequestMapping("/api/storecategories/")
 @RequiredArgsConstructor
 public class StoreCategoryController {
     private final StoreCategoryService storeCategoryService;
@@ -34,9 +35,15 @@ public class StoreCategoryController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<StoreCategory> getStoreCategoryById(@PathVariable Long id) {
+    public ApiResponse<DetailedStoreCategoryDTO> getStoreCategoryById(@PathVariable Long id) {
         StoreCategory storeCategory = storeCategoryService.getStoreCategoryById(id);
-        return new ApiResponse<>("Successfully fetched store category", storeCategory, HttpStatus.OK);
+        return new ApiResponse<>("Successfully fetched store category", DetailedStoreCategoryDTO.builder()
+                .categoryId(storeCategory.getCategoryId())
+                .categoryName(storeCategory.getCategoryName())
+                .storeId(storeCategory.getStore().getStoreId())
+                .createdAt(storeCategory.getCreatedAt())
+                .updatedAt(storeCategory.getUpdatedAt())
+                .build(), HttpStatus.OK);
     }
 
     @GetMapping("/store/{storeId}")

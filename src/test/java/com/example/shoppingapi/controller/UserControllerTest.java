@@ -70,7 +70,7 @@ public class UserControllerTest {
     public void testCreateUser() throws Exception {
         String jsonContent = createUserJson("testuser", "testuser@example.com", "1234567890");
 
-        String responseContent = mockMvc.perform(post("/api/users")
+        String responseContent = mockMvc.perform(post("/api/users/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                 .andExpect(status().isCreated())
@@ -90,7 +90,7 @@ public class UserControllerTest {
     public void testGetAllUsers() throws Exception {
         User createdUser = entityCreationHelper.createUser();
 
-        mockMvc.perform(get("/api/users"))
+        mockMvc.perform(get("/api/users/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Fetched all users"))
                 .andExpect(jsonPath("$.data[0].userId").value(createdUser.getUserId()));
