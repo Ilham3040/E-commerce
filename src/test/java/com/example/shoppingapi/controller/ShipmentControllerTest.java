@@ -42,7 +42,7 @@ public class ShipmentControllerTest {
                 "  \"vendorId\":" + createdVendor.getVendorId() +  "\n" +
                 "}";
 
-        mockMvc.perform(post("/api/shipments")
+        mockMvc.perform(post("/api/shipments/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(shipmentCreateJson))
                 .andExpect(status().isCreated())
@@ -60,7 +60,7 @@ public class ShipmentControllerTest {
         ShipmentVendor createdVendor = entityCreationHelper.createShipmentVendor();
         Shipment createdShipment = entityCreationHelper.createShipment(createdOrder, createdVendor.getVendorId());
 
-        mockMvc.perform(get("/api/shipments"))
+        mockMvc.perform(get("/api/shipments/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched all shipments"))
                 .andExpect(jsonPath("$.data[0].orderId").value(createdShipment.getOrder().getOrderId()))

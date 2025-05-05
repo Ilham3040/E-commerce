@@ -98,7 +98,7 @@ public class OrderControllerTest {
 
         String jsonContent = createOrderJson(createdUser.getUserId(), createdProduct.getProductId(), "pending");
 
-        String responseContent = mockMvc.perform(post("/api/orders")
+        String responseContent = mockMvc.perform(post("/api/orders/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                 .andExpect(status().isCreated())
@@ -121,7 +121,7 @@ public class OrderControllerTest {
         Product createdProduct = entityCreationHelper.createProduct(createdStore);
         Order createdOrder = entityCreationHelper.createOrder(createdUser,createdProduct);
 
-        mockMvc.perform(get("/api/orders"))
+        mockMvc.perform(get("/api/orders/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Fetched all orders"))
                 .andExpect(jsonPath("$.data[0].orderId").value(createdOrder.getOrderId()));

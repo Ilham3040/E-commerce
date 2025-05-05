@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/usercart")
+@RequestMapping("/api/usercart/")
 @RequiredArgsConstructor
 public class UserCartController {
     private final UserCartService userCartService;

@@ -1,6 +1,7 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.dto.create.StoreDetailCreateDTO;
+import com.example.shoppingapi.dto.detailed.DetailedStoreDetailDTO;
 import com.example.shoppingapi.dto.put.StoreDetailPutDTO;
 import com.example.shoppingapi.dto.patch.StoreDetailPatchDTO;
 import com.example.shoppingapi.dto.response.ApiResponse;
@@ -19,7 +20,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/storesdetail")
+@RequestMapping("/api/storesdetails/")
 @RequiredArgsConstructor
 public class StoreDetailController {
     private final StoreDetailService storeDetailService;
@@ -34,9 +35,20 @@ public class StoreDetailController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<StoreDetail> getStoreDetailById(@PathVariable Long id) {
+    public ApiResponse<DetailedStoreDetailDTO> getStoreDetailById(@PathVariable Long id) {
         StoreDetail storeDetail = storeDetailService.getStoreDetailByStoreId(id);
-        return new ApiResponse<>("Successfully fetched store detail", storeDetail, HttpStatus.OK);
+        return new ApiResponse<>("Successfully fetched store detail", DetailedStoreDetailDTO.builder()
+                .storeDetailId(storeDetail.getStoreDetailId())
+                .storeId(storeDetail.getStore().getStoreId())
+                .address(storeDetail.getAddress())
+                .description(storeDetail.getDescription())
+                .attachmentUrls(storeDetail.getAttachmentUrls())
+                .followerCount(storeDetail.getFollowerCount())
+                .totalProducts(storeDetail.getTotalProducts())
+                .totalReview(storeDetail.getTotaReview())
+                .createdAt(storeDetail.getCreatedAt())
+                .updatedAt(storeDetail.getUpdatedAt())
+                .build(), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.CREATED)

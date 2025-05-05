@@ -1,6 +1,7 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.dto.create.OrderCreateDTO;
+import com.example.shoppingapi.dto.detailed.DetailedOrderDTO;
 import com.example.shoppingapi.dto.patch.OrderPatchDTO;
 import com.example.shoppingapi.dto.put.OrderPutDTO;
 import com.example.shoppingapi.dto.response.ApiResponse;
@@ -21,7 +22,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping("/api/orders/")
 @RequiredArgsConstructor
 public class OrderController {
     private final OrderService orderService;
@@ -36,9 +37,15 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<OrderDTO> getOrderById(@PathVariable Long id) {
+    public ApiResponse<DetailedOrderDTO> getOrderById(@PathVariable Long id) {
         Order order = orderService.getOrderById(id);
-        return new ApiResponse<>("Fetched order", new OrderDTO(order.getOrderId(), order.getUser().getUserId(), order.getProduct().getProductId(), order.getStatus()), HttpStatus.OK);
+        return new ApiResponse<>("Fetched order", DetailedOrderDTO.builder()
+                .orderId(order.getOrderId())
+                .orderDate(order.getOrderDate())
+                .userId(order.getUser().getUserId())
+                .productId(order.getProduct().getProductId())
+                .status(order.getStatus())
+                .build(), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.CREATED)

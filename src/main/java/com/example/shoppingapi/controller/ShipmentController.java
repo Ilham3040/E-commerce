@@ -1,6 +1,7 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.dto.create.ShipmentCreateDTO;
+import com.example.shoppingapi.dto.detailed.DetailedShipmentDTO;
 import com.example.shoppingapi.dto.put.ShipmentPutDTO;
 import com.example.shoppingapi.dto.patch.ShipmentPatchDTO;
 import com.example.shoppingapi.dto.response.ApiResponse;
@@ -20,7 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/shipments")
+@RequestMapping("/api/shipments/")
 @RequiredArgsConstructor
 public class ShipmentController {
     private final ShipmentService shipmentService;
@@ -35,9 +36,15 @@ public class ShipmentController {
     }
 
     @GetMapping("/order/{id}")
-    public ApiResponse<ShipmentDTO> getShipmentById(@PathVariable Long id) {
+    public ApiResponse<DetailedShipmentDTO> getShipmentById(@PathVariable Long id) {
         Shipment shipment = shipmentService.getShipmentByOrderId(id);
-        return new ApiResponse<>("Successfully fetched shipment", new ShipmentDTO(shipment.getOrder().getOrderId(), shipment.getShipmentVendor().getVendorId()), HttpStatus.OK);
+        return new ApiResponse<>("Successfully fetched shipment",DetailedShipmentDTO.builder()
+                .vendorId(shipment.getShipmentVendor().getVendorId())
+                .orderId(shipment.getOrder().getOrderId())
+                .status(shipment.getShipmentStatus())
+                .createdAt(shipment.getCreatedAt())
+                .updatedAt(shipment.getUpdatedAt())
+                .build(), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.CREATED)

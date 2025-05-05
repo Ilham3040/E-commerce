@@ -1,6 +1,7 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.dto.create.ProductVariantCreateDTO;
+import com.example.shoppingapi.dto.detailed.DetailedProductVariantDTO;
 import com.example.shoppingapi.dto.put.ProductVariantPutDTO;
 import com.example.shoppingapi.dto.patch.ProductVariantPatchDTO;
 import com.example.shoppingapi.dto.response.ApiResponse;
@@ -21,7 +22,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/productvariants")
+@RequestMapping("/api/productvariants/")
 @RequiredArgsConstructor
 public class ProductVariantController {
     private final ProductVariantService productVariantService;
@@ -36,9 +37,18 @@ public class ProductVariantController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<ProductVariant> getProductVariantById(@PathVariable Long id) {
+    public ApiResponse<DetailedProductVariantDTO> getProductVariantById(@PathVariable Long id) {
         ProductVariant productVariant = productVariantService.getProductVariantById(id);
-        return new ApiResponse<>("Successfully fetched product variant", productVariant, HttpStatus.OK);
+        return new ApiResponse<>("Successfully fetched product variant", DetailedProductVariantDTO.builder()
+                .variantId(productVariant.getVariantId())
+                .variantName(productVariant.getVariantName())
+                .productId(productVariant.getProduct().getProductId())
+                .price(productVariant.getPrice())
+                .totalSold(productVariant.getTotalSold())
+                .stockQuantity(productVariant.getStockQuantity())
+                .createdAt(productVariant.getCreatedAt())
+                .updatedAt(productVariant.getUpdatedAt())
+                .build(), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.CREATED)

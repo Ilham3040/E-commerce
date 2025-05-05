@@ -52,7 +52,7 @@ public class ProductVariantControllerTest {
         Product createdProduct = entityCreationHelper.createProduct(createdStore);
         ProductVariant createdProductVariant = entityCreationHelper.createProductVariant(createdProduct);
 
-        mockMvc.perform(get("/api/productvariants"))
+        mockMvc.perform(get("/api/productvariants/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched all product variants"))
                 .andExpect(jsonPath("$.data[0].productId").value(createdProduct.getProductId()));
@@ -68,7 +68,7 @@ public class ProductVariantControllerTest {
         mockMvc.perform(get("/api/productvariants/{id}", createdProductVariant.getVariantId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched product variant"))
-                .andExpect(jsonPath("$.data.product.productId").value(createdProduct.getProductId()))
+                .andExpect(jsonPath("$.data.productId").value(createdProduct.getProductId()))
                 .andExpect(jsonPath("$.data.variantName").value(createdProductVariant.getVariantName()))
                 .andExpect(jsonPath("$.data.price").value(createdProductVariant.getPrice()))
                 .andExpect(jsonPath("$.data.stockQuantity").value(createdProductVariant.getStockQuantity()));
@@ -88,7 +88,7 @@ public class ProductVariantControllerTest {
                 "}";
 
         // Perform POST request to create product variant
-        MvcResult postResult = mockMvc.perform(post("/api/productvariants")
+        MvcResult postResult = mockMvc.perform(post("/api/productvariants/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(productVariantJson))
                 .andExpect(status().isCreated())
@@ -102,7 +102,7 @@ public class ProductVariantControllerTest {
         mockMvc.perform(get("/api/productvariants/{id}", variantId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched product variant"))
-                .andExpect(jsonPath("$.data.product.productId").value(createdProduct.getProductId()))
+                .andExpect(jsonPath("$.data.productId").value(createdProduct.getProductId()))
                 .andExpect(jsonPath("$.data.variantName").value("Test Variant"))
                 .andExpect(jsonPath("$.data.price").value(10.00))
                 .andExpect(jsonPath("$.data.stockQuantity").value(100));
@@ -131,7 +131,7 @@ public class ProductVariantControllerTest {
         mockMvc.perform(get("/api/productvariants/{id}", createdProductVariant.getVariantId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched product variant"))
-                .andExpect(jsonPath("$.data.product.productId").value(createdProduct.getProductId()))
+                .andExpect(jsonPath("$.data.productId").value(createdProduct.getProductId()))
                 .andExpect(jsonPath("$.data.variantName").value("Updated Variant"))
                 .andExpect(jsonPath("$.data.price").value(15.00))
                 .andExpect(jsonPath("$.data.stockQuantity").value(150));

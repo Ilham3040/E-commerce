@@ -60,7 +60,7 @@ public class UserFavoriteControllerTest {
 
         String jsonContent = createUserFavoriteJson(createdUser.getUserId(), createdProduct.getProductId());
 
-        mockMvc.perform(post("/api/userfavorites")
+        mockMvc.perform(post("/api/userfavorites/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                 .andExpect(status().isCreated())
