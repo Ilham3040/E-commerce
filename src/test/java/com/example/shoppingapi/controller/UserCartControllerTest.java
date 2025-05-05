@@ -74,7 +74,7 @@ public class UserCartControllerTest {
 
         String jsonContent = createUserCartJson(createdUser.getUserId(), createdProduct.getProductId());
 
-        mockMvc.perform(post("/api/usercart")
+        mockMvc.perform(post("/api/usercart/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                 .andExpect(status().isCreated())

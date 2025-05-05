@@ -36,7 +36,7 @@ public class ProductReviewControllerTest {
         Product createdProduct = entityCreationHelper.createProduct(createdStore);
         ProductReview createdProductReview = entityCreationHelper.createProductReview(createdUser, createdProduct);
 
-        mockMvc.perform(get("/api/productsreview"))
+        mockMvc.perform(get("/api/productsreviews/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched all product reviews"))
                 .andExpect(jsonPath("$.data[0].productId").value(createdProduct.getProductId()));
@@ -49,11 +49,11 @@ public class ProductReviewControllerTest {
         Product createdProduct = entityCreationHelper.createProduct(createdStore);
         ProductReview createdProductReview = entityCreationHelper.createProductReview(createdUser, createdProduct);
 
-        mockMvc.perform(get("/api/productsreview/{id}", createdProductReview.getReviewId()))
+        mockMvc.perform(get("/api/productsreviews/{id}", createdProductReview.getReviewId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched product review"))
-                .andExpect(jsonPath("$.data.product.productId").value(createdProductReview.getProduct().getProductId()))
-                .andExpect(jsonPath("$.data.user.userId").value(createdProductReview.getUser().getUserId()))
+                .andExpect(jsonPath("$.data.productId").value(createdProductReview.getProduct().getProductId()))
+                .andExpect(jsonPath("$.data.userId").value(createdProductReview.getUser().getUserId()))
                 .andExpect(jsonPath("$.data.starRating").value(createdProductReview.getStarRating()))
                 .andExpect(jsonPath("$.data.description").value(createdProductReview.getDescription()));
     }
@@ -71,7 +71,7 @@ public class ProductReviewControllerTest {
                 "  \"description\": \"Great product!\"\n" +
                 "}";
 
-        MvcResult postResult = mockMvc.perform(post("/api/productsreview")
+        MvcResult postResult = mockMvc.perform(post("/api/productsreviews/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(productReviewJson))
                 .andExpect(status().isCreated())
@@ -82,11 +82,11 @@ public class ProductReviewControllerTest {
         String reviewId = JsonPath.read(responseContent, "$.data.productReviewId").toString();
 
 
-        mockMvc.perform(get("/api/productsreview/{id}", reviewId))
+        mockMvc.perform(get("/api/productsreviews/{id}", reviewId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched product review"))
-                .andExpect(jsonPath("$.data.product.productId").value(createdProduct.getProductId()))
-                .andExpect(jsonPath("$.data.user.userId").value(createdUser.getUserId()))
+                .andExpect(jsonPath("$.data.productId").value(createdProduct.getProductId()))
+                .andExpect(jsonPath("$.data.userId").value(createdUser.getUserId()))
                 .andExpect(jsonPath("$.data.starRating").value(5))
                 .andExpect(jsonPath("$.data.description").value("Great product!"));
     }
@@ -103,17 +103,17 @@ public class ProductReviewControllerTest {
                 "  \"description\": \"Updated review!\"\n" +
                 "}";
 
-        mockMvc.perform(put("/api/productsreview/{id}", createdProductReview.getReviewId())
+        mockMvc.perform(put("/api/productsreviews/{id}", createdProductReview.getReviewId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(productReviewJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully updated product review"));
 
-        mockMvc.perform(get("/api/productsreview/{id}", createdProductReview.getReviewId()))
+        mockMvc.perform(get("/api/productsreviews/{id}", createdProductReview.getReviewId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched product review"))
-                .andExpect(jsonPath("$.data.product.productId").value(createdProductReview.getProduct().getProductId()))
-                .andExpect(jsonPath("$.data.user.userId").value(createdProductReview.getUser().getUserId()))
+                .andExpect(jsonPath("$.data.productId").value(createdProductReview.getProduct().getProductId()))
+                .andExpect(jsonPath("$.data.userId").value(createdProductReview.getUser().getUserId()))
                 .andExpect(jsonPath("$.data.starRating").value(4))
                 .andExpect(jsonPath("$.data.description").value("Updated review!"));
     }
@@ -125,7 +125,7 @@ public class ProductReviewControllerTest {
         Product createdProduct = entityCreationHelper.createProduct(createdStore);
         ProductReview createdProductReview = entityCreationHelper.createProductReview(createdUser, createdProduct);
 
-        mockMvc.perform(delete("/api/productsreview/{id}", createdProductReview.getReviewId()))
+        mockMvc.perform(delete("/api/productsreviews/{id}", createdProductReview.getReviewId()))
                 .andExpect(status().isNoContent())
                 .andExpect(jsonPath("$.message").value("Successfully deleted product review"));
     }

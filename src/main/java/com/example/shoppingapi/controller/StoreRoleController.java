@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/storeroles")
+@RequestMapping("/api/storeroles/")
 @RequiredArgsConstructor
 public class StoreRoleController {
     private final StoreRoleService storeRoleService;

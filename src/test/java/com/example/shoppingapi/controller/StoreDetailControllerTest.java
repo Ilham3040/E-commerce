@@ -86,7 +86,7 @@ public class StoreDetailControllerTest {
         Store createdStore = entityCreationHelper.createStore(createdUser);
         String jsonContent = createStoreDetailJson(createdStore.getStoreId(), "New Address", "New Desc");
 
-        mockMvc.perform(post("/api/storesdetail")
+        mockMvc.perform(post("/api/storesdetails/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                 .andExpect(status().isCreated())
@@ -103,7 +103,7 @@ public class StoreDetailControllerTest {
         Store createdStore = entityCreationHelper.createStore(createdUser);
         entityCreationHelper.createStoreDetail(createdStore);
 
-        mockMvc.perform(get("/api/storesdetail"))
+        mockMvc.perform(get("/api/storesdetails/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched all store details"))
                 .andExpect(jsonPath("$.data[0].storeId").value(createdStore.getStoreId()));
@@ -115,13 +115,13 @@ public class StoreDetailControllerTest {
         Store createdStore = entityCreationHelper.createStore(createdUser);
         StoreDetail createdStoreDetail = entityCreationHelper.createStoreDetail(createdStore);
 
-        mockMvc.perform(get("/api/storesdetail/{id}", createdStore.getStoreId()))
+        mockMvc.perform(get("/api/storesdetails/{id}", createdStore.getStoreId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched store detail"))
                 .andExpect(jsonPath("$.data.storeDetailId").value(createdStoreDetail.getStoreDetailId()))
                 .andExpect(jsonPath("$.data.address").value(createdStoreDetail.getAddress()))
                 .andExpect(jsonPath("$.data.description").value(createdStoreDetail.getDescription()))
-                .andExpect(jsonPath("$.data.store.storeId").value(createdStoreDetail.getStore().getStoreId()));
+                .andExpect(jsonPath("$.data.storeId").value(createdStoreDetail.getStore().getStoreId()));
     }
 
     @Test
@@ -132,19 +132,19 @@ public class StoreDetailControllerTest {
 
         String jsonContent = createStoreDetailJson(createdStore.getStoreId(), "Yugo Road no.22-24", "Updated desc");
 
-        mockMvc.perform(put("/api/storesdetail/{id}", createdStoreDetail.getStore().getStoreId())
+        mockMvc.perform(put("/api/storesdetails/{id}", createdStoreDetail.getStore().getStoreId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.message").value("Successfully updated store detail"));
 
-        mockMvc.perform(get("/api/storesdetail/{id}", createdStore.getStoreId()))
+        mockMvc.perform(get("/api/storesdetails/{id}", createdStore.getStoreId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched store detail"))
                 .andExpect(jsonPath("$.data.storeDetailId").value(createdStoreDetail.getStoreDetailId()))
                 .andExpect(jsonPath("$.data.address").value("Yugo Road no.22-24"))
                 .andExpect(jsonPath("$.data.description").value("Updated desc"))
-                .andExpect(jsonPath("$.data.store.storeId").value(createdStoreDetail.getStore().getStoreId()));
+                .andExpect(jsonPath("$.data.storeId").value(createdStoreDetail.getStore().getStoreId()));
 
 
     }
@@ -157,19 +157,19 @@ public class StoreDetailControllerTest {
 
         String jsonContent = "{ \"description\": \"Updated desc\" }";
 
-        mockMvc.perform(patch("/api/storesdetail/{id}", createdStore.getStoreId())
+        mockMvc.perform(patch("/api/storesdetails/{id}", createdStore.getStoreId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully updated store detail"));
 
-        mockMvc.perform(get("/api/storesdetail/{id}", createdStore.getStoreId()))
+        mockMvc.perform(get("/api/storesdetails/{id}", createdStore.getStoreId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched store detail"))
                 .andExpect(jsonPath("$.data.storeDetailId").value(createdStoreDetail.getStoreDetailId()))
                 .andExpect(jsonPath("$.data.address").value(createdStoreDetail.getAddress()))
                 .andExpect(jsonPath("$.data.description").value("Updated desc"))
-                .andExpect(jsonPath("$.data.store.storeId").value(createdStoreDetail.getStore().getStoreId()));
+                .andExpect(jsonPath("$.data.storeId").value(createdStoreDetail.getStore().getStoreId()));
 
     }
     @Test
@@ -178,7 +178,7 @@ public class StoreDetailControllerTest {
         Store createdStore = entityCreationHelper.createStore(createdUser);
         StoreDetail createdStoreDetail = entityCreationHelper.createStoreDetail(createdStore);
 
-        mockMvc.perform(delete("/api/storesdetail/{id}", createdStore.getStoreId()))
+        mockMvc.perform(delete("/api/storesdetails/{id}", createdStore.getStoreId()))
                 .andExpect(status().isNoContent())
                 .andExpect(jsonPath("$.message").value("Successfully deleted store detail"));
 

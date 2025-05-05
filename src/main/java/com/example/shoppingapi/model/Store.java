@@ -1,5 +1,6 @@
 package com.example.shoppingapi.model;
 
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,8 +27,8 @@ public class Store {
     @Column(name = "store_name", nullable = false, length = 255)
     private String storeName;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(name = "created_at", columnDefinition = "TIMESTAMPTZ DEFAULT NOW()")

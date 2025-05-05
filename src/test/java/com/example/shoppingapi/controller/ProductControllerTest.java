@@ -84,7 +84,7 @@ public class ProductControllerTest {
 
         String jsonContent = createProductJson("New product", createdStore.getStoreId());
 
-        String responseContent = mockMvc.perform(post("/api/products")
+        String responseContent = mockMvc.perform(post("/api/products/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                 .andExpect(status().isCreated())
@@ -105,7 +105,7 @@ public class ProductControllerTest {
         Store createdStore = entityCreationHelper.createStore(createdUser);
         Product createdProduct = entityCreationHelper.createProduct(createdStore);
 
-        mockMvc.perform(get("/api/products"))
+        mockMvc.perform(get("/api/products/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Fetched all products"))
                 .andExpect(jsonPath("$.data[0].productId").value(createdProduct.getProductId()));

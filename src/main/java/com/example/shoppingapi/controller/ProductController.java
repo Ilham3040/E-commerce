@@ -1,6 +1,7 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.dto.create.ProductCreateDTO;
+import com.example.shoppingapi.dto.detailed.DetailedProductDTO;
 import com.example.shoppingapi.dto.patch.ProductPatchDTO;
 import com.example.shoppingapi.dto.put.ProductPutDTO;
 import com.example.shoppingapi.dto.response.ApiResponse;
@@ -20,7 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/api/products/")
 @RequiredArgsConstructor
 public class ProductController {
     private final ProductService productService;
@@ -35,9 +36,17 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<ProductDTO> getProductById(@PathVariable Long id) {
+    public ApiResponse<DetailedProductDTO> getProductById(@PathVariable Long id) {
         Product product = productService.getProductById(id);
-        return new ApiResponse<>("Fetched product", new ProductDTO(product.getProductId(), product.getStore().getStoreId()), HttpStatus.OK);
+        return new ApiResponse<>("Fetched product", DetailedProductDTO.builder()
+                .productId(product.getProductId())
+                .productName(product.getProductName())
+                .storeId(product.getStore().getStoreId())
+                .price(product.getPrice())
+                .totalReviews(product.getTotal_reviews())
+                .createdAt(product.getCreatedAt())
+                .updatedAt(product.getUpdatedAt())
+                .build(), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.CREATED)

@@ -93,7 +93,7 @@ public class ProductDetailControllerTest {
 
         String jsonContent = createProductDetailJson(createdProduct.getProductId(), "New desc");
 
-        mockMvc.perform(post("/api/productsdetail")
+        mockMvc.perform(post("/api/productsdetails/")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                 .andExpect(status().isCreated())
@@ -111,7 +111,7 @@ public class ProductDetailControllerTest {
         Product createdProduct = entityCreationHelper.createProduct(createdStore);
         ProductDetail createdProductDetail = entityCreationHelper.createProductDetail(createdProduct);
 
-        mockMvc.perform(get("/api/productsdetail"))
+        mockMvc.perform(get("/api/productsdetails/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched all product details"))
                 .andExpect(jsonPath("$.data[0].productDetailId").value(createdProductDetail.getProductDetailId()));
@@ -124,12 +124,12 @@ public class ProductDetailControllerTest {
         Product createdProduct = entityCreationHelper.createProduct(createdStore);
         ProductDetail createdProductDetail = entityCreationHelper.createProductDetail(createdProduct);
 
-        mockMvc.perform(get("/api/productsdetail/{id}", createdProduct.getProductId()))
+        mockMvc.perform(get("/api/productsdetails/{id}", createdProduct.getProductId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched product detail"))
                 .andExpect(jsonPath("$.data.productDetailId").value(createdProductDetail.getProductDetailId()))
                 .andExpect(jsonPath("$.data.description").value(createdProductDetail.getDescription()))
-                .andExpect(jsonPath("$.data.product.productId").value(createdProduct.getProductId()));
+                .andExpect(jsonPath("$.data.productId").value(createdProduct.getProductId()));
     }
 
     @Test
@@ -141,18 +141,18 @@ public class ProductDetailControllerTest {
 
         String jsonContent = createProductDetailJson(createdProductDetail.getProduct().getProductId(), "updated");
 
-        mockMvc.perform(put("/api/productsdetail/{id}", createdProduct.getProductId())
+        mockMvc.perform(put("/api/productsdetails/{id}", createdProduct.getProductId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully updated product detail"));
 
-        mockMvc.perform(get("/api/productsdetail/{id}", createdProduct.getProductId()))
+        mockMvc.perform(get("/api/productsdetails/{id}", createdProduct.getProductId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched product detail"))
                 .andExpect(jsonPath("$.data.productDetailId").value(createdProductDetail.getProductDetailId()))
                 .andExpect(jsonPath("$.data.description").value("updated"))
-                .andExpect(jsonPath("$.data.product.productId").value(createdProduct.getProductId()));
+                .andExpect(jsonPath("$.data.productId").value(createdProduct.getProductId()));
     }
 
     @Test
@@ -165,18 +165,18 @@ public class ProductDetailControllerTest {
 
         String jsonContent = "{ \"description\": \"updated\" }";
 
-        mockMvc.perform(patch("/api/productsdetail/{id}", createdProduct.getProductId())
+        mockMvc.perform(patch("/api/productsdetails/{id}", createdProduct.getProductId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonContent))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully partially updated product detail"));
 
-        mockMvc.perform(get("/api/productsdetail/{id}", createdProduct.getProductId()))
+        mockMvc.perform(get("/api/productsdetails/{id}", createdProduct.getProductId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Successfully fetched product detail"))
                 .andExpect(jsonPath("$.data.productDetailId").value(createdProductDetail.getProductDetailId()))
                 .andExpect(jsonPath("$.data.description").value("updated"))
-                .andExpect(jsonPath("$.data.product.productId").value(createdProduct.getProductId()));
+                .andExpect(jsonPath("$.data.productId").value(createdProduct.getProductId()));
     }
 
     @Test
@@ -186,7 +186,7 @@ public class ProductDetailControllerTest {
         Product createdProduct = entityCreationHelper.createProduct(createdStore);
         ProductDetail createdProductDetail = entityCreationHelper.createProductDetail(createdProduct);
 
-        mockMvc.perform(delete("/api/productsdetail/{id}", createdProduct.getProductId()))
+        mockMvc.perform(delete("/api/productsdetails/{id}", createdProduct.getProductId()))
                 .andExpect(status().isNoContent())
                 .andExpect(jsonPath("$.message").value("Successfully deleted product detail"));
 

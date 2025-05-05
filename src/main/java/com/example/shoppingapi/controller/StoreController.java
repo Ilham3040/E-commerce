@@ -1,6 +1,7 @@
 package com.example.shoppingapi.controller;
 
 import com.example.shoppingapi.dto.create.StoreCreateDTO;
+import com.example.shoppingapi.dto.detailed.DetailedStoreDTO;
 import com.example.shoppingapi.dto.patch.StorePatchDTO;
 import com.example.shoppingapi.dto.put.StorePutDTO;
 import com.example.shoppingapi.dto.response.ApiResponse;
@@ -19,7 +20,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/stores")
+@RequestMapping("/api/stores/")
 @RequiredArgsConstructor
 public class StoreController {
     private final StoreService storeService;
@@ -34,9 +35,15 @@ public class StoreController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<StoreDTO> getStoreById(@PathVariable Long id) {
+    public ApiResponse<DetailedStoreDTO> getStoreById(@PathVariable Long id) {
         Store store = storeService.getStoreById(id);
-        return new ApiResponse<>("Fetched store", new StoreDTO(store.getStoreId(), store.getUser().getUserId()), HttpStatus.OK);
+        return new ApiResponse<>("Fetched store", DetailedStoreDTO.builder()
+                .storeId(store.getStoreId())
+                .storeName(store.getStoreName())
+                .userId(store.getUser().getUserId())
+                .createdAt(store.getCreatedAt())
+                .updatedAt(store.getUpdatedAt())
+                .build(), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.CREATED)
