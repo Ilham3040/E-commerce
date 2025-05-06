@@ -3,6 +3,7 @@ package com.example.shoppingapi.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -28,6 +29,18 @@ public class Order {
 
     @Column(name = "order_date", columnDefinition = "TIMESTAMPTZ DEFAULT NOW()")
     private LocalDateTime orderDate;
+
+    @Builder.Default
+    @Column(name = "shipping_price", precision = 10, scale = 2, nullable = false)
+    private BigDecimal shippingPrice = BigDecimal.ZERO;
+
+    @Builder.Default
+    @Column(name = "service_price", precision = 10, scale = 2, nullable = false)
+    private BigDecimal servicePrice = BigDecimal.ZERO;
+
+    @Builder.Default
+    @Column(name = "total_price", precision = 10, scale = 2, nullable = false)
+    private BigDecimal totalPrice = BigDecimal.ZERO;
 
     @Builder.Default
     @Column(name = "status", length = 50, nullable = false)

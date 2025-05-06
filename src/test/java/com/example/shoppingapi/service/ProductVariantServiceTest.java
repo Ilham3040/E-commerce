@@ -1,13 +1,10 @@
 package com.example.shoppingapi.service;
 
-import com.example.shoppingapi.dto.create.ProductReviewCreateDTO;
 import com.example.shoppingapi.dto.create.ProductVariantCreateDTO;
 import com.example.shoppingapi.dto.patch.ProductVariantPatchDTO;
 import com.example.shoppingapi.dto.put.ProductVariantPutDTO;
 import com.example.shoppingapi.model.Product;
-import com.example.shoppingapi.model.ProductReview;
 import com.example.shoppingapi.model.ProductVariant;
-import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.modelhelper.ModelHelper;
 import com.example.shoppingapi.modelhelper.ModelHelperFactory;
 import com.example.shoppingapi.repository.ProductVariantRepository;
@@ -21,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;

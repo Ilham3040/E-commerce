@@ -19,6 +19,7 @@ CREATE TABLE stores (
     is_deleted BOOLEAN DEFAULT FALSE NOT NULL
 );
 
+
 CREATE TABLE products (
     id SERIAL PRIMARY KEY,
     product_name VARCHAR(255) NOT NULL,
@@ -36,5 +37,8 @@ CREATE TABLE orders (
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     product_id INT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     order_date TIMESTAMPTZ DEFAULT NOW(),
+    shipping_price DECIMAL(10,2) NOT NULL DEFAULT 0.00 CHECK (shipping_price >= 0),
+    service_price  DECIMAL(10,2) NOT NULL DEFAULT 0.00 CHECK (service_price  >= 0),
+    total_price    DECIMAL(10,2) NOT NULL DEFAULT 0.00 CHECK (total_price   >= 0),
     status VARCHAR(50) DEFAULT 'pending'
 );

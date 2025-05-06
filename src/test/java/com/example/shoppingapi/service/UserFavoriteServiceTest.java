@@ -1,7 +1,6 @@
 package com.example.shoppingapi.service;
 
 import com.example.shoppingapi.dto.create.UserFavoriteCreateDTO;
-import com.example.shoppingapi.dto.response.UserFavoriteDTO;
 import com.example.shoppingapi.model.Product;
 import com.example.shoppingapi.model.User;
 import com.example.shoppingapi.model.UserFavorite;

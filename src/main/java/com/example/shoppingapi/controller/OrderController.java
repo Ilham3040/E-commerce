@@ -31,7 +31,13 @@ public class OrderController {
     public ApiResponse<List<OrderDTO>> getAllOrders() {
         List<OrderDTO> orderDTOs = orderService.getAllOrders()
                 .stream()
-                .map(order -> new OrderDTO(order.getOrderId(), order.getUser().getUserId(), order.getProduct().getProductId(),order.getStatus()))
+                .map(order -> new OrderDTO(order.getOrderId(),
+                        order.getUser().getUserId(),
+                        order.getProduct().getProductId(),
+                        order.getStatus(),
+                        order.getShippingPrice(),
+                        order.getServicePrice(),
+                        order.getTotalPrice()))
                 .collect(Collectors.toList());
         return new ApiResponse<>("Fetched all orders", orderDTOs, HttpStatus.OK);
     }
@@ -52,18 +58,36 @@ public class OrderController {
     @PostMapping
     public ApiResponse<OrderDTO> createOrder(@Validated @RequestBody OrderCreateDTO orderCreateDTO) {
         Order createdOrder = orderService.saveOrder(orderCreateDTO);
-        return new ApiResponse<>("Order created", new OrderDTO(createdOrder.getOrderId(), createdOrder.getUser().getUserId(), createdOrder.getProduct().getProductId(),createdOrder.getStatus()), HttpStatus.CREATED);
+        return new ApiResponse<>("Order created", new OrderDTO(createdOrder.getOrderId(),
+                createdOrder.getUser().getUserId(),
+                createdOrder.getProduct().getProductId(),
+                createdOrder.getStatus(),
+                createdOrder.getShippingPrice(),
+                createdOrder.getServicePrice(),
+                createdOrder.getTotalPrice()), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ApiResponse<OrderDTO> updateOrder(@PathVariable Long id, @Validated @RequestBody OrderPutDTO orderPutDTO) {
         Order updatedOrder = orderService.updateOrder(id, orderPutDTO);
-        return new ApiResponse<>("Order updated", new OrderDTO(updatedOrder.getOrderId(), updatedOrder.getUser().getUserId(), updatedOrder.getProduct().getProductId(),updatedOrder.getStatus()), HttpStatus.OK);
+        return new ApiResponse<>("Order updated", new OrderDTO(updatedOrder.getOrderId(),
+                updatedOrder.getUser().getUserId(),
+                updatedOrder.getProduct().getProductId(),
+                updatedOrder.getStatus(),
+                updatedOrder.getShippingPrice(),
+                updatedOrder.getServicePrice(),
+                updatedOrder.getTotalPrice()), HttpStatus.OK);
     }
 
     @PatchMapping("/{id}")
     public ApiResponse<OrderDTO> partialUpdateOrder(@PathVariable Long id, @RequestBody OrderPatchDTO orderPatchDTO) {
         Order updatedOrder = orderService.partiallyUpdateOrder(id, orderPatchDTO);
-        return new ApiResponse<>("Order partially updated", new OrderDTO(updatedOrder.getOrderId(), updatedOrder.getUser().getUserId(), updatedOrder.getProduct().getProductId(),updatedOrder.getStatus()), HttpStatus.OK);
+        return new ApiResponse<>("Order partially updated", new OrderDTO(updatedOrder.getOrderId(),
+                updatedOrder.getUser().getUserId(),
+                updatedOrder.getProduct().getProductId(),
+                updatedOrder.getStatus(),
+                updatedOrder.getShippingPrice(),
+                updatedOrder.getServicePrice(),
+                updatedOrder.getTotalPrice()), HttpStatus.OK);
     }
 }

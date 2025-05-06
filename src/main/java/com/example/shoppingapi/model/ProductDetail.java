@@ -12,7 +12,7 @@ import org.hibernate.annotations.SoftDeleteType;
 import org.hibernate.type.YesNoConverter;
 
 @Entity
-@Table(name = "product_detail")
+@Table(name = "product_details`")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

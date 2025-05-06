@@ -1,4 +1,5 @@
-CREATE TABLE product_detail (
+
+CREATE TABLE product_details (
     id SERIAL PRIMARY KEY,
     product_id INT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     description TEXT,
@@ -124,4 +125,14 @@ CREATE TABLE shipment (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     PRIMARY KEY (vendor_id, order_id)
+);
+
+CREATE TABLE order_items (
+    id SERIAL PRIMARY KEY,
+    order_id INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    product_id INT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    product_variants_id INT NOT NULL REFERENCES product_variants(id) ON DELETE CASCADE,
+    unit_price DECIMAL(10, 2) NOT NULL CHECK(unit_price > 0),
+    quantity INT NOT NULL CHECK(quantity > 0),
+    line_total DECIMAL(10,2) GENERATED ALWAYS AS (quantity * unit_price) STORED,
 );

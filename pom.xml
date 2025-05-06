@@ -163,7 +163,9 @@
 <!--				<artifactId>maven-surefire-plugin</artifactId>-->
 <!--				<version>3.2.5</version>-->
 <!--				<configuration>-->
-<!--					<skipTests>true</skipTests>-->
+<!--					<excludes>-->
+<!--						<exclude>**/com/example/shoppingapi/controller/*Test.java</exclude>-->
+<!--					</excludes>-->
 <!--				</configuration>-->
 <!--			</plugin>-->
 		</plugins>

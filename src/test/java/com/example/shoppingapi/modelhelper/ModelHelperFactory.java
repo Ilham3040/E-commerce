@@ -1,26 +1,11 @@
 package com.example.shoppingapi.modelhelper;
-import com.example.shoppingapi.model.User;
-import com.example.shoppingapi.model.UserCart;
-import com.example.shoppingapi.model.UserFavorite;
-import com.example.shoppingapi.model.Order;
-import com.example.shoppingapi.model.Product;
-import com.example.shoppingapi.model.ProductDetail;
-import com.example.shoppingapi.model.ProductReview;
-import com.example.shoppingapi.model.ProductVariant;
-import com.example.shoppingapi.model.ShipmentVendor;
-import com.example.shoppingapi.model.Store;
-import com.example.shoppingapi.model.StoreCategory;
-import com.example.shoppingapi.model.StoreDetail;
-import com.example.shoppingapi.model.StoreRole;
+import com.example.shoppingapi.model.*;
 
 import lombok.NoArgsConstructor;
 
 import java.util.Map;
 import java.util.HashMap;
 import java.util.function.Supplier;
-
-import com.example.shoppingapi.model.Shipment;
-import com.example.shoppingapi.model.StoreCategoryItem;
 
 @NoArgsConstructor
 public class ModelHelperFactory {
@@ -41,6 +26,7 @@ public class ModelHelperFactory {
         registry.put(ProductVariant.class, ProductVariantModelHelper::new);
         registry.put(ProductReview.class, ProductReviewModelHelper::new);
         registry.put(Order.class, OrderModelHelper::new);
+        registry.put(OrderItem.class, OrderItemModelHelper::new);
         registry.put(Shipment.class, ShipmentModelHelper::new);
         registry.put(ShipmentVendor.class, ShipmentVendorModelHelper::new);
     }
